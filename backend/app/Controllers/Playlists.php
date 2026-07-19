@@ -26,6 +26,10 @@ class Playlists extends ResourceController
                 $p['id'] = (string)$p['id'];
                 $p['totem_id'] = $p['totem_id'] ? (string)$p['totem_id'] : null;
                 
+                // Formatar as datas para o padrão ISO que o JavaScript/React entende nativamente
+                if (!empty($p['data_inicio'])) $p['data_inicio'] = str_replace(' ', 'T', $p['data_inicio']);
+                if (!empty($p['data_fim'])) $p['data_fim'] = str_replace(' ', 'T', $p['data_fim']);
+                
                 $url = $p['arquivo_url'];
                 if ($url && !preg_match('/^https?:\/\//', $url)) {
                     if (strpos($url, '/widget/') === 0) {
