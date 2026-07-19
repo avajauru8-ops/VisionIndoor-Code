@@ -65,14 +65,16 @@ class Playlists extends ResourceController
             $db = \Config\Database::connect();
             $user_id = $this->request->getHeaderLine('X-User-Id');
             
-            $titulo = $this->request->getPost('titulo');
-            $tipo_midia = $this->request->getPost('tipo_midia');
-            $tempo_exibicao = $this->request->getPost('tempo_exibicao');
-            $data_inicio = $this->request->getPost('data_inicio');
-            $data_fim = $this->request->getPost('data_fim');
-            $url = $this->request->getPost('url');
-            $totem_id = $this->request->getPost('totem_id');
-            $arquivo_url = $this->request->getPost('arquivo_url');
+            $json = $this->request->getJSON();
+            
+            $titulo = $json->titulo ?? $this->request->getPost('titulo');
+            $tipo_midia = $json->tipo_midia ?? $this->request->getPost('tipo_midia');
+            $tempo_exibicao = $json->tempo_exibicao ?? $this->request->getPost('tempo_exibicao');
+            $data_inicio = $json->data_inicio ?? $this->request->getPost('data_inicio');
+            $data_fim = $json->data_fim ?? $this->request->getPost('data_fim');
+            $url = $json->url ?? $this->request->getPost('url');
+            $totem_id = $json->totem_id ?? $this->request->getPost('totem_id');
+            $arquivo_url = $json->arquivo_url ?? $this->request->getPost('arquivo_url');
             
             $finalUrl = $arquivo_url ?: $url ?: '';
             
@@ -113,14 +115,16 @@ class Playlists extends ResourceController
         try {
             $db = \Config\Database::connect();
             
-            $titulo = $this->request->getPost('titulo');
-            $tipo_midia = $this->request->getPost('tipo_midia');
-            $tempo_exibicao = $this->request->getPost('tempo_exibicao');
-            $data_inicio = $this->request->getPost('data_inicio');
-            $data_fim = $this->request->getPost('data_fim');
-            $url = $this->request->getPost('url');
-            $totem_id = $this->request->getPost('totem_id');
-            $arquivo_url = $this->request->getPost('arquivo_url');
+            $json = $this->request->getJSON();
+            
+            $titulo = $json->titulo ?? $this->request->getPost('titulo');
+            $tipo_midia = $json->tipo_midia ?? $this->request->getPost('tipo_midia');
+            $tempo_exibicao = $json->tempo_exibicao ?? $this->request->getPost('tempo_exibicao');
+            $data_inicio = $json->data_inicio ?? $this->request->getPost('data_inicio');
+            $data_fim = $json->data_fim ?? $this->request->getPost('data_fim');
+            $url = $json->url ?? $this->request->getPost('url');
+            $totem_id = $json->totem_id ?? $this->request->getPost('totem_id');
+            $arquivo_url = $json->arquivo_url ?? $this->request->getPost('arquivo_url');
             
             $finalUrl = $arquivo_url ?: $url ?: '';
             
