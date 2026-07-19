@@ -22,21 +22,37 @@ export default function WidgetLoteria() {
 
   const [numbers, setNumbers] = useState<string[]>([]);
   const [dataSorteio, setDataSorteio] = useState('');
+  const [premio, setPremio] = useState('');
   
   useEffect(() => {
-     const today = new Date();
-     // Use the day of the year as a seed so numbers stay the same for the whole day
-     const seed = today.getFullYear() * 1000 + today.getMonth() * 100 + today.getDate() + (tipo === 'megasena' ? 1 : 2);
-     
-     setNumbers(generateNumbers(tipo === 'lotofacil' ? 15 : tipo === 'quina' ? 5 : 6, seed));
-     
-     const lastDraw = new Date(today);
-     // If today is Sunday(0), last draw was Saturday(-1)
-     if (today.getDay() === 0) lastDraw.setDate(today.getDate() - 1);
-     else if (today.getDay() === 1) lastDraw.setDate(today.getDate() - 2);
-     else if (today.getDay() === 2) lastDraw.setDate(today.getDate() - 3);
-     
-     setDataSorteio(lastDraw.toLocaleDateString('pt-BR'));
+     const fetchData = async () => {
+        try {
+           const response = await fetch(`/api/loteria?tipo=${tipo}`);
+           if (!response.ok) throw new Error('API request failed');
+           const data = await response.json();
+           
+           if (data.listaDezenas) {
+              setNumbers(data.listaDezenas);
+           }
+           if (data.dataApuracao) {
+              setDataSorteio(data.dataApuracao);
+           }
+           if (data.valorEstimadoProximoConcurso) {
+              const valorFormatado = (data.valorEstimadoProximoConcurso / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+              setPremio(`R$ ${valorFormatado} Milhões`);
+           }
+        } catch (error) {
+           console.error('Erro ao carregar loteria:', error);
+           // Fallback para valores simulados em caso de erro da API
+           const today = new Date();
+           const seed = today.getFullYear() * 1000 + today.getMonth() * 100 + today.getDate() + (tipo === 'megasena' ? 1 : 2);
+           setNumbers(generateNumbers(tipo === 'lotofacil' ? 15 : tipo === 'quina' ? 5 : 6, seed));
+           setDataSorteio(today.toLocaleDateString('pt-BR'));
+           setPremio(`R$ ${Math.floor(Math.random() * 40 + 10)} Milhões`);
+        }
+     };
+
+     fetchData();
   }, [tipo]);
 
   const colors: Record<string, string> = {
@@ -79,7 +95,7 @@ export default function WidgetLoteria() {
        </div>
 
        <div className="mt-16 text-3xl font-bold opacity-90 bg-black/20 px-10 py-5 rounded-2xl backdrop-blur-sm">
-         Próximo prêmio estimado: <span className="text-yellow-300 drop-shadow-sm">R$ {Math.floor(Math.random() * 40 + 10)} Milhões</span>
+         Próximo prêmio estimado: <span className="text-yellow-300 drop-shadow-sm">{premio}</span>
        </div>
     </div>
   );

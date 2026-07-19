@@ -9,6 +9,10 @@ use CodeIgniter\Router\RouteCollection;
 // --- API Routes ---
 $routes->group('api', ['filter' => 'cors'], static function ($routes) {
     
+    // API Pública (TV)
+    $routes->get('playlists', 'Api::getPlaylist');
+    $routes->get('loteria', 'Api::loteria');
+
     // Autenticação
     $routes->post('auth/login', 'Auth::login');
 

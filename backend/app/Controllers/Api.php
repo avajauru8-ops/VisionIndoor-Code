@@ -102,4 +102,41 @@ class Api extends ResourceController
             return $this->respond(['erro' => 'Erro interno: ' . $e->getMessage()]);
         }
     }
+
+    public function loteria()
+    {
+        $tipo = $this->request->getGet('tipo') ?? 'megasena';
+        
+        $urls = [
+            'lotofacil' => 'https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil',
+            'megasena' => 'https://servicebus2.caixa.gov.br/portaldeloterias/api/megasena',
+            'quina' => 'https://servicebus2.caixa.gov.br/portaldeloterias/api/quina'
+        ];
+
+        if (!array_key_exists($tipo, $urls)) {
+            return $this->fail('Tipo de loteria inválido', 400);
+        }
+
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $urls[$tipo]);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            // Caixa API often blocks default curl user agents, let's use a standard browser agent
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode !== 200 || !$response) {
+                return $this->fail('Erro ao buscar dados da Caixa', 500);
+            }
+
+            return $this->response->setJSON($response);
+        } catch (\Exception $e) {
+            return $this->fail('Erro interno: ' . $e->getMessage(), 500);
+        }
+    }
 }
