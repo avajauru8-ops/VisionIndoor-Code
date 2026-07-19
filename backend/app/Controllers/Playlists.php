@@ -28,7 +28,11 @@ class Playlists extends ResourceController
                 
                 $url = $p['arquivo_url'];
                 if ($url && !preg_match('/^https?:\/\//', $url)) {
-                    $p['arquivo_url'] = base_url('uploads/' . ltrim($url, '/'));
+                    if (strpos($url, '/widget/') === 0) {
+                        $p['arquivo_url'] = rtrim(base_url(), '/') . $url; // Rota do React Frontend
+                    } else {
+                        $p['arquivo_url'] = base_url('uploads/' . ltrim($url, '/'));
+                    }
                 }
             }
             

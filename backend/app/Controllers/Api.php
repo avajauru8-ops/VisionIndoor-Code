@@ -83,7 +83,11 @@ class Api extends ResourceController
                 if (empty($url)) continue; // Evita quebrar o app Android com mídia vazia
                 
                 if ($url && !preg_match('/^https?:\/\//', $url)) {
-                    $url = base_url('uploads/' . ltrim($url, '/'));
+                    if (strpos($url, '/widget/') === 0) {
+                        $url = rtrim(base_url(), '/') . $url; // Rota do React Frontend
+                    } else {
+                        $url = base_url('uploads/' . ltrim($url, '/')); // Imagem/Vídeo
+                    }
                 }
                 
                 $playlist[] = [
