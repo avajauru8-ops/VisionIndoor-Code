@@ -32,3 +32,6 @@ jobs:
           README.md
           dist.zip
           .github/**
+          .env
+          backend/.env
+
