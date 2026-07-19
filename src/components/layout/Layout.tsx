@@ -287,7 +287,7 @@ export default function Layout() {
             {/* Profile Avatar Card */}
             <div className="flex items-center gap-1.5 sm:gap-3">
               <div className="text-right hidden md:block">
-                <p className="text-xs font-bold text-zinc-800 leading-none">{user?.nome}</p>
+                <p className="text-xs font-bold text-zinc-800 leading-none">Olá, {user?.nome}</p>
                 <p className="text-[10px] text-zinc-400 mt-1 leading-none truncate max-w-[120px]">{user?.email}</p>
               </div>
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-emerald-500 to-[#0b462c] flex items-center justify-center text-xs font-extrabold text-white shadow-sm border border-emerald-100 relative shrink-0">
