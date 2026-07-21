@@ -13,6 +13,7 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
   }
+  headers['Accept'] = 'application/json';
 
   const response = await fetch(endpoint, {
     ...options,
@@ -21,7 +22,7 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || `HTTP error! status: ${response.status}`);
+    throw new Error(error.error || error.message || error.title || `HTTP error! status: ${response.status}`);
   }
 
   return response.json();
