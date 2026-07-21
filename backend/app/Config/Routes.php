@@ -6,6 +6,9 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 
+// Handle CORS Preflight for ALL routes
+$routes->options('(:any)', static function () {}, ['filter' => 'cors']);
+
 // --- API Routes ---
 $routes->group('api', ['filter' => 'cors'], static function ($routes) {
     
@@ -27,10 +30,10 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
     });
 
     // Admin Settings
-    $routes->group('admin/settings', ['filter' => 'auth:admin'], static function ($routes) {
-        $routes->get('/', 'Settings::index');
-        $routes->get('', 'Settings::index');
-        $routes->post('', 'Settings::update'); // CodeIgniter prefers POST for file uploads
+    $routes->group('admin/settings', static function ($routes) {
+        $routes->get('/', 'Settings::index', ['filter' => 'auth']);
+        $routes->get('', 'Settings::index', ['filter' => 'auth']);
+        $routes->post('', 'Settings::update', ['filter' => 'auth:admin']); // CodeIgniter prefers POST for file uploads
     });
 
     // Totems
