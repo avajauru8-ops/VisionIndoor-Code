@@ -334,7 +334,7 @@ export default function AgencyPlaylists() {
                             <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none">Validade</p>
                             <p className="text-xs text-zinc-500 font-medium font-sans mt-1">
                               Até {(() => {
-                                const d = new Date(item.data_fim.replace(' ', 'T'));
+                                const d = new Date(item.data_fim ? item.data_fim.replace(' ', 'T') : 0);
                                 return isNaN(d.getTime()) ? 'Data Inválida' : format(d, 'dd/MM/yyyy HH:mm');
                               })()}
                             </p>
