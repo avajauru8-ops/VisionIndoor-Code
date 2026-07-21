@@ -21,6 +21,15 @@ interface Playlist {
   ativo: number;
 }
 
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
+  constructor(props: any) { super(props); this.state = { hasError: false, error: null }; }
+  static getDerivedStateFromError(error: Error) { return { hasError: true, error }; }
+  render() {
+    if (this.state.hasError) return <div className="p-8 bg-red-50 text-red-900 border border-red-200 rounded-xl"><h2>Frontend Crash</h2><pre>{this.state.error?.message}</pre><pre className="text-xs mt-2">{this.state.error?.stack}</pre></div>;
+    return this.props.children;
+  }
+}
+
 export default function AgencyPlaylists() {
   const [totems, setTotems] = useState<Totem[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
@@ -172,6 +181,7 @@ export default function AgencyPlaylists() {
   const now = new Date();
 
   return (
+    <ErrorBoundary>
     <div className="space-y-6 flex flex-col lg:h-[calc(100vh-8rem)] h-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
         <div>
@@ -187,7 +197,7 @@ export default function AgencyPlaylists() {
             onChange={(e) => setSelectedTotem(e.target.value)}
           >
              <option value="">Todas as Telas (Global)</option>
-             {totems.map(t => (
+             {Array.isArray(totems) && totems.map(t => (
                 <option key={t.id} value={t.id}>{t.nome} ({t.device_id})</option>
              ))}
           </select>
@@ -218,7 +228,7 @@ export default function AgencyPlaylists() {
                         onChange={(e) => setFormTotemId(e.target.value)}
                       >
                          <option value="">Todas as Telas (Global)</option>
-                         {totems.map(t => (
+                         {Array.isArray(totems) && totems.map(t => (
                             <option key={t.id} value={t.id}>{t.nome} ({t.device_id})</option>
                          ))}
                       </select>
@@ -295,8 +305,8 @@ export default function AgencyPlaylists() {
             </div>
             
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-               {filteredPlaylists.map(item => {
-                 const isExpired = new Date(item.data_fim) < now;
+               {Array.isArray(filteredPlaylists) && filteredPlaylists.map(item => {
+                 const isExpired = item.data_fim ? new Date(item.data_fim) < now : true;
                  return (
                    <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-[#e8edf2] hover:bg-zinc-50/50 transition-all gap-4">
                       <div className="flex items-center gap-4">
@@ -304,17 +314,17 @@ export default function AgencyPlaylists() {
                            {item.tipo_midia === 'video' ? (
                              <Film className="w-6 h-6 text-zinc-400" />
                            ) : (
-                             <img src={item.arquivo_url} alt={item.titulo} className="w-full h-full object-cover" />
+                             <img src={item.arquivo_url || ''} alt={item.titulo || ''} className="w-full h-full object-cover" />
                            )}
                          </div>
                          <div>
-                            <h4 className="text-sm font-extrabold text-zinc-800 leading-tight">{item.titulo}</h4>
+                            <h4 className="text-sm font-extrabold text-zinc-800 leading-tight">{item.titulo || 'Sem título'}</h4>
                             <div className="flex flex-wrap gap-2 mt-2">
                               <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-zinc-100 text-zinc-600">
-                                {item.tempo_exibicao}s
+                                {item.tempo_exibicao || 0}s
                               </span>
                               <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-zinc-100 text-zinc-600 uppercase">
-                                {item.tipo_midia}
+                                {item.tipo_midia || 'imagem'}
                               </span>
                               {isExpired ? (
                                 <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-rose-50 text-rose-600 uppercase">
@@ -334,8 +344,14 @@ export default function AgencyPlaylists() {
                             <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none">Validade</p>
                             <p className="text-xs text-zinc-500 font-medium font-sans mt-1">
                               Até {(() => {
-                                const d = new Date(item.data_fim ? item.data_fim.replace(' ', 'T') : 0);
-                                return isNaN(d.getTime()) ? 'Data Inválida' : format(d, 'dd/MM/yyyy HH:mm');
+                                try {
+                                  if (!item.data_fim) return 'Data Inválida';
+                                  const dStr = typeof item.data_fim === 'string' ? item.data_fim.replace(' ', 'T') : String(item.data_fim);
+                                  const d = new Date(dStr);
+                                  return isNaN(d.getTime()) ? 'Data Inválida' : format(d, 'dd/MM/yyyy HH:mm');
+                                } catch (e) {
+                                  return 'Data Inválida';
+                                }
                               })()}
                             </p>
                          </div>
@@ -351,7 +367,7 @@ export default function AgencyPlaylists() {
                    </div>
                  );
                })}
-               {filteredPlaylists.length === 0 && (
+               {(!Array.isArray(filteredPlaylists) || filteredPlaylists.length === 0) && (
                  <div className="h-full flex flex-col items-center justify-center text-zinc-400 py-12">
                    <MonitorPlay className="w-12 h-12 mb-3 opacity-30 text-[#8b9aa5]" />
                    <p className="text-sm font-semibold">Nenhuma mídia ativa.</p>
@@ -361,5 +377,6 @@ export default function AgencyPlaylists() {
          </div>
       </div>
     </div>
+    </ErrorBoundary>
   );
 }
