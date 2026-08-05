@@ -73,20 +73,20 @@ export default function WidgetLoteria() {
   const title = titles[tipo] || 'LOTERIA';
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-center text-white p-8" style={{ backgroundColor: bgColor }}>
-       <div className="bg-white/10 px-12 py-6 rounded-full border-4 border-white/20 mb-8 shadow-2xl backdrop-blur-sm">
-          <h1 className="text-6xl font-black uppercase tracking-widest text-white drop-shadow-md">
+    <div className="w-screen h-screen flex flex-col items-center justify-center text-white overflow-hidden p-[4vmin]" style={{ backgroundColor: bgColor }}>
+       <div className="bg-white/10 px-[6vmin] py-[2.5vmin] rounded-full border-[0.5vmin] border-white/20 mb-[4vmin] shadow-2xl backdrop-blur-sm">
+          <h1 className="text-[6vmin] font-black uppercase tracking-widest text-white drop-shadow-md text-center">
              {title}
           </h1>
        </div>
        
-       <h2 className="text-4xl font-medium mb-12 opacity-90 drop-shadow-sm">SORTEIO: {dataSorteio}</h2>
+       <h2 className="text-[4vmin] font-medium mb-[6vmin] opacity-90 drop-shadow-sm text-center">SORTEIO: {dataSorteio}</h2>
        
-       <div className={`flex flex-wrap justify-center gap-6 max-w-5xl ${tipo === 'lotofacil' ? 'gap-4' : 'gap-6'}`}>
+       <div className={`flex flex-wrap justify-center content-center max-w-[90vw] ${tipo === 'lotofacil' ? 'gap-[2vmin]' : 'gap-[3vmin]'}`}>
           {numbers.map((n, i) => (
             <div key={i} 
-                 className={`bg-white rounded-full flex items-center justify-center shadow-[inset_0_-8px_0_rgba(0,0,0,0.1)] font-black text-center border-4 border-white/90 drop-shadow-xl ${
-                   tipo === 'lotofacil' ? 'w-24 h-24 text-5xl' : 'w-32 h-32 text-6xl'
+                 className={`bg-white rounded-full flex items-center justify-center shadow-[inset_0_-1vmin_0_rgba(0,0,0,0.1)] font-black text-center border-[0.5vmin] border-white/90 drop-shadow-xl ${
+                   tipo === 'lotofacil' ? 'w-[10vmin] h-[10vmin] text-[5vmin]' : 'w-[14vmin] h-[14vmin] text-[7vmin]'
                  }`}
                  style={{ color: bgColor }}>
                {n}
@@ -94,8 +94,8 @@ export default function WidgetLoteria() {
           ))}
        </div>
 
-       <div className="mt-16 text-3xl font-bold opacity-90 bg-black/20 px-10 py-5 rounded-2xl backdrop-blur-sm">
-         Próximo prêmio estimado: <span className="text-yellow-300 drop-shadow-sm">{premio}</span>
+       <div className="mt-[8vmin] text-[3.5vmin] font-bold opacity-90 bg-black/20 px-[5vmin] py-[2.5vmin] rounded-[2vmin] backdrop-blur-sm text-center max-w-[90vw]">
+         Próximo prêmio estimado: <span className="text-yellow-300 drop-shadow-sm block sm:inline">{premio}</span>
        </div>
     </div>
   );
