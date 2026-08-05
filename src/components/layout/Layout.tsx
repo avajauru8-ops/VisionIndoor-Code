@@ -17,7 +17,9 @@ import {
   Mail, 
   Bell,
   Menu,
-  X
+  X,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -30,6 +32,7 @@ export default function Layout() {
   const { user, logout, isAuthenticated } = useAuth();
   const location = useLocation();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
   const [sysSettings, setSysSettings] = useState<any>({
     nome_painel: 'GrandMídia',
     logo_url: '',
@@ -69,7 +72,16 @@ export default function Layout() {
   const agencyLinks = [
     { name: 'Dashboard', path: '/agency', icon: LayoutDashboard, category: 'MENU' },
     { name: 'Minhas Telas', path: '/agency/totems', icon: Tv, category: 'MENU' },
-    { name: 'Playlists', path: '/agency/playlists', icon: MonitorPlay, category: 'MENU' },
+    { 
+      name: 'Playlists', 
+      path: '/agency/playlists', 
+      icon: MonitorPlay, 
+      category: 'MENU',
+      submenus: [
+        { name: 'Cadastrar Mídias', path: '/agency/playlists/cadastrar' },
+        { name: 'Telas em Exibição', path: '/agency/playlists/telas' }
+      ]
+    },
     { name: 'Utilizar Notícias', path: '/agency/news', icon: Newspaper, category: 'MENU' },
     { name: 'Mídia Kit Web', path: '/agency/media-kit', icon: Newspaper, category: 'MENU' },
     { name: 'Gerador de Contratos', path: '/agency/contracts', icon: FileText, category: 'MENU' },
@@ -81,6 +93,10 @@ export default function Layout() {
   // Group links by category
   const menuLinks = rawLinks.filter(link => link.category === 'MENU');
   const generalLinks = rawLinks.filter(link => link.category === 'GERAL');
+
+  const toggleMenu = (menuName: string) => {
+    setExpandedMenus(prev => ({ ...prev, [menuName]: !prev[menuName] }));
+  };
 
   // Sidebar content component to dry up code
   const SidebarContent = () => (
@@ -125,25 +141,70 @@ export default function Layout() {
             <nav className="space-y-1">
               {menuLinks.map((link) => {
                 const Icon = link.icon;
-                const isActive = location.pathname === link.path || (link.path !== '/agency' && link.path !== '/admin' && location.pathname.startsWith(link.path + '/'));
+                const hasSubmenu = !!link.submenus;
+                const isExpanded = expandedMenus[link.name] || (hasSubmenu && location.pathname.startsWith(link.path));
+                const isActive = !hasSubmenu && (location.pathname === link.path || (link.path !== '/agency' && link.path !== '/admin' && location.pathname.startsWith(link.path + '/')));
+                
                 return (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    onClick={() => setIsMobileSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer group relative",
-                      isActive 
-                        ? "bg-[#e8f5ed] text-[#0b462c] font-semibold" 
-                        : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800"
+                  <div key={link.path}>
+                    {hasSubmenu ? (
+                      <button
+                        onClick={() => toggleMenu(link.name)}
+                        className={cn(
+                          "w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer group relative",
+                          isExpanded 
+                            ? "bg-[#e8f5ed] text-[#0b462c] font-semibold" 
+                            : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className={cn("w-5 h-5", isExpanded ? "text-emerald-600" : "text-zinc-400 group-hover:text-zinc-600")} />
+                          <span className="text-sm">{link.name}</span>
+                        </div>
+                        {isExpanded ? <ChevronDown className="w-4 h-4 opacity-50" /> : <ChevronRight className="w-4 h-4 opacity-50" />}
+                      </button>
+                    ) : (
+                      <Link
+                        to={link.path}
+                        onClick={() => setIsMobileSidebarOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer group relative",
+                          isActive 
+                            ? "bg-[#e8f5ed] text-[#0b462c] font-semibold" 
+                            : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800"
+                        )}
+                      >
+                        {isActive && (
+                          <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-emerald-600 rounded-r" />
+                        )}
+                        <Icon className={cn("w-5 h-5", isActive ? "text-emerald-600" : "text-zinc-400 group-hover:text-zinc-600")} />
+                        <span className="text-sm">{link.name}</span>
+                      </Link>
                     )}
-                  >
-                    {isActive && (
-                      <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-emerald-600 rounded-r" />
+                    
+                    {hasSubmenu && isExpanded && (
+                      <div className="mt-1 ml-6 pl-3 border-l-2 border-[#e8edf2] space-y-1">
+                        {link.submenus!.map(sub => {
+                          const isSubActive = location.pathname === sub.path;
+                          return (
+                            <Link
+                              key={sub.path}
+                              to={sub.path}
+                              onClick={() => setIsMobileSidebarOpen(false)}
+                              className={cn(
+                                "block px-3 py-2 rounded-lg text-xs font-medium transition-colors",
+                                isSubActive
+                                  ? "bg-emerald-50 text-emerald-700 font-bold"
+                                  : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50"
+                              )}
+                            >
+                              {sub.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
                     )}
-                    <Icon className={cn("w-5 h-5", isActive ? "text-emerald-600" : "text-zinc-400 group-hover:text-zinc-600")} />
-                    <span className="text-sm">{link.name}</span>
-                  </Link>
+                  </div>
                 )
               })}
             </nav>

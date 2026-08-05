@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 import { MonitorPlay, UploadCloud, Film, Image as ImageIcon, Trash2, Edit2, X, Cloud, Hash, LayoutGrid } from 'lucide-react';
 import { format, addDays } from 'date-fns';
+import { useSearchParams } from 'react-router-dom';
 
 interface Totem {
   id: string;
@@ -31,6 +32,7 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
 }
 
 export default function AgencyPlaylists() {
+  const [searchParams] = useSearchParams();
   const [totems, setTotems] = useState<Totem[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,8 +42,8 @@ export default function AgencyPlaylists() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form State - Midia
-  const [selectedTotem, setSelectedTotem] = useState('');
-  const [formTotemId, setFormTotemId] = useState('');
+  const [selectedTotem, setSelectedTotem] = useState(searchParams.get('totem_id') || '');
+  const [formTotemId, setFormTotemId] = useState(searchParams.get('totem_id') || '');
   const [titulo, setTitulo] = useState('');
   const [tipoMidia, setTipoMidia] = useState<'video' | 'imagem'>('imagem');
   const [tempoExibicao, setTempoExibicao] = useState(15);
@@ -71,6 +73,16 @@ export default function AgencyPlaylists() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId && playlists.length > 0) {
+      const itemToEdit = playlists.find(p => p.id === editId || p.id === Number(editId) as any);
+      if (itemToEdit && editingId !== itemToEdit.id) {
+        handleEdit(itemToEdit);
+      }
+    }
+  }, [searchParams, playlists]);
 
   // Sync selected screen filter with the new media form
   useEffect(() => {
@@ -185,7 +197,7 @@ export default function AgencyPlaylists() {
     <div className="space-y-6 flex flex-col lg:h-[calc(100vh-8rem)] h-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
         <div>
-          <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Gestão de Playlist</h2>
+          <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Cadastrar Mídias</h2>
           <p className="text-xs text-[#8b9aa5] font-medium mt-1">Envie mídias e organize as programações de suas telas.</p>
         </div>
         

@@ -17,6 +17,8 @@ import AdminTotems from './pages/admin/AdminTotems';
 import AgencyDashboard from './pages/agency/AgencyDashboard';
 import AgencyTotems from './pages/agency/AgencyTotems';
 import AgencyPlaylists from './pages/agency/AgencyPlaylists';
+import AgencyPlaylistScreens from './pages/agency/AgencyPlaylistScreens';
+import AgencyPlaylistView from './pages/agency/AgencyPlaylistView';
 import AgencyNews from './pages/agency/AgencyNews';
 import AgencyProfile from './pages/agency/AgencyProfile';
 import AgencyMediaKit from './pages/agency/AgencyMediaKit';
@@ -48,7 +50,10 @@ export default function App() {
              {/* Agency Routes */}
              <Route path="agency" element={<AgencyDashboard />} />
              <Route path="agency/totems" element={<AgencyTotems />} />
-             <Route path="agency/playlists" element={<AgencyPlaylists />} />
+             <Route path="agency/playlists" element={<Navigate to="/agency/playlists/cadastrar" replace />} />
+             <Route path="agency/playlists/cadastrar" element={<AgencyPlaylists />} />
+             <Route path="agency/playlists/telas" element={<AgencyPlaylistScreens />} />
+             <Route path="agency/playlists/telas/:id" element={<AgencyPlaylistView />} />
              <Route path="agency/news" element={<AgencyNews />} />
              <Route path="agency/profile" element={<AgencyProfile />} />
              <Route path="agency/media-kit" element={<AgencyMediaKit />} />
