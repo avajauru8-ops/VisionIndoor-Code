@@ -474,50 +474,6 @@ export default function AgencyNews() {
              </div>
           </div>
 
-          <div className="bg-white border border-[#e8edf2] rounded-[24px] overflow-hidden shadow-sm">
-             <div className="px-6 py-4 border-b border-[#e8edf2] flex justify-between items-center bg-zinc-50/50">
-                <h3 className="text-[#0b462c] text-xs font-bold uppercase tracking-wider">Widgets Ativos na Playlist</h3>
-             </div>
-             <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-mono text-zinc-600">
-                   <thead className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 border-b border-[#e8edf2] bg-zinc-50/50">
-                     <tr>
-                       <th className="px-6 py-4">Widget</th>
-                       <th className="px-6 py-4 font-sans">Duração</th>
-                       <th className="px-6 py-4">Tipo</th>
-                       <th className="px-6 py-4 text-right">Ações</th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                   {newsPlaylists.length === 0 ? (
-                     <tr>
-                       <td colSpan={4} className="px-6 py-12 text-center text-[#8b9aa5] font-sans">Nenhum widget ativo.</td>
-                     </tr>
-                   ) : (
-                     newsPlaylists.map(item => (
-                       <tr key={item.id} className="border-b border-[#e8edf2] hover:bg-zinc-50/50 transition-colors">
-                         <td className="px-6 py-4 font-sans text-zinc-800 font-bold flex items-center gap-3">
-                            <LayoutGrid className="w-4 h-4 text-indigo-500 shrink-0" />
-                            <span className="truncate max-w-[200px]" title={item.titulo}>{item.titulo}</span>
-                         </td>
-                         <td className="px-6 py-4 text-zinc-500 font-sans">{item.tempo_exibicao}s</td>
-                         <td className="px-6 py-4">
-                            <span className="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full border border-emerald-100 text-[9px] uppercase font-bold tracking-wider">
-                                Widget Web
-                            </span>
-                         </td>
-                         <td className="px-6 py-4 text-right font-sans">
-                            <button onClick={() => handleDelete(item.id)} className="text-zinc-400 hover:text-rose-500 p-1.5 transition-all rounded-lg hover:bg-rose-50">
-                              <Trash2 className="w-4 h-4 inline" />
-                            </button>
-                         </td>
-                       </tr>
-                     ))
-                   )}
-                   </tbody>
-                </table>
-             </div>
-          </div>
        </div>
     </div>
   );
