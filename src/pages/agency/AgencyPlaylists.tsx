@@ -202,27 +202,13 @@ export default function AgencyPlaylists() {
           <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Cadastrar Mídias</h2>
           <p className="text-xs text-[#8b9aa5] font-medium mt-1">Envie mídias e widgets para suas telas de exibição.</p>
         </div>
-        {/* Filtro de tela */}
-        <div className="flex items-center gap-3 bg-white border border-[#e8edf2] rounded-2xl px-4 py-2.5 shadow-sm">
-          <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest shrink-0">Tela:</span>
-          <select
-            className="bg-transparent border-none outline-none text-zinc-700 text-sm font-medium cursor-pointer"
-            value={selectedTotem}
-            onChange={(e) => setSelectedTotem(e.target.value)}
-          >
-            <option value="">Todas (Global)</option>
-            {Array.isArray(totems) && totems.map(t => (
-              <option key={t.id} value={t.id}>{t.nome}</option>
-            ))}
-          </select>
-        </div>
       </div>
 
-      {/* Main Grid */}
-      <div className="flex-1 grid grid-cols-1 xl:grid-cols-5 gap-6 overflow-hidden">
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
 
-        {/* ── Left: Form ── */}
-        <div className="xl:col-span-2 bg-white border border-[#e8edf2] rounded-[24px] flex flex-col overflow-hidden shadow-sm">
+        {/* Form */}
+        <div className="w-full bg-white border border-[#e8edf2] rounded-[24px] flex flex-col overflow-hidden shadow-sm">
           {/* Form header */}
           {editingId ? (
             <div className="bg-emerald-500/10 border-b border-emerald-100 px-6 py-3 flex items-center justify-between shrink-0">
@@ -390,124 +376,10 @@ export default function AgencyPlaylists() {
             </form>
           </div>
         </div>
-
-        {/* ── Right: Recent Media List ── */}
-        <div className="xl:col-span-3 bg-white border border-[#e8edf2] rounded-[24px] flex flex-col overflow-hidden shadow-sm">
-          <div className="border-b border-[#e8edf2] px-6 py-4 bg-zinc-50/50 flex justify-between items-center shrink-0">
-            <div>
-              <h3 className="text-[#0b462c] text-sm font-bold">Mídias Cadastradas</h3>
-              <p className="text-[11px] text-zinc-400 mt-0.5">
-                {selectedTotem
-                  ? `Exibindo mídias de: ${totems.find(t => t.id === selectedTotem)?.nome || 'Tela selecionada'}`
-                  : 'Todas as mídias cadastradas'}
-              </p>
-            </div>
-            <span className="text-xs font-bold text-zinc-500 bg-zinc-100 px-3 py-1.5 rounded-full">
-              {filteredPlaylists.length} {filteredPlaylists.length === 1 ? 'item' : 'itens'}
-            </span>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
-            {loading ? (
-              <div className="flex justify-center items-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-              </div>
-            ) : filteredPlaylists.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-zinc-400 py-16">
-                <MonitorPlay className="w-14 h-14 mb-4 opacity-20 text-[#8b9aa5]" />
-                <p className="text-sm font-semibold text-zinc-500">Nenhuma mídia cadastrada</p>
-                <p className="text-xs text-zinc-400 mt-1 text-center max-w-xs">
-                  Preencha o formulário ao lado para adicionar sua primeira mídia.
-                </p>
-              </div>
-            ) : (
-              filteredPlaylists.map(item => {
-                const isExpired = item.data_fim ? new Date(item.data_fim) < now : true;
-                const isEditing = editingId === item.id;
-                return (
-                  <div
-                    key={item.id}
-                    className={`flex items-center gap-4 p-4 rounded-2xl border transition-all
-                      ${isEditing
-                        ? 'border-emerald-300 bg-emerald-50/40 shadow-sm'
-                        : 'border-[#e8edf2] hover:bg-zinc-50/50 hover:border-zinc-300'}`}
-                  >
-                    {/* Thumbnail */}
-                    <div className="w-14 h-14 rounded-xl bg-zinc-100 overflow-hidden flex items-center justify-center shrink-0 border border-zinc-200">
-                      {item.tipo_midia === 'video' ? (
-                        <Film className="w-6 h-6 text-zinc-400" />
-                      ) : item.tipo_midia === 'noticia' ? (
-                        item.titulo?.toLowerCase().includes('clima') ? (
-                          <Cloud className="w-6 h-6 text-indigo-500" />
-                        ) : item.titulo?.toLowerCase().includes('loteria') ? (
-                          <Hash className="w-6 h-6 text-emerald-500" />
-                        ) : (
-                          <LayoutGrid className="w-6 h-6 text-zinc-500" />
-                        )
-                      ) : item.arquivo_url ? (
-                        <img src={item.arquivo_url} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as any).style.display='none'; }} />
-                      ) : (
-                        <ImageIcon className="w-5 h-5 text-zinc-300" />
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="text-sm font-bold text-zinc-800 truncate">{item.titulo || 'Sem título'}</h4>
-                        {!item.totem_id && (
-                          <span className="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider shrink-0">Global</span>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                        <span className="px-2 py-0.5 rounded-md text-[9px] font-semibold bg-zinc-100 text-zinc-600">
-                          {item.tempo_exibicao || 0}s
-                        </span>
-                        <span className="px-2 py-0.5 rounded-md text-[9px] font-semibold bg-zinc-100 text-zinc-500 uppercase">
-                          {item.tipo_midia}
-                        </span>
-                        {isExpired ? (
-                          <span className="px-2 py-0.5 rounded-md text-[9px] font-semibold bg-rose-50 text-rose-600 uppercase">Expirado</span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded-md text-[9px] font-semibold bg-emerald-50 text-emerald-600 uppercase">Ativo</span>
-                        )}
-                      </div>
-                      {item.data_fim && (
-                        <p className="text-[10px] text-zinc-400 mt-1">
-                          Até {(() => { try { const d = new Date(item.data_fim); return isNaN(d.getTime()) ? '—' : format(d, 'dd/MM/yyyy HH:mm'); } catch { return '—'; } })()}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        onClick={() => handleEdit(item)}
-                        title="Editar"
-                        className={`p-2 rounded-lg transition-all border
-                          ${isEditing
-                            ? 'text-emerald-600 bg-emerald-100 border-emerald-200'
-                            : 'text-zinc-400 hover:text-[#0b462c] hover:bg-[#e8f5ed]/50 border-transparent hover:border-[#e8edf2]'}`}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        title="Excluir"
-                        className="p-2 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all border border-transparent hover:border-rose-100"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
       </div>
     </div>
     </ErrorBoundary>
   );
 }
+
 
