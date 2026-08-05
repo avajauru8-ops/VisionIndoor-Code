@@ -22,6 +22,13 @@ jobs:
       run: composer install --optimize-autoloader
       working-directory: ./backend
       
+    - name: Add vendor to git for FTP deploy
+      run: |
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+        git add -f backend/vendor/
+        git commit -m "Add vendor for deploy"
+      
     - name: Sync files via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
@@ -29,7 +36,7 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./backend/
-        server-dir: /home/u357867701/domains/aplicativo.grandmidia.com.br/public_html/
+        server-dir: ./
         exclude: |
           **/.git*
           **/.git*/**
