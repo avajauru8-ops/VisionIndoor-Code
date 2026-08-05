@@ -24,7 +24,6 @@ interface Playlist {
 export default function AgencyNews() {
   const [totems, setTotems] = useState<Totem[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
-  const [selectedTotem, setSelectedTotem] = useState('');
   const [loading, setLoading] = useState(true);
   
   // Clima
@@ -32,17 +31,20 @@ export default function AgencyNews() {
   const [estado, setEstado] = useState('');
   const [estados, setEstados] = useState<any[]>([]);
   const [cidades, setCidades] = useState<any[]>([]);
+  const [selectedTotemClima, setSelectedTotemClima] = useState('');
 
   const [tempoExibicaoClima, setTempoExibicaoClima] = useState(15);
   const [loadingClima, setLoadingClima] = useState(false);
 
   // Loteria
   const [tipoLoteria, setTipoLoteria] = useState('megasena');
+  const [selectedTotemLoteria, setSelectedTotemLoteria] = useState('');
   const [tempoExibicaoLoteria, setTempoExibicaoLoteria] = useState(15);
   const [loadingLoteria, setLoadingLoteria] = useState(false);
 
   // YouTube
   const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [selectedTotemYoutube, setSelectedTotemYoutube] = useState('');
   const [tempoExibicaoYoutube, setTempoExibicaoYoutube] = useState(60);
   const [youtubeLoop, setYoutubeLoop] = useState(true);
   const [youtubeMute, setYoutubeMute] = useState(true);
@@ -51,6 +53,7 @@ export default function AgencyNews() {
   // Noticias RSS
   const [rssFeed, setRssFeed] = useState('noticias');
   const [rssMode, setRssMode] = useState('random');
+  const [selectedTotemNoticias, setSelectedTotemNoticias] = useState('');
   const [tempoExibicaoNoticias, setTempoExibicaoNoticias] = useState(15);
   const [loadingNoticias, setLoadingNoticias] = useState(false);
 
@@ -98,7 +101,7 @@ export default function AgencyNews() {
       const url = `/widget/clima?cidade=${encodeURIComponent(cidade)}&estado=${encodeURIComponent(estado)}`;
       
       const payload = {
-        totem_id: selectedTotem,
+        totem_id: selectedTotemClima || null,
         titulo: `Clima: ${cidade}-${estado}`,
         tipo_midia: 'noticia',
         tempo_exibicao: tempoExibicaoClima,
@@ -135,7 +138,7 @@ export default function AgencyNews() {
       const nomeLoteria = tipoLoteria === 'megasena' ? 'Mega-Sena' : 'Mega da Virada';
       
       const payload = {
-        totem_id: selectedTotem,
+        totem_id: selectedTotemLoteria || null,
         titulo: `Loteria: ${nomeLoteria}`,
         tipo_midia: 'noticia',
         tempo_exibicao: tempoExibicaoLoteria,
@@ -186,7 +189,7 @@ export default function AgencyNews() {
       const url = `/widget/youtube?${params.toString()}`;
 
       const payload = {
-        totem_id: selectedTotem || null,
+        totem_id: selectedTotemYoutube || null,
         titulo: `YouTube: ${youtubeUrl.trim().slice(0, 40)}`,
         tipo_midia: 'noticia',
         tempo_exibicao: tempoExibicaoYoutube,
@@ -223,7 +226,7 @@ export default function AgencyNews() {
       const url = `/widget/noticias?feed=${encodeURIComponent(rssFeed)}&mode=${encodeURIComponent(rssMode)}`;
       
       const payload = {
-        totem_id: selectedTotem || null,
+        totem_id: selectedTotemNoticias || null,
         titulo: `Notícias UOL: ${rssFeed}`,
         tipo_midia: 'noticia',
         tempo_exibicao: tempoExibicaoNoticias,
@@ -248,8 +251,7 @@ export default function AgencyNews() {
     }
   };
 
-
-  const newsPlaylists = playlists.filter(p => p.tipo_midia === 'noticia' && (selectedTotem ? p.totem_id === Number(selectedTotem) || p.totem_id === null : true));
+  const newsPlaylists = playlists.filter(p => p.tipo_midia === 'noticia');
 
   return (
     <div className="space-y-6 flex flex-col lg:h-[calc(100vh-8rem)] h-auto">
@@ -300,8 +302,8 @@ export default function AgencyNews() {
                        <div>
                           <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 group-hover:text-blue-500 transition-colors">TELA DE DESTINO</label>
                           <select 
-                            value={selectedTotem} 
-                            onChange={e => setSelectedTotem(e.target.value)} 
+                            value={selectedTotemClima} 
+                            onChange={e => setSelectedTotemClima(e.target.value)} 
                             className="w-full bg-blue-50/50 border border-blue-100 rounded-xl px-3 py-2 text-blue-800 text-xs font-semibold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                           >
                              <option value="">Todas as Telas (Geral)</option>
@@ -347,8 +349,8 @@ export default function AgencyNews() {
                        <div>
                           <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 group-hover:text-emerald-500 transition-colors">TELA DE DESTINO</label>
                           <select 
-                            value={selectedTotem} 
-                            onChange={e => setSelectedTotem(e.target.value)} 
+                            value={selectedTotemLoteria} 
+                            onChange={e => setSelectedTotemLoteria(e.target.value)} 
                             className="w-full bg-emerald-50/50 border border-emerald-100 rounded-xl px-3 py-2 text-emerald-800 text-xs font-semibold focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all"
                           >
                              <option value="">Todas as Telas (Geral)</option>
@@ -423,8 +425,8 @@ export default function AgencyNews() {
                        <div>
                           <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 group-hover:text-red-500 transition-colors">TELA DE DESTINO</label>
                           <select 
-                            value={selectedTotem} 
-                            onChange={e => setSelectedTotem(e.target.value)} 
+                            value={selectedTotemYoutube} 
+                            onChange={e => setSelectedTotemYoutube(e.target.value)} 
                             className="w-full bg-red-50/50 border border-red-100 rounded-xl px-3 py-2 text-red-800 text-xs font-semibold focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all"
                           >
                              <option value="">Todas as Telas (Geral)</option>
@@ -498,8 +500,8 @@ export default function AgencyNews() {
                        <div>
                           <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 group-hover:text-orange-500 transition-colors">TELA DE DESTINO</label>
                           <select 
-                            value={selectedTotem} 
-                            onChange={e => setSelectedTotem(e.target.value)} 
+                            value={selectedTotemNoticias} 
+                            onChange={e => setSelectedTotemNoticias(e.target.value)} 
                             className="w-full bg-orange-50/50 border border-orange-100 rounded-xl px-3 py-2 text-orange-800 text-xs font-semibold focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all"
                           >
                              <option value="">Todas as Telas (Geral)</option>
