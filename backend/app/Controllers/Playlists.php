@@ -69,7 +69,8 @@ class Playlists extends ResourceController
             $db = \Config\Database::connect();
             $user_id = $this->request->getHeaderLine('X-User-Id');
             
-            $json = $this->request->getJSON();
+            $isJson = strpos($this->request->getHeaderLine('Content-Type'), 'application/json') !== false;
+            $json = $isJson ? $this->request->getJSON() : null;
             
             $titulo = $json->titulo ?? $this->request->getPost('titulo');
             $tipo_midia = $json->tipo_midia ?? $this->request->getPost('tipo_midia');
@@ -119,7 +120,8 @@ class Playlists extends ResourceController
         try {
             $db = \Config\Database::connect();
             
-            $json = $this->request->getJSON();
+            $isJson = strpos($this->request->getHeaderLine('Content-Type'), 'application/json') !== false;
+            $json = $isJson ? $this->request->getJSON() : null;
             
             $titulo = $json->titulo ?? $this->request->getPost('titulo');
             $tipo_midia = $json->tipo_midia ?? $this->request->getPost('tipo_midia');
