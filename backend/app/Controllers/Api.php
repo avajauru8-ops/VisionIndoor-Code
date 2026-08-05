@@ -100,6 +100,7 @@ class Api extends ResourceController
             
             return $this->respond([
                 'totem_id' => $device_id,
+                'auto_iniciar' => isset($totem['auto_iniciar']) ? (bool)$totem['auto_iniciar'] : false,
                 'playlist' => $playlist
             ]);
         } catch (\Exception $e) {
