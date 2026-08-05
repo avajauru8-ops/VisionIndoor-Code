@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 import { Settings, UploadCloud, FileDown, ToggleLeft, ToggleRight } from 'lucide-react';
 
@@ -57,7 +57,7 @@ export default function AdminSettings() {
       }
 
       await apiFetch('/api/admin/settings', {
-        method: 'PUT',
+        method: 'POST',
         body: formData,
       });
       alert('ConfiguraÃ§Ãµes salvas com sucesso!');

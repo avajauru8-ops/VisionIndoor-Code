@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 import { Smartphone, Code, Copy, CheckCircle, UploadCloud, ToggleLeft, ToggleRight, FileDown } from 'lucide-react';
 
@@ -67,7 +67,7 @@ export default function AdminIntegration() {
       }
 
       await apiFetch('/api/admin/settings', {
-        method: 'PUT',
+        method: 'POST',
         body: formData,
       });
       
