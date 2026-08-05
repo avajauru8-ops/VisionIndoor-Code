@@ -93,50 +93,60 @@ export default function WidgetNoticias() {
   const bgImage = noticia?.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80';
 
   return (
-    <div className="w-screen h-screen overflow-hidden relative bg-[#0b1f3b] text-white flex font-sans">
+    <div className="w-screen h-screen overflow-hidden relative bg-zinc-900 font-sans">
       
       {/* Background Image filling the screen */}
       <div 
-        className="absolute inset-0 w-full h-full object-cover opacity-40 z-0 bg-center bg-no-repeat bg-cover"
+        className="absolute inset-0 w-full h-full object-cover opacity-60 z-0 bg-center bg-no-repeat bg-cover"
         style={{ backgroundImage: `url('${bgImage}')` }}
       />
       
-      {/* Red diagonal accent on the right */}
-      <div className="absolute top-0 right-0 h-full w-[40%] bg-red-600 skew-x-[-15deg] origin-bottom -mr-[10%] z-0" />
-      
-      {/* Foreground Right (Image unmasked) */}
-      <div className="absolute top-0 right-0 h-full w-[35%] overflow-hidden z-10 border-l-[1.5vh] border-red-600 skew-x-[-15deg] origin-bottom shadow-[-20px_0_40px_rgba(0,0,0,0.5)]">
-         <div 
-           className="absolute inset-0 w-[150%] h-full bg-center bg-no-repeat bg-cover skew-x-[15deg] -ml-[25%]"
-           style={{ backgroundImage: `url('${bgImage}')` }}
-         />
+      {/* Top Right Logo */}
+      <div className="absolute top-[4vh] right-[4vh] w-[12vh] h-[12vh] bg-red-600 rounded-full flex items-center justify-center shadow-lg z-50">
+         <span className="text-white font-black text-[3.5vh] tracking-tighter">UOL</span>
       </div>
 
-      {/* Brand logo top right (over image) */}
-      <div className="absolute top-[4vh] right-[4vh] z-30 flex items-center gap-3">
-         <div className="w-[8vh] h-[8vh] bg-white rounded-full flex items-center justify-center shadow-lg">
-            <span className="text-red-600 font-black text-[4vh] tracking-tighter">UOL</span>
-         </div>
+      {/* White Box for Text (Description) */}
+      <div className="absolute top-[6vh] left-[5vw] right-[5vw] h-[60vh] bg-white rounded-[3vh] shadow-2xl flex items-center justify-center p-[6vh] z-10 text-center">
+         <p className="text-black font-extrabold text-[5vh] leading-[1.3] line-clamp-6">
+             {noticia?.description || 'Carregando descrição da notícia...'}
+         </p>
       </div>
 
-      {/* Main Content Area (Left side) */}
-      <div className="relative z-20 flex-1 flex flex-col justify-center px-[6vw] w-[70%]">
+      {/* Bottom Red Bar (Title) */}
+      <div className="absolute bottom-0 left-0 w-full h-[30vh] bg-gradient-to-b from-[#8B0000] to-[#5a0000] z-20 flex flex-col justify-center items-center px-[5vw]">
+         {/* Decorative curved gradient overlay at bottom like the image (simulated with CSS) */}
+         <div className="absolute bottom-0 left-0 w-full h-full bg-red-500/20 mix-blend-overlay rounded-t-[100%] scale-150 translate-y-[50%]" />
          
-         {/* "Breaking News" / "Últimas Notícias" Tag */}
-         <div className="inline-block bg-red-600 text-white font-black text-[4vh] tracking-widest px-[4vh] py-[1vh] self-start uppercase shadow-lg">
-           {feed === 'noticias' ? 'Últimas Notícias' : feed.toUpperCase()}
+         <h1 className="text-white font-black text-[6vh] text-center uppercase drop-shadow-xl z-30 line-clamp-2 leading-tight">
+             {noticia?.title || 'CARREGANDO TÍTULO...'}
+         </h1>
+      </div>
+
+      {/* Breaking News Ribbon */}
+      <div className="absolute left-0 bottom-[24vh] z-40 flex items-end">
+         
+         {/* Dark blue slanted tab behind */}
+         <div className="absolute left-0 bottom-[9vh] w-[25vw] h-[6vh] bg-[#1a2b4c] skew-x-[20deg] origin-bottom-left" />
+         
+         {/* Shadow element underneath the ribbon */}
+         <div className="absolute left-[2vw] bottom-[-1vh] w-[30vw] h-[2vh] bg-black/30 blur-md" />
+
+         {/* Main Red Ribbon */}
+         <div className="relative bg-[#d11111] h-[11vh] flex items-center pl-[5vw] pr-[4vw] skew-x-[20deg] origin-bottom-left border-r-[1.5vh] border-[#e5e5e5] shadow-xl z-10">
+             <div className="skew-x-[-20deg]">
+                 <span className="text-white font-black text-[5vh] uppercase tracking-wider drop-shadow-md">
+                     {feed === 'noticias' ? 'ÚLTIMAS NOTÍCIAS' : feed.toUpperCase()}
+                 </span>
+             </div>
          </div>
 
-         {/* Headline Box */}
-         <div className="bg-[#0b1f3b] text-white font-black text-[7vh] md:text-[8vh] leading-[1.15] p-[4vh] pl-[4vh] mt-[-1vh] max-w-[65vw] shadow-2xl relative z-10 break-words line-clamp-3 border-l-[1vh] border-transparent">
-            {noticia?.title}
-         </div>
-
-         {/* Subtitle / Description */}
-         <div className="bg-white text-[#0b1f3b] font-bold text-[3vh] md:text-[3.5vh] leading-[1.4] p-[3vh] pl-[4vh] mt-[-1vh] max-w-[60vw] shadow-xl relative z-0 border-l-[1vh] border-red-600">
-            {noticia?.description}
-         </div>
-
+         {/* Slanted lines decoration next to ribbon */}
+         <div className="w-[2vh] h-[11vh] bg-[#d11111] skew-x-[20deg] ml-[1.5vh] shadow-lg z-10" />
+         <div className="w-[2vh] h-[11vh] bg-[#d11111] skew-x-[20deg] ml-[1.5vh] shadow-lg z-10" />
+         
+         {/* White angled cut element underneath the red ribbon to match the overlapping style */}
+         <div className="absolute left-[10vw] bottom-[-2vh] w-[25vw] h-[2vh] bg-[#e5e5e5] skew-x-[20deg] origin-bottom-left z-0" />
       </div>
 
     </div>
