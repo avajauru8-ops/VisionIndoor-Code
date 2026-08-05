@@ -1,4 +1,4 @@
-﻿import mysql from 'mysql2/promise';
+import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -76,6 +76,7 @@ export async function initDb() {
         apk_banner_desc TEXT NULL,
         apk_banner_btn_text VARCHAR(255) DEFAULT 'Instalar Player',
         apk_file_url TEXT NULL,
+        openweather_api_key VARCHAR(255) NULL,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);

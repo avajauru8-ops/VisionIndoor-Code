@@ -10,7 +10,8 @@ export default function AdminSettings() {
     apk_banner_title: 'Player Android',
     apk_banner_desc: 'Baixe o APK para rodar suas playlists em TVs ou Totens.',
     apk_banner_btn_text: 'Instalar Player',
-    apk_file_url: ''
+    apk_file_url: '',
+    openweather_api_key: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -43,6 +44,7 @@ export default function AdminSettings() {
       formData.append('apk_banner_title', settings.apk_banner_title || 'Player Android');
       formData.append('apk_banner_desc', settings.apk_banner_desc || 'Baixe o APK para rodar suas playlists em TVs ou Totens.');
       formData.append('apk_banner_btn_text', settings.apk_banner_btn_text || 'Instalar Player');
+      formData.append('openweather_api_key', settings.openweather_api_key || '');
       
       if (file) {
         formData.append('logo', file);
@@ -97,6 +99,18 @@ export default function AdminSettings() {
                  onChange={e => setSettings({...settings, nome_painel: e.target.value})} 
                  className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" 
                />
+            </div>
+
+            <div>
+               <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Chave de API do Clima (OpenWeather)</label>
+               <input 
+                 type="text" 
+                 placeholder="ex: f65496758cb131c570beceec7ea9462f"
+                 value={settings.openweather_api_key || ''} 
+                 onChange={e => setSettings({...settings, openweather_api_key: e.target.value})} 
+                 className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" 
+               />
+               <p className="text-[10px] text-zinc-400 font-medium mt-1">Necessário para o Widget de Clima funcionar.</p>
             </div>
 
             <div>

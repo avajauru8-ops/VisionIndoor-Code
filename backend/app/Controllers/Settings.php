@@ -39,6 +39,7 @@ class Settings extends ResourceController
             $apk_banner_desc = $this->request->getPost('apk_banner_desc');
             $apk_banner_btn_text = $this->request->getPost('apk_banner_btn_text');
             $apk_file_url = $this->request->getPost('apk_file_url');
+            $openweather_api_key = $this->request->getPost('openweather_api_key');
             
             $data = [];
             if ($nome_painel !== null) $data['nome_painel'] = $nome_painel;
@@ -47,6 +48,7 @@ class Settings extends ResourceController
             if ($apk_banner_desc !== null) $data['apk_banner_desc'] = $apk_banner_desc;
             if ($apk_banner_btn_text !== null) $data['apk_banner_btn_text'] = $apk_banner_btn_text;
             if ($apk_file_url !== null) $data['apk_file_url'] = $apk_file_url;
+            if ($openweather_api_key !== null) $data['openweather_api_key'] = $openweather_api_key;
             
             $logo = $this->request->getFile('logo');
             if ($logo && $logo->isValid()) {

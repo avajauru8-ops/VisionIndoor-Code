@@ -107,6 +107,82 @@ class Api extends ResourceController
         }
     }
 
+    public function clima()
+    {
+        $cidade = $this->request->getGet('cidade');
+        $estado = $this->request->getGet('estado');
+        
+        if (!$cidade || !$estado) {
+            return $this->fail('Cidade ou estado não fornecidos', 400);
+        }
+
+        try {
+            $db = \Config\Database::connect();
+            $config = $db->table('configuracoes_admin')->get()->getRowArray();
+            $apiKey = $config ? $config['openweather_api_key'] : null;
+
+            if (empty($apiKey)) {
+                return $this->fail('Chave de API do OpenWeather não configurada no painel', 500);
+            }
+
+            // Step 1: Geocoding
+            $geoUrl = "http://api.openweathermap.org/geo/1.0/direct?q=" . urlencode($cidade) . "," . urlencode($estado) . ",BR&limit=1&appid=" . $apiKey;
+            $geoRes = @file_get_contents($geoUrl);
+            if (!$geoRes) {
+                return $this->fail('Erro ao buscar coordenadas para a cidade (Geocoding API)', 500);
+            }
+            $geoData = json_decode($geoRes, true);
+            if (empty($geoData) || !isset($geoData[0]['lat'])) {
+                return $this->fail('Cidade não encontrada', 404);
+            }
+
+            $lat = $geoData[0]['lat'];
+            $lon = $geoData[0]['lon'];
+
+            // Step 2: One Call API 3.0
+            $weatherUrl = "https://api.openweathermap.org/data/3.0/onecall?lat={$lat}&lon={$lon}&units=metric&lang=pt_br&exclude=minutely,hourly,daily,alerts&appid={$apiKey}";
+            $weatherRes = @file_get_contents($weatherUrl);
+            
+            if (!$weatherRes) {
+                return $this->fail('Erro ao consultar OpenWeather One Call API. Verifique sua chave de API e se a assinatura do One Call 3.0 está ativa.', 500);
+            }
+            
+            $weatherData = json_decode($weatherRes, true);
+            
+            if (isset($weatherData['cod']) && $weatherData['cod'] != 200) {
+                return $this->fail('Erro OpenWeather: ' . ($weatherData['message'] ?? 'Desconhecido'), 500);
+            }
+
+            $current = $weatherData['current'];
+            
+            // Map OpenWeather conditions to our Widget conditions
+            // OpenWeather conditions id: 2xx Thunderstorm, 3xx Drizzle, 5xx Rain, 6xx Snow, 7xx Atmosphere, 800 Clear, 80x Clouds
+            $id = $current['weather'][0]['id'] ?? 800;
+            $icon = $current['weather'][0]['icon'] ?? '01d';
+            $isDay = strpos($icon, 'd') !== false ? 1 : 0;
+            
+            $condition = 'Estável';
+            if ($id >= 200 && $id < 600) {
+                $condition = 'Chuvoso';
+            } else if ($id == 800) {
+                $condition = $isDay ? 'Ensolarado' : 'Noite Clara';
+            } else if ($id > 800) {
+                $condition = 'Nublado';
+            }
+
+            return $this->respond([
+                'temp' => round($current['temp']),
+                'condition' => $condition,
+                'humidity' => $current['humidity'] . '%',
+                'wind' => round($current['wind_speed'] * 3.6) . ' km/h', // m/s to km/h
+                'isDay' => $isDay
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->fail('Erro interno: ' . $e->getMessage(), 500);
+        }
+    }
+
     public function loteria()
     {
         $tipo = $this->request->getGet('tipo') ?? 'megasena';

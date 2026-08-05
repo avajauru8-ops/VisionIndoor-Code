@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Cloud, CloudLightning, CloudRain, CloudSnow, Sun, Wind } from 'lucide-react';
 
@@ -18,42 +18,33 @@ export default function WidgetClima() {
   useEffect(() => {
     async function fetchWeather() {
        try {
-         // Step 1: Geocoding (Open-Meteo Geocoding API)
-         const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cidade)}&count=1&language=pt&format=json`);
-         const geoData = await geoRes.json();
+         // Fazer requisição para a nossa própria API que possui a chave do OpenWeather
+         const res = await fetch(`/api/clima?cidade=${encodeURIComponent(cidade)}&estado=${encodeURIComponent(estado)}`);
+         const data = await res.json();
          
-         if (!geoData.results || geoData.results.length === 0) {
-            setWeather({ temp: 25, condition: 'Desconhecido', humidity: '50%', wind: '10 km/h', isDay: 1 });
-            return;
+         if (!res.ok) {
+             throw new Error(data.messages?.error || data.erro || 'Erro ao carregar clima');
          }
-         
-         const { latitude, longitude } = geoData.results[0];
-         
-         // Step 2: Weather (Open-Meteo)
-         const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,is_day,precipitation,wind_speed_10m&timezone=auto`);
-         const weatherData = await weatherRes.json();
-         const current = weatherData.current;
-         
-         let condition = 'EstÃ¡vel';
-         if (current.precipitation > 0) condition = 'Chuvoso';
-         else if (current.is_day === 1) condition = 'Ensolarado';
-         else condition = 'Noite Clara';
 
          setWeather({
-            temp: Math.round(current.temperature_2m),
-            condition,
-            humidity: `${current.relative_humidity_2m}%`,
-            wind: `${Math.round(current.wind_speed_10m)} km/h`,
-            isDay: current.is_day
+            temp: data.temp,
+            condition: data.condition,
+            humidity: data.humidity,
+            wind: data.wind,
+            isDay: data.isDay
          });
 
-       } catch (err) {
+       } catch (err: any) {
          console.error(err);
-         setWeather({ temp: 25, condition: 'Sem conexÃ£o', humidity: '--', wind: '--', isDay: 1 });
+         setWeather({ temp: 25, condition: err.message || 'Erro na API', humidity: '--', wind: '--', isDay: 1 });
        }
     }
     fetchWeather();
-  }, [cidade]);
+    
+    // Atualiza a cada 30 minutos
+    const interval = setInterval(fetchWeather, 30 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [cidade, estado]);
 
   return (
     <div className={`w-screen h-screen ${weather.isDay ? 'bg-gradient-to-br from-sky-400 to-blue-600' : 'bg-gradient-to-br from-indigo-900 to-slate-900'} flex flex-col items-center justify-center text-white p-8`}>
