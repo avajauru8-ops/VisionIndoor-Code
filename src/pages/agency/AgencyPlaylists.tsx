@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
-import { MonitorPlay, UploadCloud, Film, Image as ImageIcon, Trash2, Edit2, X } from 'lucide-react';
+import { MonitorPlay, UploadCloud, Film, Image as ImageIcon, Trash2, Edit2, X, Cloud, Hash, LayoutGrid } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 
 interface Totem {
@@ -313,8 +313,16 @@ export default function AgencyPlaylists() {
                          <div className="w-16 h-16 rounded-xl bg-zinc-100 overflow-hidden flex items-center justify-center shrink-0 border border-zinc-200">
                            {item.tipo_midia === 'video' ? (
                              <Film className="w-6 h-6 text-zinc-400" />
+                           ) : item.tipo_midia === 'noticia' ? (
+                             item.titulo?.toLowerCase().includes('clima') ? (
+                               <Cloud className="w-6 h-6 text-indigo-500" />
+                             ) : item.titulo?.toLowerCase().includes('loteria') ? (
+                               <Hash className="w-6 h-6 text-emerald-500" />
+                             ) : (
+                               <LayoutGrid className="w-6 h-6 text-zinc-500" />
+                             )
                            ) : (
-                             <img src={item.arquivo_url || ''} alt={item.titulo || ''} className="w-full h-full object-cover" />
+                             <img src={item.arquivo_url || ''} alt={item.titulo || ''} className="w-full h-full object-cover bg-zinc-200" />
                            )}
                          </div>
                          <div>
