@@ -120,7 +120,7 @@ export default function WidgetNoticias() {
       </div>
 
       {/* Main Content Area (Left side) */}
-      <div className="relative z-20 flex-1 flex flex-col justify-center px-[8vw] w-[65%]">
+      <div className="relative z-20 flex-1 flex flex-col justify-center px-[6vw] w-[70%]">
          
          {/* "Breaking News" / "Últimas Notícias" Tag */}
          <div className="inline-block bg-red-600 text-white font-black text-[4vh] tracking-widest px-[4vh] py-[1vh] self-start uppercase shadow-lg">
@@ -128,12 +128,12 @@ export default function WidgetNoticias() {
          </div>
 
          {/* Headline Box */}
-         <div className="bg-[#0b1f3b] text-white font-black text-[8vh] leading-[1.1] p-[3vh] pl-[4vh] mt-[-1vh] w-max max-w-[55vw] shadow-2xl relative z-10 break-words line-clamp-3">
+         <div className="bg-[#0b1f3b] text-white font-black text-[7vh] md:text-[8vh] leading-[1.15] p-[4vh] pl-[4vh] mt-[-1vh] max-w-[65vw] shadow-2xl relative z-10 break-words line-clamp-3 border-l-[1vh] border-transparent">
             {noticia?.title}
          </div>
 
          {/* Subtitle / Description */}
-         <div className="bg-white text-[#0b1f3b] font-bold text-[3.5vh] leading-snug p-[3vh] pl-[4vh] mt-[-1vh] max-w-[50vw] shadow-xl relative z-0 border-l-[1vh] border-red-600">
+         <div className="bg-white text-[#0b1f3b] font-bold text-[3vh] md:text-[3.5vh] leading-[1.4] p-[3vh] pl-[4vh] mt-[-1vh] max-w-[60vw] shadow-xl relative z-0 border-l-[1vh] border-red-600">
             {noticia?.description}
          </div>
 
