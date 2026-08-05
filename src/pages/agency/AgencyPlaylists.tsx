@@ -295,7 +295,6 @@ export default function AgencyPlaylists() {
                  </form>
             </div>
          </div>
-         </div>
       </div>
     </div>
     </ErrorBoundary>
