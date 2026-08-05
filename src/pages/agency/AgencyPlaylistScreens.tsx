@@ -106,20 +106,20 @@ export default function AgencyPlaylistScreens() {
               <Link
                 key={totem.id}
                 to={`/agency/playlists/telas/${totem.id}`}
-                className="bg-white border border-[#e8edf2] rounded-[24px] p-6 hover:shadow-md hover:border-emerald-200 transition-all group flex flex-col justify-between h-52"
+                className="bg-white border border-zinc-200 rounded-[28px] p-7 hover:shadow-xl hover:border-emerald-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full"
               >
                 <div className="flex justify-between items-start">
                   <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                     <MonitorPlay className="w-6 h-6" />
                   </div>
-                  <div className="flex flex-col items-end gap-1">
+                  <div className="flex flex-col items-end gap-1.5">
                     {totem.status === 'online' ? (
-                      <span className="flex items-center gap-1.5 bg-[#e8f5ed] text-emerald-600 px-2.5 py-1 rounded-full border border-emerald-100 text-[9px] uppercase font-bold tracking-wider">
+                      <span className="flex items-center gap-1.5 bg-[#e8f5ed] text-emerald-600 px-3 py-1 rounded-full border border-emerald-100 text-[9px] uppercase font-bold tracking-wider shadow-sm">
                         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                         Online
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1.5 bg-rose-50 text-rose-600 px-2.5 py-1 rounded-full border border-rose-100 text-[9px] uppercase font-bold tracking-wider">
+                      <span className="flex items-center gap-1.5 bg-rose-50 text-rose-600 px-3 py-1 rounded-full border border-rose-100 text-[9px] uppercase font-bold tracking-wider shadow-sm">
                         <span className="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
                         Offline
                       </span>
@@ -136,21 +136,23 @@ export default function AgencyPlaylistScreens() {
                   </div>
                 </div>
 
-                <div className="mt-3">
-                  <h3 className="text-lg font-bold text-[#0b462c] truncate">{totem.nome}</h3>
+                <div className="mt-5 mb-6">
+                  <h3 className="text-xl font-bold text-[#0b462c] truncate">{totem.nome}</h3>
                   <div className="flex items-center gap-2 mt-1 text-xs text-zinc-500 font-medium">
-                    <Activity className="w-3.5 h-3.5 shrink-0" />
+                    <Activity className="w-4 h-4 shrink-0 text-emerald-500" />
                     <span className="truncate">ID: {totem.device_id}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 mt-2 text-xs text-zinc-400">
-                    <ListVideo className="w-3.5 h-3.5" />
+                  <div className="flex items-center gap-2 mt-2 text-xs text-zinc-500 font-medium">
+                    <ListVideo className="w-4 h-4 shrink-0 text-emerald-500" />
                     <span>{count} {count === 1 ? 'mídia' : 'mídias'} cadastrada{count === 1 ? '' : 's'}</span>
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center justify-center bg-[#0b462c] text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider group-hover:bg-[#082a1b] transition-colors shadow-sm group-hover:shadow-md">
-                  <span>Ver Playlist</span>
-                  <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                <div className="mt-auto pt-4 border-t border-zinc-100">
+                  <div className="flex items-center justify-center bg-[#0b462c] text-white py-3 rounded-xl font-bold text-[11px] uppercase tracking-widest group-hover:bg-[#082a1b] transition-colors shadow-md group-hover:shadow-lg w-full">
+                    <span>Ver Playlist</span>
+                    <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
               </Link>
             );
