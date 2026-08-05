@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
-import { Tv, MonitorPlay, ChevronRight, Activity, ListVideo } from 'lucide-react';
+import { Tv, MonitorPlay, ChevronRight, Activity, ListVideo, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface Totem {
@@ -15,10 +15,30 @@ interface PlaylistCount {
   [key: string]: number;
 }
 
+function formatUptime(dateStr: string | null): string {
+  if (!dateStr) return '';
+  try {
+    const since = new Date(dateStr.replace(' ', 'T'));
+    if (isNaN(since.getTime())) return '';
+    const diffMs = Date.now() - since.getTime();
+    if (diffMs < 0) return '';
+    const totalSeconds = Math.floor(diffMs / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  } catch {
+    return '';
+  }
+}
+
 export default function AgencyPlaylistScreens() {
   const [totems, setTotems] = useState<Totem[]>([]);
   const [playlistCounts, setPlaylistCounts] = useState<PlaylistCount>({});
   const [loading, setLoading] = useState(true);
+  const [, setTick] = useState(0);
 
   const loadData = async () => {
     try {
@@ -49,7 +69,11 @@ export default function AgencyPlaylistScreens() {
 
   useEffect(() => {
     loadData();
+    // Re-render every 60s to keep uptime fresh
+    const interval = setInterval(() => setTick(t => t + 1), 60000);
+    return () => clearInterval(interval);
   }, []);
+
 
   return (
     <div className="space-y-6 flex flex-col h-full">
@@ -88,17 +112,25 @@ export default function AgencyPlaylistScreens() {
                   <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                     <MonitorPlay className="w-6 h-6" />
                   </div>
-                  {totem.status === 'online' ? (
-                    <span className="flex items-center gap-1.5 bg-[#e8f5ed] text-emerald-600 px-2.5 py-1 rounded-full border border-emerald-100 text-[9px] uppercase font-bold tracking-wider">
-                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                      Online
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1.5 bg-rose-50 text-rose-600 px-2.5 py-1 rounded-full border border-rose-100 text-[9px] uppercase font-bold tracking-wider">
-                      <span className="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
-                      Offline
-                    </span>
-                  )}
+                  <div className="flex flex-col items-end gap-1">
+                    {totem.status === 'online' ? (
+                      <span className="flex items-center gap-1.5 bg-[#e8f5ed] text-emerald-600 px-2.5 py-1 rounded-full border border-emerald-100 text-[9px] uppercase font-bold tracking-wider">
+                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                        Online
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5 bg-rose-50 text-rose-600 px-2.5 py-1 rounded-full border border-rose-100 text-[9px] uppercase font-bold tracking-wider">
+                        <span className="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
+                        Offline
+                      </span>
+                    )}
+                    {totem.status === 'online' && formatUptime(totem.ultima_sincronizacao) && (
+                      <span className="flex items-center gap-1 text-[9px] text-emerald-600 font-semibold bg-emerald-50/60 px-2 py-0.5 rounded-full border border-emerald-100">
+                        <Clock className="w-2.5 h-2.5 shrink-0" />
+                        {formatUptime(totem.ultima_sincronizacao)}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-3">
