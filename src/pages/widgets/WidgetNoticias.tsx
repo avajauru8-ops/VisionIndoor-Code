@@ -129,7 +129,7 @@ export default function WidgetNoticias() {
       </div>
 
       {/* White Box for Text (Description) */}
-      <div className="absolute top-[6vh] left-[5vw] right-[5vw] h-[60vh] bg-white/90 backdrop-blur-md rounded-[3vh] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center p-[6vh] z-10 text-center border-[0.5vh] border-white/50">
+      <div className="absolute top-[6vh] left-[5vw] right-[5vw] h-[80vh] bg-white/90 backdrop-blur-md rounded-[3vh] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center p-[6vh] pb-[18vh] z-10 text-center border-[0.5vh] border-white/50">
          <div className="absolute top-[3vh] left-[4vh] bg-[#1a2b4c] text-white px-[2vh] py-[0.5vh] rounded-full text-[2.5vh] font-bold uppercase tracking-widest shadow-md">
             {categoryName}
          </div>
@@ -143,7 +143,7 @@ export default function WidgetNoticias() {
          {/* Decorative curved gradient overlay at bottom like the image (simulated with CSS) */}
          <div className="absolute bottom-0 left-0 w-full h-full bg-red-500/20 mix-blend-overlay rounded-t-[100%] scale-150 translate-y-[50%]" />
          
-         <h1 className="text-white font-black text-[6vh] text-center uppercase drop-shadow-xl z-30 line-clamp-2 leading-tight">
+         <h1 className="text-white font-black text-[4.5vh] md:text-[5vh] text-center uppercase drop-shadow-xl z-30 line-clamp-2 leading-tight">
              {noticia?.title || 'CARREGANDO TÍTULO...'}
          </h1>
       </div>
