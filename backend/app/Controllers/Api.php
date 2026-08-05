@@ -125,26 +125,12 @@ class Api extends ResourceController
                 return $this->fail('Chave de API do OpenWeather não configurada no painel', 500);
             }
 
-            // Step 1: Geocoding
-            $geoUrl = "http://api.openweathermap.org/geo/1.0/direct?q=" . urlencode($cidade) . "," . urlencode($estado) . ",BR&limit=1&appid=" . $apiKey;
-            $geoRes = @file_get_contents($geoUrl);
-            if (!$geoRes) {
-                return $this->fail('Erro ao buscar coordenadas para a cidade (Geocoding API)', 500);
-            }
-            $geoData = json_decode($geoRes, true);
-            if (empty($geoData) || !isset($geoData[0]['lat'])) {
-                return $this->fail('Cidade não encontrada', 404);
-            }
-
-            $lat = $geoData[0]['lat'];
-            $lon = $geoData[0]['lon'];
-
-            // Step 2: One Call API 3.0
-            $weatherUrl = "https://api.openweathermap.org/data/3.0/onecall?lat={$lat}&lon={$lon}&units=metric&lang=pt_br&exclude=minutely,hourly,daily,alerts&appid={$apiKey}";
+            // Step 1: OpenWeather 2.5 API
+            $weatherUrl = "https://api.openweathermap.org/data/2.5/weather?q=" . urlencode($cidade) . "," . urlencode($estado) . ",BR&units=metric&lang=pt_br&appid=" . $apiKey;
             $weatherRes = @file_get_contents($weatherUrl);
             
             if (!$weatherRes) {
-                return $this->fail('Erro ao consultar OpenWeather One Call API. Verifique sua chave de API e se a assinatura do One Call 3.0 está ativa.', 500);
+                return $this->fail('Erro ao consultar OpenWeather API (2.5). Verifique sua chave de API.', 500);
             }
             
             $weatherData = json_decode($weatherRes, true);
@@ -152,13 +138,10 @@ class Api extends ResourceController
             if (isset($weatherData['cod']) && $weatherData['cod'] != 200) {
                 return $this->fail('Erro OpenWeather: ' . ($weatherData['message'] ?? 'Desconhecido'), 500);
             }
-
-            $current = $weatherData['current'];
             
             // Map OpenWeather conditions to our Widget conditions
-            // OpenWeather conditions id: 2xx Thunderstorm, 3xx Drizzle, 5xx Rain, 6xx Snow, 7xx Atmosphere, 800 Clear, 80x Clouds
-            $id = $current['weather'][0]['id'] ?? 800;
-            $icon = $current['weather'][0]['icon'] ?? '01d';
+            $id = $weatherData['weather'][0]['id'] ?? 800;
+            $icon = $weatherData['weather'][0]['icon'] ?? '01d';
             $isDay = strpos($icon, 'd') !== false ? 1 : 0;
             
             $condition = 'Estável';
@@ -171,10 +154,10 @@ class Api extends ResourceController
             }
 
             return $this->respond([
-                'temp' => round($current['temp']),
+                'temp' => round($weatherData['main']['temp']),
                 'condition' => $condition,
-                'humidity' => $current['humidity'] . '%',
-                'wind' => round($current['wind_speed'] * 3.6) . ' km/h', // m/s to km/h
+                'humidity' => $weatherData['main']['humidity'] . '%',
+                'wind' => round($weatherData['wind']['speed'] * 3.6) . ' km/h', // m/s to km/h
                 'isDay' => $isDay
             ]);
 
