@@ -138,7 +138,7 @@ class Api extends ResourceController
                 return $this->fail('Erro ao buscar dados da Caixa', 500);
             }
 
-            return $this->response->setJSON($response);
+            return $this->response->setJSON(json_decode($response));
         } catch (\Exception $e) {
             return $this->fail('Erro interno: ' . $e->getMessage(), 500);
         }
