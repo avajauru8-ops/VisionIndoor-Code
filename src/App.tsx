@@ -27,6 +27,7 @@ import AgencyContracts from './pages/agency/AgencyContracts';
 import WidgetClima from './pages/widgets/WidgetClima';
 import WidgetLoteria from './pages/widgets/WidgetLoteria';
 import WidgetYoutube from './pages/widgets/WidgetYoutube';
+import WidgetNoticias from './pages/widgets/WidgetNoticias';
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/widget/clima" element={<WidgetClima />} />
           <Route path="/widget/loteria" element={<WidgetLoteria />} />
           <Route path="/widget/youtube" element={<WidgetYoutube />} />
+          <Route path="/widget/noticias" element={<WidgetNoticias />} />
           
           <Route path="/" element={<Layout />}>
              <Route index element={<Navigate to="/login" replace />} />

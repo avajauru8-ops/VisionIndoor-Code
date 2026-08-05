@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
-import { CloudRain, Hash, Plus, Trash2, LayoutGrid, Youtube } from 'lucide-react';
+import { CloudRain, Hash, Plus, Trash2, LayoutGrid, Youtube, Newspaper } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Totem {
@@ -47,6 +47,12 @@ export default function AgencyNews() {
   const [youtubeLoop, setYoutubeLoop] = useState(true);
   const [youtubeMute, setYoutubeMute] = useState(true);
   const [loadingYoutube, setLoadingYoutube] = useState(false);
+
+  // Noticias RSS
+  const [rssFeed, setRssFeed] = useState('noticias');
+  const [rssMode, setRssMode] = useState('random');
+  const [tempoExibicaoNoticias, setTempoExibicaoNoticias] = useState(15);
+  const [loadingNoticias, setLoadingNoticias] = useState(false);
 
   const loadData = async () => {
     try {
@@ -207,6 +213,43 @@ export default function AgencyNews() {
     }
   };
 
+  const handleAddNoticias = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoadingNoticias(true);
+    try {
+      const dataInicio = new Date().toISOString();
+      const dataFim = new Date();
+      dataFim.setFullYear(dataFim.getFullYear() + 1);
+
+      const url = `/widget/noticias?feed=${encodeURIComponent(rssFeed)}&mode=${encodeURIComponent(rssMode)}`;
+      
+      const payload = {
+        totem_id: selectedTotem || null,
+        titulo: `Notícias UOL: ${rssFeed}`,
+        tipo_midia: 'noticia',
+        tempo_exibicao: tempoExibicaoNoticias,
+        data_inicio: dataInicio,
+        data_fim: dataFim.toISOString(),
+        url
+      };
+
+      await apiFetch('/api/playlists', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      loadData();
+      alert('Widget de Notícias adicionado à playlist!');
+    } catch (e) {
+      console.error(e);
+      alert('Erro ao adicionar notícias');
+    } finally {
+      setLoadingNoticias(false);
+    }
+  };
+
+
   const newsPlaylists = playlists.filter(p => p.tipo_midia === 'noticia' && (selectedTotem ? p.totem_id === Number(selectedTotem) || p.totem_id === null : true));
 
   return (
@@ -232,7 +275,7 @@ export default function AgencyNews() {
        </div>
 
        <div className="flex-1 overflow-y-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
              {/* Clima Widget Form */}
              <div className="bg-white border border-[#e8edf2] rounded-[24px] p-6 shadow-sm">
                 <div className="flex items-center gap-3 mb-6">
@@ -368,6 +411,64 @@ export default function AgencyNews() {
                    >
                      <Plus className="w-4 h-4" />
                      {loadingYoutube ? 'Adicionando...' : 'Adicionar à Playlist'}
+                    </button>
+                </form>
+             </div>
+
+             {/* Notícias Widget Form */}
+             <div className="bg-white border border-[#e8edf2] rounded-[24px] p-6 shadow-sm">
+                <div className="flex items-center gap-3 mb-6">
+                   <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
+                      <Newspaper className="w-5 h-5 text-orange-500" />
+                   </div>
+                   <div>
+                     <h3 className="text-sm font-bold text-zinc-800">Notícias UOL</h3>
+                     <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Últimas notícias (RSS)</p>
+                   </div>
+                </div>
+                
+                <form onSubmit={handleAddNoticias} className="space-y-4">
+                   <div>
+                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Categoria</label>
+                     <select required value={rssFeed} onChange={e=>setRssFeed(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all">
+                        <option value="noticias">Notícias Gerais</option>
+                        <option value="esporte">Esportes</option>
+                        <option value="economia">Economia</option>
+                        <option value="entretenimento">Entretenimento</option>
+                        <option value="tecnologia">Tecnologia</option>
+                        <option value="jogos">Jogos</option>
+                        <option value="carros">Carros</option>
+                        <option value="educacao">Educação</option>
+                        <option value="universa">Universa</option>
+                        <option value="tilt">Tilt (Tech)</option>
+                        <option value="vivabem">VivaBem (Saúde)</option>
+                        <option value="ecoa">Ecoa (Sustentabilidade)</option>
+                        <option value="nossauol">Nossa (Lifestyle)</option>
+                     </select>
+                   </div>
+                   
+                   <div>
+                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Modo de Exibição</label>
+                     <div className="flex gap-4">
+                       <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-600 font-semibold">
+                         <input type="radio" name="rssMode" value="random" checked={rssMode === 'random'} onChange={() => setRssMode('random')} className="w-4 h-4 accent-orange-500" />
+                         Aleatória
+                       </label>
+                       <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-600 font-semibold">
+                         <input type="radio" name="rssMode" value="latest3" checked={rssMode === 'latest3'} onChange={() => setRssMode('latest3')} className="w-4 h-4 accent-orange-500" />
+                         As 3 últimas
+                       </label>
+                     </div>
+                   </div>
+
+                   <div>
+                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Duração (s)</label>
+                     <input type="number" min="1" required value={tempoExibicaoNoticias} onChange={e=>setTempoExibicaoNoticias(Number(e.target.value))} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all" />
+                   </div>
+                   
+                   <button type="submit" disabled={loadingNoticias} className="w-full bg-orange-600 hover:bg-orange-500 text-white rounded-full py-3 text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-50 mt-2 flex items-center justify-center gap-2 shadow-sm">
+                     <Plus className="w-4 h-4" />
+                     {loadingNoticias ? 'Adicionando...' : 'Adicionar à Playlist'}
                    </button>
                 </form>
              </div>

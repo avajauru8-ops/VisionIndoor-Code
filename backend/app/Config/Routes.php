@@ -16,6 +16,7 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
     // API Pública (TV) - Removido conflito com /api/playlists do painel admin
     $routes->get('loteria', 'Api::loteria');
     $routes->get('clima', 'Api::clima');
+    $routes->get('rss-uol', 'Api::rssUol');
 
     // Autenticação
     $routes->post('auth/login', 'Auth::login');

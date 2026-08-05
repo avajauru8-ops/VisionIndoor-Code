@@ -202,4 +202,24 @@ class Api extends ResourceController
             return $this->fail('Erro interno: ' . $e->getMessage(), 500);
         }
     }
+
+    public function rssUol()
+    {
+        $feed = $this->request->getGet('feed') ?: 'noticias';
+        
+        // Allowed feeds to prevent SSRF
+        $allowed = ['noticias', 'esporte', 'economia', 'entretenimento', 'tecnologia', 'jogos', 'carros', 'educacao', 'universa', 'tilt', 'vivabem', 'ecoa', 'nossauol'];
+        if (!in_array($feed, $allowed)) {
+            $feed = 'noticias';
+        }
+
+        $url = "https://rss.uol.com.br/feed/{$feed}.xml";
+        $xml = @file_get_contents($url);
+        
+        if (!$xml) {
+            return $this->fail('Erro ao buscar RSS', 500);
+        }
+        
+        return $this->response->setContentType('text/xml')->setBody($xml);
+    }
 }
