@@ -8,6 +8,7 @@ interface Totem {
   device_id: string;
   status: 'online' | 'offline';
   ultima_sincronizacao: string | null;
+  auto_iniciar?: number | boolean;
 }
 
 export default function AgencyTotems() {
@@ -59,6 +60,25 @@ export default function AgencyTotems() {
       } catch (err) {
         console.error(err);
       }
+    }
+  };
+
+  const handleToggleAutoIniciar = async (totem: Totem) => {
+    const newStatus = totem.auto_iniciar ? 0 : 1;
+    
+    // Optimistic UI update
+    setTotems(prev => prev.map(t => t.id === totem.id ? { ...t, auto_iniciar: newStatus } : t));
+    
+    try {
+      await apiFetch(`/api/totems/${totem.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ auto_iniciar: newStatus })
+      });
+    } catch (err) {
+      console.error('Erro ao atualizar auto_iniciar:', err);
+      // Revert if error
+      setTotems(prev => prev.map(t => t.id === totem.id ? { ...t, auto_iniciar: totem.auto_iniciar } : t));
     }
   };
 
@@ -132,6 +152,7 @@ export default function AgencyTotems() {
                 <th className="px-6 py-4 font-sans uppercase">Device ID</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Última Sincronização</th>
+                <th className="px-6 py-4 text-center">Abrir Automático</th>
                 <th className="px-6 py-4 text-right">Ações</th>
               </tr>
             </thead>
@@ -154,6 +175,14 @@ export default function AgencyTotems() {
                         </td>
                         <td className="px-6 py-4 text-zinc-500 font-sans">
                            {totem.ultima_sincronizacao ? new Date(totem.ultima_sincronizacao).toLocaleString() : 'Nunca'}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                           <button 
+                             onClick={() => handleToggleAutoIniciar(totem)}
+                             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${totem.auto_iniciar ? 'bg-emerald-500' : 'bg-zinc-300'}`}
+                           >
+                             <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${totem.auto_iniciar ? 'translate-x-4.5' : 'translate-x-1'}`} style={{ transform: totem.auto_iniciar ? 'translateX(18px)' : 'translateX(4px)' }} />
+                           </button>
                         </td>
                         <td className="px-6 py-4 text-right">
                            <button onClick={() => handleDelete(totem.id)} className="text-zinc-400 hover:text-rose-500 p-1.5 transition-all rounded-lg hover:bg-rose-50">
