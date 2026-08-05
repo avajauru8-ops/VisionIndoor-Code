@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Clover, Calendar } from 'lucide-react';
 
 export default function WidgetLoteria() {
   const [searchParams] = useSearchParams();
@@ -22,6 +23,7 @@ export default function WidgetLoteria() {
 
   const [numbers, setNumbers] = useState<string[]>([]);
   const [dataSorteio, setDataSorteio] = useState('');
+  const [concurso, setConcurso] = useState('');
   const [premio, setPremio] = useState('');
   
   useEffect(() => {
@@ -37,6 +39,9 @@ export default function WidgetLoteria() {
            if (data.dataApuracao) {
               setDataSorteio(data.dataApuracao);
            }
+           if (data.numero) {
+              setConcurso(data.numero.toString());
+           }
            if (data.valorEstimadoProximoConcurso) {
               const valorFormatado = (data.valorEstimadoProximoConcurso / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
               setPremio(`R$ ${valorFormatado} Milhões`);
@@ -48,6 +53,7 @@ export default function WidgetLoteria() {
            const seed = today.getFullYear() * 1000 + today.getMonth() * 100 + today.getDate() + (tipo === 'megasena' ? 1 : 2);
            setNumbers(generateNumbers(tipo === 'lotofacil' ? 15 : tipo === 'quina' ? 5 : 6, seed));
            setDataSorteio(today.toLocaleDateString('pt-BR'));
+           setConcurso('0000');
            setPremio(`R$ ${Math.floor(Math.random() * 40 + 10)} Milhões`);
         }
      };
@@ -58,51 +64,69 @@ export default function WidgetLoteria() {
   const colors: Record<string, string> = {
     megasena: '#209869',
     megavirada: '#209869',
-    lotofacil: '#930089',
+    lotofacil: '#4A154B', // Um roxo mais escuro baseado no mockup
     quina: '#260085'
   };
 
   const titles: Record<string, string> = {
-    megasena: 'MEGA-SENA',
-    megavirada: 'MEGA DA VIRADA',
-    lotofacil: 'LOTOFÁCIL',
-    quina: 'QUINA'
+    megasena: 'Mega-Sena',
+    megavirada: 'Mega da Virada',
+    lotofacil: 'Lotofácil',
+    quina: 'Quina'
   };
 
   const bgColor = colors[tipo] || '#209869';
-  const title = titles[tipo] || 'LOTERIA';
+  const title = titles[tipo] || 'Loteria';
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-between text-white overflow-hidden p-[4vh]" style={{ backgroundColor: bgColor }}>
+    <div className="w-screen h-screen flex flex-col items-center justify-between text-white overflow-hidden p-[4vh] relative" style={{ backgroundColor: bgColor }}>
        
+       {/* Background Pattern Elements (Simulating the mockup background) */}
+       <div className="absolute top-[-10vh] left-[-10vh] opacity-10 pointer-events-none">
+          <Clover className="w-[40vh] h-[40vh]" />
+       </div>
+       <div className="absolute bottom-[-10vh] right-[-10vh] opacity-10 pointer-events-none">
+          <Clover className="w-[40vh] h-[40vh]" />
+       </div>
+
        {/* HEADER */}
-       <div className="flex flex-col items-center mt-[2vh]">
-           <div className="bg-white/10 px-[6vw] py-[1.5vh] rounded-full border-[0.4vh] border-white/20 shadow-2xl backdrop-blur-sm">
-              <h1 className="text-[5vh] font-black uppercase tracking-widest text-white drop-shadow-md text-center leading-none">
-                 {title}
-              </h1>
+       <div className="flex flex-col items-center mt-[4vh] w-full z-10">
+           <div className="flex items-center gap-[2vw] mb-[3vh]">
+               <Clover className="w-[10vh] h-[10vh] text-white" />
+               <h1 className="text-[10vh] font-bold lowercase tracking-tight text-white leading-none drop-shadow-md">
+                  {title}
+               </h1>
            </div>
-           <h2 className="text-[3.5vh] font-medium mt-[2vh] opacity-90 drop-shadow-sm text-center">
-               SORTEIO: {dataSorteio}
-           </h2>
+           
+           <div className="flex items-center gap-[2vw] bg-black/20 px-[5vw] py-[1vh] rounded-full border-[0.3vh] border-white/20 shadow-lg backdrop-blur-sm">
+              <span className="text-[3vh] font-medium opacity-80 uppercase tracking-widest">Concurso</span>
+              <span className="text-[4.5vh] font-bold">{concurso}</span>
+           </div>
        </div>
        
-       {/* NUMBERS (Fills middle space) */}
-       <div className={`flex flex-wrap justify-center items-center content-center flex-1 max-w-[95vw] w-full ${tipo === 'lotofacil' ? 'gap-[1.5vw] py-[2vh]' : 'gap-[2vw] py-[4vh]'}`}>
+       {/* NUMBERS */}
+       <div className={`flex flex-wrap justify-center items-center content-center flex-1 max-w-[90vw] w-full z-10 ${tipo === 'lotofacil' ? 'gap-[2vw]' : 'gap-[3vw]'}`}>
           {numbers.map((n, i) => (
             <div key={i} 
-                 className={`bg-white rounded-full flex items-center justify-center shadow-[inset_0_-0.5vh_0_rgba(0,0,0,0.1)] font-black text-center border-[0.4vh] border-white/90 drop-shadow-xl ${
-                   tipo === 'lotofacil' ? 'w-[12vh] h-[12vh] text-[6vh] m-[0.5vh]' : 'w-[16vh] h-[16vh] text-[8vh] m-[1vh]'
-                 }`}
-                 style={{ color: bgColor }}>
+                 className={`rounded-full flex items-center justify-center font-bold text-center border-[0.4vh] border-white drop-shadow-lg bg-transparent ${
+                   tipo === 'lotofacil' ? 'w-[12vh] h-[12vh] text-[5.5vh] m-[0.5vh]' : 'w-[16vh] h-[16vh] text-[7.5vh] m-[1vh]'
+                 }`}>
                {n}
             </div>
           ))}
        </div>
 
        {/* FOOTER */}
-       <div className="text-[3.5vh] font-bold opacity-90 bg-black/20 px-[4vw] py-[2vh] rounded-[2vh] backdrop-blur-sm text-center max-w-[95vw] mb-[2vh]">
-         Próximo prêmio estimado: <span className="text-yellow-300 drop-shadow-sm block sm:inline sm:ml-[1vw]">{premio}</span>
+       <div className="flex flex-col items-center mb-[4vh] gap-[1vh] z-10">
+           <div className="flex items-center gap-[1.5vw] text-[3vh] font-medium opacity-90 drop-shadow-sm">
+              <Calendar className="w-[4vh] h-[4vh]" />
+              <span className="uppercase tracking-widest">Data do sorteio: {dataSorteio}</span>
+           </div>
+           {premio && (
+             <div className="text-[2vh] font-medium opacity-70 mt-[1vh]">
+               Próximo prêmio estimado: <span className="text-yellow-300 font-bold">{premio}</span>
+             </div>
+           )}
        </div>
 
     </div>
