@@ -92,7 +92,7 @@ export default function AgencyPlaylistView() {
       await apiFetch(`/api/playlists/${item.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ativo: newStatus })
+        body: JSON.stringify({ ...item, ativo: newStatus })
       });
       loadData();
     } catch (err) {
