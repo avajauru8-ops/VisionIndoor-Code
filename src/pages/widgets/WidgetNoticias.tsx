@@ -117,9 +117,9 @@ export default function WidgetNoticias() {
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-zinc-900 font-sans">
       
-      {/* Background Image filling the screen */}
+      {/* Background Image filling the screen - VERY DARK to look black */}
       <div 
-        className="absolute inset-0 w-full h-full object-cover opacity-60 z-0 bg-center bg-no-repeat bg-cover"
+        className="absolute inset-0 w-full h-full object-cover opacity-15 z-0 bg-center bg-no-repeat bg-cover"
         style={{ backgroundImage: `url('${bgImage}')` }}
       />
       
@@ -143,7 +143,7 @@ export default function WidgetNoticias() {
          {/* Decorative curved gradient overlay at bottom like the image (simulated with CSS) */}
          <div className="absolute bottom-0 left-0 w-full h-full bg-red-500/20 mix-blend-overlay rounded-t-[100%] scale-150 translate-y-[50%]" />
          
-         <h1 className="text-white font-black text-[4.5vh] md:text-[5vh] text-center uppercase drop-shadow-xl z-30 line-clamp-2 leading-tight">
+         <h1 className="text-white font-black text-[3.8vh] md:text-[4.2vh] text-center uppercase drop-shadow-xl z-30 line-clamp-2 leading-tight mt-[6vh]">
              {noticia?.title || 'CARREGANDO TÍTULO...'}
          </h1>
       </div>
