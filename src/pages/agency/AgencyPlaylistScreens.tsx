@@ -137,8 +137,11 @@ export default function AgencyPlaylistScreens() {
                 </div>
 
                 <div className="mt-5 mb-6">
-                  <h3 className="text-xl font-bold text-[#0b462c] truncate">{totem.nome}</h3>
-                  <div className="flex items-center gap-2 mt-1 text-xs text-zinc-500 font-medium">
+                  <h3 className="text-xl font-bold text-[#0b462c] truncate">
+                    <span className="text-sm text-zinc-400 font-medium mr-1.5">Tela:</span>
+                    {totem.nome}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-1.5 text-xs text-zinc-500 font-medium">
                     <Activity className="w-4 h-4 shrink-0 text-emerald-500" />
                     <span className="truncate">ID: {totem.device_id}</span>
                   </div>
