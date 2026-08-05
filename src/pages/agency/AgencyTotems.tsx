@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 import { Tv, Plus, Search, Trash2 } from 'lucide-react';
 
@@ -78,12 +78,12 @@ export default function AgencyTotems() {
                 className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all"
                 value={nome}
                 onChange={e => setNome(e.target.value)}
-                placeholder="Ex: RecepÃ§Ã£o Matriz"
+                placeholder="Ex: Recepção Matriz"
               />
             </div>
             
             <div>
-              <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Device ID (CÃ³digo Ãšnico)</label>
+              <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Device ID (Código Único)</label>
               <input
                 type="text"
                 required
@@ -131,8 +131,8 @@ export default function AgencyTotems() {
                 <th className="px-6 py-4">Nome do Ponto</th>
                 <th className="px-6 py-4 font-sans uppercase">Device ID</th>
                 <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Ãšltima SincronizaÃ§Ã£o</th>
-                <th className="px-6 py-4 text-right">AÃ§Ãµes</th>
+                <th className="px-6 py-4">Última Sincronização</th>
+                <th className="px-6 py-4 text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="text-xs font-mono text-zinc-600">

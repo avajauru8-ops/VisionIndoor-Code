@@ -31,7 +31,7 @@ export default function AdminIntegration() {
         const data = await apiFetch('/api/admin/settings');
         if (data) setSettings(data);
       } catch (err) {
-        console.error('Erro ao carregar configuraÃ§Ãµes de integraÃ§Ã£o:', err);
+        console.error('Erro ao carregar configurações de integração:', err);
       } finally {
         setLoading(false);
       }
@@ -71,11 +71,11 @@ export default function AdminIntegration() {
         body: formData,
       });
       
-      alert('ConfiguraÃ§Ãµes do Player salvas com sucesso!');
+      alert('Configurações do Player salvas com sucesso!');
       window.location.reload(); // Reload page to immediately reflect changes on sidebar
     } catch (err) {
       console.error(err);
-      alert('Erro ao salvar configuraÃ§Ãµes do Player.');
+      alert('Erro ao salvar configurações do Player.');
     } finally {
       setSaving(false);
     }
@@ -87,10 +87,10 @@ export default function AdminIntegration() {
     <div className="space-y-8 max-w-4xl pb-12">
       <header>
         <h1 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Gerenciamento do Player Android</h1>
-        <p className="text-xs text-[#8b9aa5] font-medium mt-1">Configure o APK do totem, edite as informaÃ§Ãµes do banner de download e gerencie a integraÃ§Ã£o.</p>
+        <p className="text-xs text-[#8b9aa5] font-medium mt-1">Configure o APK do totem, edite as informações do banner de download e gerencie a integração.</p>
       </header>
 
-      {/* SeÃ§Ã£o 1: ConfiguraÃ§Ã£o do Banner & Upload de APK */}
+      {/* Seção 1: Configuração do Banner & Upload de APK */}
       <form onSubmit={handleSaveBannerSettings} className="bg-white border border-[#e8edf2] rounded-[24px] p-6 shadow-sm space-y-6">
         <div className="flex items-center justify-between border-b border-[#e8edf2] pb-4">
           <div className="flex items-center gap-3">
@@ -99,7 +99,7 @@ export default function AdminIntegration() {
             </div>
             <div>
               <h2 className="text-sm font-extrabold text-[#0b462c]">Banner de Download na Barra Lateral</h2>
-              <p className="text-[10px] text-zinc-400 font-medium">Controle a exibiÃ§Ã£o e os textos do cartÃ£o de download do APK.</p>
+              <p className="text-[10px] text-zinc-400 font-medium">Controle a exibição e os textos do cartão de download do APK.</p>
             </div>
           </div>
           <button 
@@ -119,7 +119,7 @@ export default function AdminIntegration() {
           <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-200">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">TÃ­tulo do Banner</label>
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Título do Banner</label>
                 <input 
                   type="text" 
                   required 
@@ -129,7 +129,7 @@ export default function AdminIntegration() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Texto do BotÃ£o</label>
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Texto do Botão</label>
                 <input 
                   type="text" 
                   required 
@@ -141,7 +141,7 @@ export default function AdminIntegration() {
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">DescriÃ§Ã£o do Banner</label>
+              <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Descrição do Banner</label>
               <textarea 
                 required 
                 value={settings.apk_banner_desc || ''} 
@@ -189,20 +189,20 @@ export default function AdminIntegration() {
             disabled={saving} 
             className="bg-[#0b462c] hover:bg-[#082a1b] text-white px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-50 shadow-sm"
           >
-            {saving ? 'Salvando...' : 'Salvar AlteraÃ§Ãµes'}
+            {saving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </div>
       </form>
 
-      {/* SeÃ§Ã£o 2: Detalhes de IntegraÃ§Ã£o API */}
+      {/* Seção 2: Detalhes de Integração API */}
       <div className="bg-white border border-[#e8edf2] rounded-[24px] overflow-hidden shadow-sm">
         <div className="p-6 border-b border-[#e8edf2] flex items-center gap-4 bg-zinc-50/50">
           <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 border border-emerald-100">
             <Code className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-base font-extrabold text-[#0b462c]">ConfiguraÃ§Ã£o de IntegraÃ§Ã£o</h2>
-            <p className="text-xs text-zinc-400">Endpoints tÃ©cnicos para o programador do totem.</p>
+            <h2 className="text-base font-extrabold text-[#0b462c]">Configuração de Integração</h2>
+            <p className="text-xs text-zinc-400">Endpoints técnicos para o programador do totem.</p>
           </div>
         </div>
         
@@ -222,19 +222,19 @@ export default function AdminIntegration() {
               </button>
             </div>
             <p className="text-[10px] text-zinc-400 font-medium">
-              O aplicativo irÃ¡ adicionar o Android ID automaticamente no final da URL.
+              O aplicativo irá adicionar o Android ID automaticamente no final da URL.
             </p>
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Mapeamento de VariÃ¡vel Java:</h3>
+            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Mapeamento de Variável Java:</h3>
             <div className="bg-[#f4f6f8] border border-zinc-200 rounded-xl p-4 font-mono text-xs overflow-x-auto relative group">
               <div className="text-zinc-700">
                 <span className="text-emerald-700 font-bold">private</span> <span className="text-emerald-700 font-bold">static</span> <span className="text-emerald-700 font-bold">final</span> <span className="text-emerald-500 font-bold">String</span> BASE_URL = <span className="text-amber-600">"{baseUrl}"</span>;
               </div>
             </div>
             <p className="text-xs text-zinc-500">
-              Substitua a variÃ¡vel <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-emerald-700 font-mono font-bold">BASE_URL</code> na classe principal do projeto do Totem.
+              Substitua a variável <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-emerald-700 font-mono font-bold">BASE_URL</code> na classe principal do projeto do Totem.
             </p>
           </div>
         </div>

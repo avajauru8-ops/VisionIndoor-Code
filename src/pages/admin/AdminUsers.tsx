@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 import { Users, Plus, Key, Shield, Calendar, Search } from 'lucide-react';
 import { format } from 'date-fns';
@@ -81,7 +81,7 @@ export default function AdminUsers() {
       setEditSenha('');
       loadUsers();
     } catch (err: any) {
-      alert(err.message || 'Erro ao atualizar usuÃ¡rio');
+      alert(err.message || 'Erro ao atualizar usuário');
     }
   };
 
@@ -90,21 +90,21 @@ export default function AdminUsers() {
       {/* Title */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
         <div>
-          <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">GestÃ£o de UsuÃ¡rios</h2>
-          <p className="text-xs text-[#8b9aa5] font-medium mt-1">Gerencie clientes, agÃªncias e suas respectivas licenÃ§as do sistema.</p>
+          <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Gestão de Usuários</h2>
+          <p className="text-xs text-[#8b9aa5] font-medium mt-1">Gerencie clientes, agências e suas respectivas licenças do sistema.</p>
         </div>
       </div>
 
       {showForm && (
         <div className="bg-white border border-[#e8edf2] rounded-[24px] p-6 shadow-sm">
-          <h3 className="text-[#0b462c] text-xs font-bold uppercase tracking-wider mb-4">Cadastrar Novo UsuÃ¡rio</h3>
+          <h3 className="text-[#0b462c] text-xs font-bold uppercase tracking-wider mb-4">Cadastrar Novo Usuário</h3>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div>
                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Nome</label>
                <input type="text" required value={nome} onChange={e=>setNome(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 outline-none transition-all" />
              </div>
              <div>
-               <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">CPF (ObrigatÃ³rio)</label>
+               <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">CPF (Obrigatório)</label>
                <input type="text" required value={cpf} onChange={e=>setCpf(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm font-mono focus:border-emerald-500 outline-none transition-all" />
              </div>
              <div>
@@ -112,23 +112,23 @@ export default function AdminUsers() {
                <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm font-mono focus:border-emerald-500 outline-none transition-all" />
              </div>
              <div>
-               <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Senha ProvisÃ³ria</label>
+               <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Senha Provisória</label>
                <input type="password" required value={senha} onChange={e=>setSenha(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm font-mono focus:border-emerald-500 outline-none transition-all" />
              </div>
              <div>
-               <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">NÃ­vel de Acesso</label>
+               <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Nível de Acesso</label>
                <select value={nivel} onChange={e=>setNivel(e.target.value as any)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 outline-none">
-                 <option value="agencia">AgÃªncia (Cliente)</option>
+                 <option value="agencia">Agência (Cliente)</option>
                  <option value="admin">Administrador</option>
                </select>
              </div>
              <div>
-               <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Data de ExpiraÃ§Ã£o da LicenÃ§a</label>
+               <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Data de Expiração da Licença</label>
                <input type="date" required value={validade} onChange={e=>setValidade(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm font-mono focus:border-emerald-500 outline-none [color-scheme:light]" />
              </div>
              <div className="md:col-span-2 flex justify-end gap-3 pt-4">
                 <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-800 border border-zinc-200 hover:border-zinc-300 rounded-full transition-colors">Cancelar</button>
-                <button type="submit" className="px-5 py-2.5 bg-[#0b462c] hover:bg-[#082a1b] text-white rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm">Salvar UsuÃ¡rio</button>
+                <button type="submit" className="px-5 py-2.5 bg-[#0b462c] hover:bg-[#082a1b] text-white rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm">Salvar Usuário</button>
              </div>
           </form>
         </div>
@@ -137,7 +137,7 @@ export default function AdminUsers() {
       {editingUser && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
            <div className="bg-white border border-[#e8edf2] rounded-[24px] p-8 w-full max-w-lg shadow-lg animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-              <h3 className="text-[#0b462c] text-sm font-extrabold uppercase tracking-wider mb-6">Editar UsuÃ¡rio: {editingUser.nome}</h3>
+              <h3 className="text-[#0b462c] text-sm font-extrabold uppercase tracking-wider mb-6">Editar Usuário: {editingUser.nome}</h3>
               <form onSubmit={handleUpdateUser} className="space-y-4">
                  <div>
                    <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Nome</label>
@@ -165,24 +165,24 @@ export default function AdminUsers() {
                      type="password" 
                      value={editSenha} 
                      onChange={e => setEditSenha(e.target.value)} 
-                     placeholder="â€¢â€¢â€¢â€¢â€¢â€¢"
+                     placeholder="••••••"
                      className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm font-mono focus:border-emerald-500 outline-none transition-all" 
                    />
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                    <div>
-                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">NÃ­vel de Acesso</label>
+                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Nível de Acesso</label>
                      <select 
                        value={editingUser.nivel} 
                        onChange={e => setEditingUser({...editingUser, nivel: e.target.value as any})} 
                        className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 outline-none"
                      >
-                       <option value="agencia">AgÃªncia (Cliente)</option>
+                       <option value="agencia">Agência (Cliente)</option>
                        <option value="admin">Administrador</option>
                      </select>
                    </div>
                    <div>
-                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Status da LicenÃ§a</label>
+                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Status da Licença</label>
                      <select 
                        value={editingUser.status_licenca} 
                        onChange={e => setEditingUser({...editingUser, status_licenca: e.target.value as any})} 
@@ -194,7 +194,7 @@ export default function AdminUsers() {
                    </div>
                  </div>
                  <div>
-                   <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Data de ExpiraÃ§Ã£o da LicenÃ§a</label>
+                   <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Data de Expiração da Licença</label>
                    <input 
                      type="date" 
                      required
@@ -205,7 +205,7 @@ export default function AdminUsers() {
                  </div>
                  <div className="flex justify-end gap-3 pt-6">
                     <button type="button" onClick={() => { setEditingUser(null); setEditSenha(''); }} className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-800 border border-zinc-200 hover:border-zinc-300 rounded-full transition-colors">Cancelar</button>
-                    <button type="submit" className="px-5 py-2.5 bg-[#0b462c] hover:bg-[#082a1b] text-white rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm">Salvar AlteraÃ§Ãµes</button>
+                    <button type="submit" className="px-5 py-2.5 bg-[#0b462c] hover:bg-[#082a1b] text-white rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm">Salvar Alterações</button>
                  </div>
               </form>
            </div>
@@ -214,13 +214,13 @@ export default function AdminUsers() {
 
       <div className="flex-1 bg-white border border-[#e8edf2] rounded-[24px] flex flex-col overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-[#e8edf2] flex justify-between items-center bg-zinc-50/50">
-          <h2 className="text-sm font-extrabold text-[#0b462c] uppercase tracking-wider">GestÃ£o de UsuÃ¡rios</h2>
+          <h2 className="text-sm font-extrabold text-[#0b462c] uppercase tracking-wider">Gestão de Usuários</h2>
           <button 
             onClick={() => setShowForm(!showForm)}
             className="bg-[#0b462c] hover:bg-[#082a1b] text-white text-[10px] font-bold px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
-            NOVO USUÃRIO
+            NOVO USUÁRIO
           </button>
         </div>
          <div className="overflow-x-auto">
@@ -228,10 +228,10 @@ export default function AdminUsers() {
               <thead className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 border-b border-[#e8edf2] bg-zinc-50/50">
                  <tr>
                     <th className="px-6 py-4">Nome / Email</th>
-                    <th className="px-6 py-4">NÃ­vel</th>
-                    <th className="px-6 py-4">LicenÃ§a</th>
+                    <th className="px-6 py-4">Nível</th>
+                    <th className="px-6 py-4">Licença</th>
                     <th className="px-6 py-4 font-sans uppercase">Validade</th>
-                    <th className="px-6 py-4 text-right">AÃ§Ãµes</th>
+                    <th className="px-6 py-4 text-right">Ações</th>
                  </tr>
               </thead>
               <tbody className="text-xs font-mono text-zinc-600">
@@ -245,7 +245,7 @@ export default function AdminUsers() {
                           {u.nivel === 'admin' ? (
                              <span className="text-[#0b462c]">Admin</span>
                           ) : (
-                             <span className="text-zinc-400">AgÃªncia</span>
+                             <span className="text-zinc-400">Agência</span>
                           )}
                        </td>
                        <td className="px-6 py-4">

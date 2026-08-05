@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiFetch } from '../../lib/api';
@@ -46,7 +46,7 @@ export default function Layout() {
         const data = await apiFetch('/api/admin/settings');
         if (data) setSysSettings(data);
       } catch (err) {
-        console.error('Erro ao carregar configuraÃ§Ãµes no layout:', err);
+        console.error('Erro ao carregar configurações no layout:', err);
       }
     };
     if (isAuthenticated) {
@@ -60,20 +60,20 @@ export default function Layout() {
 
   const adminLinks = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, category: 'MENU' },
-    { name: 'UsuÃ¡rios & LicenÃ§as', path: '/admin/users', icon: Users, category: 'MENU' },
+    { name: 'Usuários & Licenças', path: '/admin/users', icon: Users, category: 'MENU' },
     { name: 'Totens Cadastrados', path: '/admin/totems', icon: Tv, category: 'MENU' },
     { name: 'Player Android', path: '/admin/integration', icon: Smartphone, category: 'MENU' },
-    { name: 'ConfiguraÃ§Ãµes', path: '/admin/settings', icon: Settings, category: 'GERAL' },
+    { name: 'Configurações', path: '/admin/settings', icon: Settings, category: 'GERAL' },
   ];
 
   const agencyLinks = [
     { name: 'Dashboard', path: '/agency', icon: LayoutDashboard, category: 'MENU' },
     { name: 'Minhas Telas', path: '/agency/totems', icon: Tv, category: 'MENU' },
     { name: 'Playlists', path: '/agency/playlists', icon: MonitorPlay, category: 'MENU' },
-    { name: 'Utilizar NotÃ­cias', path: '/agency/news', icon: Newspaper, category: 'MENU' },
-    { name: 'MÃ­dia Kit Web', path: '/agency/media-kit', icon: Newspaper, category: 'MENU' },
+    { name: 'Utilizar Notícias', path: '/agency/news', icon: Newspaper, category: 'MENU' },
+    { name: 'Mídia Kit Web', path: '/agency/media-kit', icon: Newspaper, category: 'MENU' },
     { name: 'Gerador de Contratos', path: '/agency/contracts', icon: FileText, category: 'MENU' },
-    { name: 'Dados da AgÃªncia', path: '/agency/profile', icon: Landmark, category: 'GERAL' },
+    { name: 'Dados da Agência', path: '/agency/profile', icon: Landmark, category: 'GERAL' },
   ];
 
   const rawLinks = user?.nivel === 'admin' ? adminLinks : agencyLinks;
@@ -100,10 +100,10 @@ export default function Layout() {
                 </div>
                 <div>
                   <h1 className="text-base font-extrabold tracking-tight text-[#0b462c] uppercase truncate max-w-[120px]">
-                    {sysSettings.nome_painel || 'GrandMídia'}
+                    {sysSettings.nome_painel || 'GRANDMÍDIA'}
                   </h1>
                   <p className="text-[9px] text-[#8b9aa5] uppercase tracking-widest font-bold">
-                    {user?.nivel === 'admin' ? 'Administrador' : 'MÃ­dia Indoor'}
+                    {user?.nivel === 'admin' ? 'Administrador' : 'Mídia Indoor'}
                   </p>
                 </div>
               </>
@@ -188,7 +188,7 @@ export default function Layout() {
             <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-emerald-500/20 blur-lg"></div>
             <div className="relative z-10 space-y-2">
               <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">
-                ðŸ“²
+                📲
               </div>
               <p className="font-bold text-white text-xs leading-tight">{sysSettings.apk_banner_title || 'Player Android'}</p>
               <p className="text-[10px] text-emerald-200/80 leading-normal">
@@ -265,7 +265,7 @@ export default function Layout() {
                 className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-full pl-9 pr-10 py-2 text-xs text-[#0b462c] placeholder-zinc-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-sans" 
               />
               <span className="hidden sm:inline absolute right-3 top-1/2 -translate-y-1/2 bg-white border border-zinc-200 rounded px-1.5 py-0.5 text-[9px] font-mono text-zinc-400 shadow-sm pointer-none">
-                âŒ˜ F
+                ⌘ F
               </span>
             </div>
           </div>
@@ -287,7 +287,7 @@ export default function Layout() {
             {/* Profile Avatar Card */}
             <div className="flex items-center gap-1.5 sm:gap-3">
               <div className="text-right hidden md:block">
-                <p className="text-xs font-bold text-zinc-800 leading-none">OlÃ¡, {user?.nome}</p>
+                <p className="text-xs font-bold text-zinc-800 leading-none">Olá, {user?.nome}</p>
                 <p className="text-[10px] text-zinc-400 mt-1 leading-none truncate max-w-[120px]">{user?.email}</p>
               </div>
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-emerald-500 to-[#0b462c] flex items-center justify-center text-xs font-extrabold text-white shadow-sm border border-emerald-100 relative shrink-0">

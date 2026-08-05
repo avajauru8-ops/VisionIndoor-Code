@@ -62,11 +62,11 @@ export default function AdminSettings() {
         method: 'POST',
         body: formData,
       });
-      alert('ConfiguraÃ§Ãµes salvas com sucesso!');
+      alert('Configurações salvas com sucesso!');
       window.location.reload(); // Reload to refresh layout sidebar state immediately
     } catch (err) {
       console.error(err);
-      alert('Erro ao salvar as configuraÃ§Ãµes.');
+      alert('Erro ao salvar as configurações.');
     } finally {
       setSaving(false);
     }
@@ -79,15 +79,15 @@ export default function AdminSettings() {
       <div>
         <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight flex items-center gap-2">
           <Settings className="w-6 h-6 text-emerald-600" />
-          ConfiguraÃ§Ãµes Globais
+          Configurações Globais
         </h2>
         <p className="text-xs text-[#8b9aa5] font-medium mt-1">
-          Personalize a identidade visual e controle as informaÃ§Ãµes do aplicativo totem no painel.
+          Personalize a identidade visual e controle as informações do aplicativo totem no painel.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white border border-[#e8edf2] rounded-[24px] p-8 space-y-6 shadow-sm">
-         {/* SeÃ§Ã£o 1: Identidade */}
+         {/* Seção 1: Identidade */}
          <div className="space-y-4">
             <h3 className="text-[#0b462c] text-xs font-bold uppercase tracking-wider">Identidade do Painel</h3>
             <div>
@@ -141,19 +141,19 @@ export default function AdminSettings() {
                        </button>
                      )}
                      <p className="text-xs text-zinc-400 font-medium max-w-xs">
-                        Recomendado: Formato horizontal, fundo transparente, altura mÃ¡xima de 60px.
+                        Recomendado: Formato horizontal, fundo transparente, altura máxima de 60px.
                      </p>
                   </div>
                </div>
             </div>
          </div>
 
-         {/* SeÃ§Ã£o 2: Banner do APK */}
+         {/* Seção 2: Banner do APK */}
          <div className="pt-6 border-t border-[#e8edf2] space-y-6">
             <div className="flex items-center justify-between">
                <div>
                   <h3 className="text-[#0b462c] text-xs font-bold uppercase tracking-wider">Banner do Player Android</h3>
-                  <p className="text-[10px] text-zinc-400 font-medium mt-0.5">Controle a exibiÃ§Ã£o do cartÃ£o de download do APK na barra lateral.</p>
+                  <p className="text-[10px] text-zinc-400 font-medium mt-0.5">Controle a exibição do cartão de download do APK na barra lateral.</p>
                </div>
                <button 
                  type="button"
@@ -172,7 +172,7 @@ export default function AdminSettings() {
                <div className="space-y-4 border border-[#e8edf2] p-6 rounded-2xl bg-zinc-50/50 animate-in fade-in slide-in-from-top-4 duration-250">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <div>
-                        <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">TÃ­tulo do Banner</label>
+                        <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Título do Banner</label>
                         <input 
                           type="text" 
                           required 
@@ -182,7 +182,7 @@ export default function AdminSettings() {
                         />
                      </div>
                      <div>
-                        <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Texto do BotÃ£o</label>
+                        <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Texto do Botão</label>
                         <input 
                           type="text" 
                           required 
@@ -194,7 +194,7 @@ export default function AdminSettings() {
                   </div>
 
                   <div>
-                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">DescriÃ§Ã£o do Banner</label>
+                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Descrição do Banner</label>
                      <textarea 
                        required 
                        value={settings.apk_banner_desc || ''} 
@@ -237,14 +237,14 @@ export default function AdminSettings() {
             )}
          </div>
 
-         {/* SubmissÃ£o */}
+         {/* Submissão */}
          <div className="pt-6 flex justify-end border-t border-[#e8edf2]">
             <button 
               type="submit" 
               disabled={saving} 
               className="bg-[#0b462c] hover:bg-[#082a1b] text-white px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-50 shadow-sm"
             >
-              {saving ? 'Salvando...' : 'Salvar AlteraÃ§Ãµes'}
+              {saving ? 'Salvando...' : 'Salvar Alterações'}
             </button>
          </div>
       </form>

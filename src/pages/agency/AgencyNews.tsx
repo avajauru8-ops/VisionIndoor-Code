@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 import { CloudRain, Hash, Plus, Trash2, LayoutGrid } from 'lucide-react';
 import { format } from 'date-fns';
@@ -28,8 +28,11 @@ export default function AgencyNews() {
   const [loading, setLoading] = useState(true);
   
   // Clima
-  const [cidade, setCidade] = useState('SÃ£o Paulo');
-  const [estado, setEstado] = useState('SP');
+  const [cidade, setCidade] = useState('');
+  const [estado, setEstado] = useState('');
+  const [estados, setEstados] = useState<any[]>([]);
+  const [cidades, setCidades] = useState<any[]>([]);
+
   const [tempoExibicaoClima, setTempoExibicaoClima] = useState(15);
   const [loadingClima, setLoadingClima] = useState(false);
 
@@ -56,7 +59,21 @@ export default function AgencyNews() {
 
   useEffect(() => {
     loadData();
+    fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
+      .then(res => res.json())
+      .then(data => setEstados(data))
+      .catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (estado) {
+      setCidade(''); // reset city when state changes
+      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estado}/municipios?orderBy=nome`)
+        .then(res => res.json())
+        .then(data => setCidades(data))
+        .catch(console.error);
+    }
+  }, [estado]);
 
   const handleAddClima = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +102,7 @@ export default function AgencyNews() {
       });
       
       loadData();
-      alert('Widget de Clima adicionado Ã  playlist!');
+      alert('Widget de Clima adicionado à playlist!');
     } catch (e) {
       console.error(e);
       alert('Erro ao adicionar clima');
@@ -122,7 +139,7 @@ export default function AgencyNews() {
       });
       
       loadData();
-      alert('Widget de Loteria adicionado Ã  playlist!');
+      alert('Widget de Loteria adicionado à playlist!');
     } catch (e) {
       console.error(e);
       alert('Erro ao adicionar loteria');
@@ -144,8 +161,8 @@ export default function AgencyNews() {
     <div className="space-y-6 flex flex-col lg:h-[calc(100vh-8rem)] h-auto">
        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
          <div>
-           <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Utilizar NotÃ­cias & Widgets</h2>
-           <p className="text-xs text-[#8b9aa5] font-medium mt-1">Adicione widgets dinÃ¢micos de clima e utilidade Ã  sua playlist.</p>
+           <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Utilizar Notícias & Widgets</h2>
+           <p className="text-xs text-[#8b9aa5] font-medium mt-1">Adicione widgets dinâmicos de clima e utilidade à sua playlist.</p>
          </div>
          <div className="flex items-center gap-2">
             <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">Filtrar Tela:</span>
@@ -172,28 +189,34 @@ export default function AgencyNews() {
                    </div>
                    <div>
                      <h3 className="text-sm font-bold text-zinc-800">Clima Tempo</h3>
-                     <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">PrevisÃ£o do tempo local</p>
+                     <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Previsão do tempo local</p>
                    </div>
                 </div>
                 
                 <form onSubmit={handleAddClima} className="space-y-4">
                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                         <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Cidade</label>
-                         <input type="text" required value={cidade} onChange={e=>setCidade(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" />
+                         <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Estado (UF)</label>
+                         <select required value={estado} onChange={e=>setEstado(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all uppercase">
+                            <option value="">Selecione...</option>
+                            {estados.map(uf => <option key={uf.sigla} value={uf.sigla}>{uf.nome}</option>)}
+                         </select>
                       </div>
                       <div>
-                         <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Estado (UF)</label>
-                         <input type="text" maxLength={2} required value={estado} onChange={e=>setEstado(e.target.value.toUpperCase())} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all uppercase" />
+                         <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Cidade</label>
+                         <select required disabled={!estado} value={cidade} onChange={e=>setCidade(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all">
+                            <option value="">Selecione...</option>
+                            {cidades.map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
+                         </select>
                       </div>
                    </div>
                    <div>
-                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">DuraÃ§Ã£o (s)</label>
+                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Duração (s)</label>
                      <input type="number" min="1" required value={tempoExibicaoClima} onChange={e=>setTempoExibicaoClima(Number(e.target.value))} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" />
                    </div>
                    <button type="submit" disabled={loadingClima} className="w-full bg-[#0b462c] hover:bg-[#082a1b] text-white rounded-full py-3 text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-50 mt-2 flex items-center justify-center gap-2 shadow-sm">
                      <Plus className="w-4 h-4" />
-                     {loadingClima ? 'Adicionando...' : 'Adicionar Ã  Playlist'}
+                     {loadingClima ? 'Adicionando...' : 'Adicionar à Playlist'}
                    </button>
                 </form>
              </div>
@@ -216,17 +239,17 @@ export default function AgencyNews() {
                      <select required value={tipoLoteria} onChange={e=>setTipoLoteria(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all">
                         <option value="megasena">Mega-Sena</option>
                         <option value="megavirada">Mega da Virada</option>
-                        <option value="lotofacil">LotofÃ¡cil</option>
+                        <option value="lotofacil">Lotofácil</option>
                         <option value="quina">Quina</option>
                      </select>
                    </div>
                    <div>
-                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">DuraÃ§Ã£o (s)</label>
+                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Duração (s)</label>
                      <input type="number" min="1" required value={tempoExibicaoLoteria} onChange={e=>setTempoExibicaoLoteria(Number(e.target.value))} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" />
                    </div>
                    <button type="submit" disabled={loadingLoteria} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-full py-3 text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-50 mt-2 flex items-center justify-center gap-2 shadow-sm">
                      <Plus className="w-4 h-4" />
-                     {loadingLoteria ? 'Adicionando...' : 'Adicionar Ã  Playlist'}
+                     {loadingLoteria ? 'Adicionando...' : 'Adicionar à Playlist'}
                    </button>
                 </form>
              </div>
@@ -241,9 +264,9 @@ export default function AgencyNews() {
                    <thead className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 border-b border-[#e8edf2] bg-zinc-50/50">
                      <tr>
                        <th className="px-6 py-4">Widget</th>
-                       <th className="px-6 py-4 font-sans">DuraÃ§Ã£o</th>
+                       <th className="px-6 py-4 font-sans">Duração</th>
                        <th className="px-6 py-4">Tipo</th>
-                       <th className="px-6 py-4 text-right">AÃ§Ãµes</th>
+                       <th className="px-6 py-4 text-right">Ações</th>
                      </tr>
                    </thead>
                    <tbody>

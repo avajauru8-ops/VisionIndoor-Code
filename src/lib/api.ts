@@ -1,4 +1,4 @@
-﻿export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
+export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token');
   
   const headers: HeadersInit = {

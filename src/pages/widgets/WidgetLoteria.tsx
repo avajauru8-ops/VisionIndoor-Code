@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 export default function WidgetLoteria() {
@@ -39,7 +39,7 @@ export default function WidgetLoteria() {
            }
            if (data.valorEstimadoProximoConcurso) {
               const valorFormatado = (data.valorEstimadoProximoConcurso / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
-              setPremio(`R$ ${valorFormatado} MilhÃµes`);
+              setPremio(`R$ ${valorFormatado} Milhões`);
            }
         } catch (error) {
            console.error('Erro ao carregar loteria:', error);
@@ -48,7 +48,7 @@ export default function WidgetLoteria() {
            const seed = today.getFullYear() * 1000 + today.getMonth() * 100 + today.getDate() + (tipo === 'megasena' ? 1 : 2);
            setNumbers(generateNumbers(tipo === 'lotofacil' ? 15 : tipo === 'quina' ? 5 : 6, seed));
            setDataSorteio(today.toLocaleDateString('pt-BR'));
-           setPremio(`R$ ${Math.floor(Math.random() * 40 + 10)} MilhÃµes`);
+           setPremio(`R$ ${Math.floor(Math.random() * 40 + 10)} Milhões`);
         }
      };
 
@@ -65,7 +65,7 @@ export default function WidgetLoteria() {
   const titles: Record<string, string> = {
     megasena: 'MEGA-SENA',
     megavirada: 'MEGA DA VIRADA',
-    lotofacil: 'LOTOFÃCIL',
+    lotofacil: 'LOTOFÁCIL',
     quina: 'QUINA'
   };
 
@@ -95,7 +95,7 @@ export default function WidgetLoteria() {
        </div>
 
        <div className="mt-16 text-3xl font-bold opacity-90 bg-black/20 px-10 py-5 rounded-2xl backdrop-blur-sm">
-         PrÃ³ximo prÃªmio estimado: <span className="text-yellow-300 drop-shadow-sm">{premio}</span>
+         Próximo prêmio estimado: <span className="text-yellow-300 drop-shadow-sm">{premio}</span>
        </div>
     </div>
   );

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { apiFetch } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
@@ -102,9 +102,9 @@ export default function AgencyDashboard() {
       {/* Top Banner and Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Dashboard da AgÃªncia</h2>
+          <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Dashboard da Agência</h2>
           <p className="text-xs text-[#8b9aa5] font-medium mt-1">
-            Gerencie, priorize e acompanhe suas telas com inteligÃªncia.
+            Gerencie, priorize e acompanhe suas telas com inteligência.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -138,9 +138,9 @@ export default function AgencyDashboard() {
             <h3 className="text-4xl font-extrabold tracking-tight">{stats.total}</h3>
             <div className="flex items-center gap-1.5 mt-2">
               <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-emerald-500/20 text-emerald-200">
-                â˜… Ativas
+                ★ Ativas
               </span>
-              <span className="text-[10px] text-emerald-200/70">DisponÃ­veis na rede</span>
+              <span className="text-[10px] text-emerald-200/70">Disponíveis na rede</span>
             </div>
           </div>
         </div>
@@ -176,7 +176,7 @@ export default function AgencyDashboard() {
             <h3 className="text-4xl font-extrabold tracking-tight text-zinc-800">{stats.offline}</h3>
             <div className="flex items-center gap-1.5 mt-2">
               <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold ${stats.offline > 0 ? 'bg-rose-50 text-rose-600' : 'bg-[#e8f5ed] text-emerald-600'}`}>
-                {stats.offline > 0 ? 'AtenÃ§Ã£o necessÃ¡ria' : 'Tudo perfeito'}
+                {stats.offline > 0 ? 'Atenção necessária' : 'Tudo perfeito'}
               </span>
               <span className="text-[10px] text-[#8b9aa5]">Sem sincronizar</span>
             </div>
@@ -209,14 +209,14 @@ export default function AgencyDashboard() {
         <div className="bg-white border border-[#e8edf2] rounded-[24px] p-6 shadow-sm flex flex-col justify-between min-h-[300px]">
           <div>
             <h4 className="text-sm font-extrabold text-[#0b462c] uppercase tracking-wider">Lembretes & Alertas</h4>
-            <p className="text-[10px] text-[#8b9aa5] mt-1">NotificaÃ§Ãµes e aÃ§Ãµes importantes do sistema</p>
+            <p className="text-[10px] text-[#8b9aa5] mt-1">Notificações e ações importantes do sistema</p>
           </div>
 
           <div className="my-6 space-y-4">
             <div className="p-4 rounded-2xl bg-[#fcfdfe] border border-[#e8edf2] flex items-start gap-3">
               <span className="w-2 h-2 mt-1.5 bg-emerald-500 rounded-full shrink-0"></span>
               <div>
-                <p className="text-xs font-bold text-[#0b462c]">SincronizaÃ§Ã£o OK</p>
+                <p className="text-xs font-bold text-[#0b462c]">Sincronização OK</p>
                 <p className="text-[10px] text-zinc-500 mt-0.5">Todas as playlists ativas foram transmitidas com sucesso.</p>
               </div>
             </div>
@@ -224,8 +224,8 @@ export default function AgencyDashboard() {
             <div className="p-4 rounded-2xl bg-[#fffaf5] border border-[#ffe8d6] flex items-start gap-3">
               <span className="w-2 h-2 mt-1.5 bg-amber-500 rounded-full shrink-0"></span>
               <div>
-                <p className="text-xs font-bold text-amber-800">PrÃ³ximos Vencimentos</p>
-                <p className="text-[10px] text-zinc-500 mt-0.5">Renove as licenÃ§as dos totens da agÃªncia atÃ© o prÃ³ximo mÃªs.</p>
+                <p className="text-xs font-bold text-amber-800">Próximos Vencimentos</p>
+                <p className="text-[10px] text-zinc-500 mt-0.5">Renove as licenças dos totens da agência até o próximo mês.</p>
               </div>
             </div>
           </div>
@@ -234,7 +234,7 @@ export default function AgencyDashboard() {
             to="/agency/playlists" 
             className="w-full bg-[#0b462c] hover:bg-[#082a1b] text-white text-xs font-bold text-center py-3 px-4 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
           >
-            <Clock className="w-4 h-4" /> Atualizar ConteÃºdos
+            <Clock className="w-4 h-4" /> Atualizar Conteúdos
           </Link>
         </div>
 
@@ -243,7 +243,7 @@ export default function AgencyDashboard() {
           <div className="flex justify-between items-center">
             <div>
               <h4 className="text-sm font-extrabold text-[#0b462c] uppercase tracking-wider">Telas Recentes</h4>
-              <p className="text-[10px] text-[#8b9aa5] mt-1">ConexÃ£o recente dos totens</p>
+              <p className="text-[10px] text-[#8b9aa5] mt-1">Conexão recente dos totens</p>
             </div>
             <Link 
               to="/agency/totems" 
@@ -286,8 +286,8 @@ export default function AgencyDashboard() {
         {/* Project Progress Gauge (Network health) */}
         <div className="bg-white border border-[#e8edf2] rounded-[24px] p-6 shadow-sm min-h-[280px] flex flex-col justify-between">
           <div>
-            <h4 className="text-sm font-extrabold text-[#0b462c] uppercase tracking-wider">SaÃºde da Rede</h4>
-            <p className="text-[10px] text-[#8b9aa5] mt-1">Percentual de conexÃ£o geral dos totens</p>
+            <h4 className="text-sm font-extrabold text-[#0b462c] uppercase tracking-wider">Saúde da Rede</h4>
+            <p className="text-[10px] text-[#8b9aa5] mt-1">Percentual de conexão geral dos totens</p>
           </div>
 
           <div className="relative h-28 my-2 flex items-center justify-center">
@@ -337,7 +337,7 @@ export default function AgencyDashboard() {
           <div className="flex justify-between items-start relative z-10">
             <div>
               <h4 className="text-sm font-extrabold uppercase tracking-widest text-emerald-200">Tempo de Atividade</h4>
-              <p className="text-[10px] text-emerald-300 mt-1">Monitoramento de transmissÃ£o</p>
+              <p className="text-[10px] text-emerald-300 mt-1">Monitoramento de transmissão</p>
             </div>
             <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-xs">
               <Sparkles className="w-4 h-4 text-emerald-200" />

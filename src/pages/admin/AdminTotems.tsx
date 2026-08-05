@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 import { Tv, Edit, Trash2, Search, CheckCircle, XCircle, Calendar, User, Info, AlertTriangle, X } from 'lucide-react';
 import { format } from 'date-fns';
@@ -87,7 +87,7 @@ export default function AdminTotems() {
             Totens Cadastrados
           </h2>
           <p className="text-xs text-[#8b9aa5] font-medium mt-1">
-            Monitore e gerencie todos os dispositivos totens/telas cadastrados por agÃªncias.
+            Monitore e gerencie todos os dispositivos totens/telas cadastrados por agências.
           </p>
         </div>
         
@@ -98,7 +98,7 @@ export default function AdminTotems() {
           </span>
           <input 
             type="text" 
-            placeholder="Buscar por nome, ID ou agÃªncia..." 
+            placeholder="Buscar por nome, ID ou agência..." 
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full bg-white border border-zinc-200 rounded-full pl-9 pr-4 py-2 text-xs text-[#0b462c] placeholder-zinc-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all" 
@@ -118,10 +118,10 @@ export default function AdminTotems() {
                 <tr>
                   <th className="px-6 py-4">Nome do Dispositivo</th>
                   <th className="px-6 py-4">ID do Dispositivo (Vinc.)</th>
-                  <th className="px-6 py-4">Cadastrado Por (AgÃªncia)</th>
+                  <th className="px-6 py-4">Cadastrado Por (Agência)</th>
                   <th className="px-6 py-4">Data de Cadastro</th>
                   <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">AÃ§Ãµes</th>
+                  <th className="px-6 py-4 text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e8edf2]">
@@ -249,12 +249,12 @@ export default function AdminTotems() {
           <div className="bg-white rounded-[24px] border border-[#e8edf2] max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 text-rose-600 border-b border-[#e8edf2] pb-4 mb-4">
               <AlertTriangle className="w-6 h-6" />
-              <h3 className="text-sm font-extrabold uppercase tracking-wider">Confirmar RemoÃ§Ã£o</h3>
+              <h3 className="text-sm font-extrabold uppercase tracking-wider">Confirmar Remoção</h3>
             </div>
             
             <p className="text-sm text-zinc-600 leading-relaxed mb-6">
               Tem certeza que deseja remover o totem <strong className="text-zinc-800">"{deletingTotem.nome}"</strong> ({deletingTotem.device_id})? 
-              Essa aÃ§Ã£o Ã© definitiva e desconectarÃ¡ o dispositivo da rede de exibiÃ§Ã£o imediatamente.
+              Essa ação é definitiva e desconectará o dispositivo da rede de exibição imediatamente.
             </p>
 
             <div className="flex justify-end gap-3 border-t border-[#e8edf2] pt-4">
@@ -270,7 +270,7 @@ export default function AdminTotems() {
                 onClick={handleDeleteConfirm}
                 className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition-all"
               >
-                Confirmar RemoÃ§Ã£o
+                Confirmar Remoção
               </button>
             </div>
           </div>

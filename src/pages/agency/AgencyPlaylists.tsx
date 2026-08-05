@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 import { MonitorPlay, UploadCloud, Film, Image as ImageIcon, Trash2, Edit2, X } from 'lucide-react';
 import { format, addDays } from 'date-fns';
@@ -160,14 +160,14 @@ export default function AgencyPlaylists() {
       loadData();
     } catch (err: any) {
       console.error(err);
-      alert('Erro ao enviar mÃ­dia: ' + (err.message || 'Erro desconhecido'));
+      alert('Erro ao enviar mídia: ' + (err.message || 'Erro desconhecido'));
     } finally {
       setUploading(false);
     }
   };
   
   const handleDelete = async (id: string) => {
-     if (confirm('Excluir mÃ­dia?')) {
+     if (confirm('Excluir mídia?')) {
        await apiFetch(`/api/playlists/${id}`, { method: 'DELETE' });
        if (editingId === id) cancelEdit();
        loadData();
@@ -185,8 +185,8 @@ export default function AgencyPlaylists() {
     <div className="space-y-6 flex flex-col lg:h-[calc(100vh-8rem)] h-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
         <div>
-          <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">GestÃ£o de Playlist</h2>
-          <p className="text-xs text-[#8b9aa5] font-medium mt-1">Envie mÃ­dias e organize as programaÃ§Ãµes de suas telas.</p>
+          <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Gestão de Playlist</h2>
+          <p className="text-xs text-[#8b9aa5] font-medium mt-1">Envie mídias e organize as programações de suas telas.</p>
         </div>
         
         <div className="flex items-center gap-2">
@@ -209,19 +209,19 @@ export default function AgencyPlaylists() {
          <div className="col-span-1 bg-white border border-[#e8edf2] rounded-[24px] flex flex-col overflow-hidden relative shadow-sm lg:h-full h-auto">
             {editingId && (
                <div className="bg-emerald-500/10 border-b border-emerald-100 py-2.5 text-center shrink-0">
-                  <span className="text-emerald-700 text-[10px] font-bold uppercase tracking-widest animate-pulse">Editando MÃ­dia</span>
+                  <span className="text-emerald-700 text-[10px] font-bold uppercase tracking-widest animate-pulse">Editando Mídia</span>
                </div>
             )}
             {!editingId && (
                <div className="border-b border-[#e8edf2] p-4 bg-zinc-50/50 shrink-0">
-                  <h3 className="text-[#0b462c] text-xs font-bold uppercase tracking-wider">Adicionar Nova MÃ­dia</h3>
+                  <h3 className="text-[#0b462c] text-xs font-bold uppercase tracking-wider">Adicionar Nova Mídia</h3>
                </div>
             )}
             
             <div className="p-6 overflow-y-auto flex-1">
                  <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Tela de ExibiÃ§Ã£o</label>
+                      <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Tela de Exibição</label>
                       <select 
                         className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all"
                         value={formTotemId}
@@ -235,7 +235,7 @@ export default function AgencyPlaylists() {
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">TÃ­tulo</label>
+                      <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Título</label>
                       <input type="text" required value={titulo} onChange={e=>setTitulo(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" />
                     </div>
                     
@@ -244,18 +244,18 @@ export default function AgencyPlaylists() {
                         <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Tipo</label>
                         <select value={tipoMidia} onChange={e=>setTipoMidia(e.target.value as any)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all">
                           <option value="imagem">Imagem</option>
-                          <option value="video">VÃ­deo</option>
+                          <option value="video">Vídeo</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">DuraÃ§Ã£o (s)</label>
+                        <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Duração (s)</label>
                         <input type="number" required value={tempoExibicao} onChange={e=>setTempoExibicao(Number(e.target.value))} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">InÃ­cio</label>
+                        <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Início</label>
                         <input type="datetime-local" required value={dataInicio} onChange={e=>setDataInicio(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm font-mono focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all [color-scheme:light]" />
                       </div>
                       <div>
@@ -291,7 +291,7 @@ export default function AgencyPlaylists() {
                         disabled={uploading}
                         className="flex-1 bg-[#0b462c] hover:bg-[#082a1b] disabled:bg-zinc-300 text-white font-bold text-xs py-3 px-4 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
                       >
-                        {uploading ? 'ENVIANDO...' : editingId ? 'SALVAR ALTERAÃ‡Ã•ES' : 'ADICIONAR MÃDIA'}
+                        {uploading ? 'ENVIANDO...' : editingId ? 'SALVAR ALTERAÇÕES' : 'ADICIONAR MÍDIA'}
                       </button>
                     </div>
                  </form>
@@ -301,7 +301,7 @@ export default function AgencyPlaylists() {
          {/* Playlist Grid */}
          <div className="col-span-1 lg:col-span-2 bg-white border border-[#e8edf2] rounded-[24px] flex flex-col overflow-hidden shadow-sm lg:h-full h-auto">
             <div className="border-b border-[#e8edf2] p-4 bg-zinc-50/50">
-               <h3 className="text-[#0b462c] text-xs font-bold uppercase tracking-wider">MÃ­dias Ativas nesta Tela</h3>
+               <h3 className="text-[#0b462c] text-xs font-bold uppercase tracking-wider">Mídias Ativas nesta Tela</h3>
             </div>
             
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -318,7 +318,7 @@ export default function AgencyPlaylists() {
                            )}
                          </div>
                          <div>
-                            <h4 className="text-sm font-extrabold text-zinc-800 leading-tight">{item.titulo || 'Sem tÃ­tulo'}</h4>
+                            <h4 className="text-sm font-extrabold text-zinc-800 leading-tight">{item.titulo || 'Sem título'}</h4>
                             <div className="flex flex-wrap gap-2 mt-2">
                               <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-zinc-100 text-zinc-600">
                                 {item.tempo_exibicao || 0}s
@@ -343,14 +343,14 @@ export default function AgencyPlaylists() {
                          <div className="text-left sm:text-right">
                             <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none">Validade</p>
                             <p className="text-xs text-zinc-500 font-medium font-sans mt-1">
-                              AtÃ© {(() => {
+                              Até {(() => {
                                 try {
-                                  if (!item.data_fim) return 'Data InvÃ¡lida';
+                                  if (!item.data_fim) return 'Data Inválida';
                                   const dStr = typeof item.data_fim === 'string' ? item.data_fim.replace(' ', 'T') : String(item.data_fim);
                                   const d = new Date(dStr);
-                                  return isNaN(d.getTime()) ? 'Data InvÃ¡lida' : format(d, 'dd/MM/yyyy HH:mm');
+                                  return isNaN(d.getTime()) ? 'Data Inválida' : format(d, 'dd/MM/yyyy HH:mm');
                                 } catch (e) {
-                                  return 'Data InvÃ¡lida';
+                                  return 'Data Inválida';
                                 }
                               })()}
                             </p>
@@ -370,7 +370,7 @@ export default function AgencyPlaylists() {
                {(!Array.isArray(filteredPlaylists) || filteredPlaylists.length === 0) && (
                  <div className="h-full flex flex-col items-center justify-center text-zinc-400 py-12">
                    <MonitorPlay className="w-12 h-12 mb-3 opacity-30 text-[#8b9aa5]" />
-                   <p className="text-sm font-semibold">Nenhuma mÃ­dia ativa.</p>
+                   <p className="text-sm font-semibold">Nenhuma mídia ativa.</p>
                  </div>
                )}
             </div>

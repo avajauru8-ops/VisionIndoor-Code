@@ -4,7 +4,7 @@ import { Cloud, CloudLightning, CloudRain, CloudSnow, Sun, Wind } from 'lucide-r
 
 export default function WidgetClima() {
   const [searchParams] = useSearchParams();
-  const cidade = searchParams.get('cidade') || 'SÃ£o Paulo';
+  const cidade = searchParams.get('cidade') || 'São Paulo';
   const estado = searchParams.get('estado') || 'SP';
   
   const [weather, setWeather] = useState({
@@ -57,7 +57,7 @@ export default function WidgetClima() {
           ) : (
              <Cloud className="w-48 h-48 text-slate-300" />
           )}
-          <span className="text-9xl font-black">{weather.temp}Â°C</span>
+          <span className="text-9xl font-black">{weather.temp}°C</span>
        </div>
        <div className="text-4xl font-medium tracking-wide drop-shadow-md">
           {weather.condition}
