@@ -88,7 +88,8 @@ export default function AgencyPlaylistView() {
 
   const handleToggleActive = async (item: Playlist) => {
     try {
-      const newStatus = item.ativo === 1 ? 0 : 1;
+      const isActive = String(item.ativo) !== '0';
+      const newStatus = isActive ? 0 : 1;
       await apiFetch(`/api/playlists/${item.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -234,7 +235,7 @@ export default function AgencyPlaylistView() {
                         </span>
                         {expired ? (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-rose-50 text-rose-600 uppercase">Expirado</span>
-                        ) : item.ativo === 1 ? (
+                        ) : String(item.ativo) !== '0' ? (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-emerald-50 text-emerald-600 uppercase">Ativo</span>
                         ) : (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-amber-50 text-amber-600 uppercase">Pausado</span>
@@ -252,10 +253,10 @@ export default function AgencyPlaylistView() {
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => handleToggleActive(item)}
-                        className={`p-2 rounded-lg transition-all border border-transparent ${item.ativo === 1 ? 'text-zinc-400 hover:text-amber-500 hover:bg-amber-50 hover:border-amber-100' : 'text-zinc-400 hover:text-emerald-500 hover:bg-emerald-50 hover:border-emerald-100'}`}
-                        title={item.ativo === 1 ? "Pausar Mídia" : "Tocar Mídia"}
+                        className={`p-2 rounded-lg transition-all border border-transparent ${String(item.ativo) !== '0' ? 'text-zinc-400 hover:text-amber-500 hover:bg-amber-50 hover:border-amber-100' : 'text-zinc-400 hover:text-emerald-500 hover:bg-emerald-50 hover:border-emerald-100'}`}
+                        title={String(item.ativo) !== '0' ? "Pausar Mídia" : "Tocar Mídia"}
                       >
-                        {item.ativo === 1 ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                        {String(item.ativo) !== '0' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                       </button>
                       <Link
                         to={`/agency/playlists/cadastrar?edit=${item.id}&totem_id=${id}`}
