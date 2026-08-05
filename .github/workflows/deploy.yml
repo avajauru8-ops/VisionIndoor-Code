@@ -32,7 +32,7 @@ jobs:
     - name: Sync files via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
-        server: ftp.aplicativo.grandmidia.com.br
+        server: aplicativo.grandmidia.com.br
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./backend/
