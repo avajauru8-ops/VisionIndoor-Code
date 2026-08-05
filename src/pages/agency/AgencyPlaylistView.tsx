@@ -37,11 +37,11 @@ export default function AgencyPlaylistView() {
         apiFetch('/api/playlists')
       ]);
       
-      const foundTotem = tData.find((t: Totem) => t.id === Number(id));
+      const foundTotem = tData.find((t: Totem) => String(t.id) === String(id));
       setTotem(foundTotem || null);
 
       // Filter playlists for this totem or global (totem_id === null)
-      const filtered = pData.filter((p: Playlist) => !p.totem_id || p.totem_id === Number(id));
+      const filtered = pData.filter((p: Playlist) => !p.totem_id || String(p.totem_id) === String(id));
       setPlaylists(filtered);
     } catch (err) {
       console.error(err);

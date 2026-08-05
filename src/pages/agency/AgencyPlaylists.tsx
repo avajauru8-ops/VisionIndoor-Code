@@ -200,25 +200,11 @@ export default function AgencyPlaylists() {
           <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Cadastrar Mídias</h2>
           <p className="text-xs text-[#8b9aa5] font-medium mt-1">Envie mídias e organize as programações de suas telas.</p>
         </div>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">Filtrar Tela:</span>
-          <select 
-            className="bg-[#f4f6f8] border border-zinc-200 rounded-xl text-xs px-3 py-2 outline-none text-zinc-700 font-sans focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-            value={selectedTotem}
-            onChange={(e) => setSelectedTotem(e.target.value)}
-          >
-             <option value="">Todas as Telas (Global)</option>
-             {Array.isArray(totems) && totems.map(t => (
-                <option key={t.id} value={t.id}>{t.nome} ({t.device_id})</option>
-             ))}
-          </select>
-        </div>
       </div>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 lg:overflow-hidden overflow-visible">
-         {/* Sidebar Forms */}
-         <div className="col-span-1 bg-white border border-[#e8edf2] rounded-[24px] flex flex-col overflow-hidden relative shadow-sm lg:h-full h-auto">
+      <div className="flex-1 flex justify-center lg:overflow-hidden overflow-visible pb-12">
+         {/* Forms */}
+         <div className="w-full max-w-3xl bg-white border border-[#e8edf2] rounded-[24px] flex flex-col overflow-hidden relative shadow-sm lg:h-full h-auto">
             {editingId && (
                <div className="bg-emerald-500/10 border-b border-emerald-100 py-2.5 text-center shrink-0">
                   <span className="text-emerald-700 text-[10px] font-bold uppercase tracking-widest animate-pulse">Editando Mídia</span>
@@ -309,91 +295,6 @@ export default function AgencyPlaylists() {
                  </form>
             </div>
          </div>
-
-         {/* Playlist Grid */}
-         <div className="col-span-1 lg:col-span-2 bg-white border border-[#e8edf2] rounded-[24px] flex flex-col overflow-hidden shadow-sm lg:h-full h-auto">
-            <div className="border-b border-[#e8edf2] p-4 bg-zinc-50/50">
-               <h3 className="text-[#0b462c] text-xs font-bold uppercase tracking-wider">Mídias Ativas nesta Tela</h3>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-               {Array.isArray(filteredPlaylists) && filteredPlaylists.map(item => {
-                 const isExpired = item.data_fim ? new Date(item.data_fim) < now : true;
-                 return (
-                   <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-[#e8edf2] hover:bg-zinc-50/50 transition-all gap-4">
-                      <div className="flex items-center gap-4">
-                         <div className="w-16 h-16 rounded-xl bg-zinc-100 overflow-hidden flex items-center justify-center shrink-0 border border-zinc-200">
-                           {item.tipo_midia === 'video' ? (
-                             <Film className="w-6 h-6 text-zinc-400" />
-                           ) : item.tipo_midia === 'noticia' ? (
-                             item.titulo?.toLowerCase().includes('clima') ? (
-                               <Cloud className="w-6 h-6 text-indigo-500" />
-                             ) : item.titulo?.toLowerCase().includes('loteria') ? (
-                               <Hash className="w-6 h-6 text-emerald-500" />
-                             ) : (
-                               <LayoutGrid className="w-6 h-6 text-zinc-500" />
-                             )
-                           ) : (
-                             <img src={item.arquivo_url || ''} alt={item.titulo || ''} className="w-full h-full object-cover bg-zinc-200" />
-                           )}
-                         </div>
-                         <div>
-                            <h4 className="text-sm font-extrabold text-zinc-800 leading-tight">{item.titulo || 'Sem título'}</h4>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-zinc-100 text-zinc-600">
-                                {item.tempo_exibicao || 0}s
-                              </span>
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-zinc-100 text-zinc-600 uppercase">
-                                {item.tipo_midia || 'imagem'}
-                              </span>
-                              {isExpired ? (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-rose-50 text-rose-600 uppercase">
-                                  Expirado
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-emerald-50 text-emerald-600 uppercase">
-                                  Ativo
-                                </span>
-                              )}
-                            </div>
-                         </div>
-                      </div>
-
-                      <div className="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 pt-3 sm:pt-0 border-zinc-100">
-                         <div className="text-left sm:text-right">
-                            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none">Validade</p>
-                            <p className="text-xs text-zinc-500 font-medium font-sans mt-1">
-                              Até {(() => {
-                                try {
-                                  if (!item.data_fim) return 'Data Inválida';
-                                  const dStr = typeof item.data_fim === 'string' ? item.data_fim.replace(' ', 'T') : String(item.data_fim);
-                                  const d = new Date(dStr);
-                                  return isNaN(d.getTime()) ? 'Data Inválida' : format(d, 'dd/MM/yyyy HH:mm');
-                                } catch (e) {
-                                  return 'Data Inválida';
-                                }
-                              })()}
-                            </p>
-                         </div>
-                         <div className="flex items-center gap-2">
-                            <button onClick={() => handleEdit(item)} className="p-2 text-zinc-400 hover:text-[#0b462c] hover:bg-[#e8f5ed]/30 rounded-lg transition-all border border-transparent hover:border-[#e8edf2]">
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => handleDelete(item.id)} className="p-2 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all border border-transparent hover:border-rose-100">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                         </div>
-                      </div>
-                   </div>
-                 );
-               })}
-               {(!Array.isArray(filteredPlaylists) || filteredPlaylists.length === 0) && (
-                 <div className="h-full flex flex-col items-center justify-center text-zinc-400 py-12">
-                   <MonitorPlay className="w-12 h-12 mb-3 opacity-30 text-[#8b9aa5]" />
-                   <p className="text-sm font-semibold">Nenhuma mídia ativa.</p>
-                 </div>
-               )}
-            </div>
          </div>
       </div>
     </div>
