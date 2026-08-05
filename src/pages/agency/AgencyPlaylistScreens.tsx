@@ -16,12 +16,12 @@ interface PlaylistCount {
 }
 
 function formatUptime(dateStr: string | null): string {
-  if (!dateStr) return '';
+  if (!dateStr) return '0m';
   try {
     const since = new Date(dateStr.replace(' ', 'T'));
-    if (isNaN(since.getTime())) return '';
-    const diffMs = Date.now() - since.getTime();
-    if (diffMs < 0) return '';
+    if (isNaN(since.getTime())) return '0m';
+    let diffMs = Date.now() - since.getTime();
+    if (diffMs < 0) diffMs = 0; // fallback if timezone diff makes it negative
     const totalSeconds = Math.floor(diffMs / 1000);
     const days = Math.floor(totalSeconds / 86400);
     const hours = Math.floor((totalSeconds % 86400) / 3600);
@@ -30,7 +30,7 @@ function formatUptime(dateStr: string | null): string {
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
   } catch {
-    return '';
+    return '0m';
   }
 }
 
@@ -124,12 +124,15 @@ export default function AgencyPlaylistScreens() {
                         Offline
                       </span>
                     )}
-                    {totem.status === 'online' && formatUptime(totem.ultima_sincronizacao) && (
-                      <span className="flex items-center gap-1 text-[9px] text-emerald-600 font-semibold bg-emerald-50/60 px-2 py-0.5 rounded-full border border-emerald-100">
-                        <Clock className="w-2.5 h-2.5 shrink-0" />
-                        {formatUptime(totem.ultima_sincronizacao)}
-                      </span>
-                    )}
+                    {/* Time Badge always visible */}
+                    <span className={`flex items-center gap-1 text-[9px] font-semibold px-2 py-0.5 rounded-full border ${
+                      totem.status === 'online' 
+                        ? 'text-emerald-600 bg-emerald-50 border-emerald-100'
+                        : 'text-rose-600 bg-rose-50 border-rose-100'
+                    }`}>
+                      <Clock className="w-2.5 h-2.5 shrink-0" />
+                      {formatUptime(totem.ultima_sincronizacao)}
+                    </span>
                   </div>
                 </div>
 
@@ -145,9 +148,9 @@ export default function AgencyPlaylistScreens() {
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-zinc-100 flex items-center justify-between text-emerald-600">
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Ver Playlist</span>
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <div className="mt-4 flex items-center justify-center bg-[#0b462c] text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider group-hover:bg-[#082a1b] transition-colors shadow-sm group-hover:shadow-md">
+                  <span>Ver Playlist</span>
+                  <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>
             );
