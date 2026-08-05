@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
-import { CloudRain, Hash, Plus, Trash2, LayoutGrid } from 'lucide-react';
+import { CloudRain, Hash, Plus, Trash2, LayoutGrid, Youtube } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Totem {
@@ -40,6 +40,13 @@ export default function AgencyNews() {
   const [tipoLoteria, setTipoLoteria] = useState('megasena');
   const [tempoExibicaoLoteria, setTempoExibicaoLoteria] = useState(15);
   const [loadingLoteria, setLoadingLoteria] = useState(false);
+
+  // YouTube
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [tempoExibicaoYoutube, setTempoExibicaoYoutube] = useState(60);
+  const [youtubeLoop, setYoutubeLoop] = useState(true);
+  const [youtubeMute, setYoutubeMute] = useState(true);
+  const [loadingYoutube, setLoadingYoutube] = useState(false);
 
   const loadData = async () => {
     try {
@@ -155,6 +162,51 @@ export default function AgencyNews() {
      }
   };
 
+  const handleAddYoutube = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!youtubeUrl.trim()) return alert('Informe a URL do vídeo do YouTube.');
+    setLoadingYoutube(true);
+    try {
+      const dataInicio = new Date().toISOString();
+      const dataFim = new Date();
+      dataFim.setFullYear(dataFim.getFullYear() + 1);
+
+      const params = new URLSearchParams({
+        url: youtubeUrl.trim(),
+        loop: youtubeLoop ? '1' : '0',
+        mute: youtubeMute ? '1' : '0',
+        autoplay: '1',
+        controls: '0',
+      });
+      const url = `/widget/youtube?${params.toString()}`;
+
+      const payload = {
+        totem_id: selectedTotem || null,
+        titulo: `YouTube: ${youtubeUrl.trim().slice(0, 40)}`,
+        tipo_midia: 'noticia',
+        tempo_exibicao: tempoExibicaoYoutube,
+        data_inicio: dataInicio,
+        data_fim: dataFim.toISOString(),
+        url,
+      };
+
+      await apiFetch('/api/playlists', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      setYoutubeUrl('');
+      loadData();
+      alert('Widget YouTube adicionado à playlist!');
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao adicionar YouTube');
+    } finally {
+      setLoadingYoutube(false);
+    }
+  };
+
   const newsPlaylists = playlists.filter(p => p.tipo_midia === 'noticia' && (selectedTotem ? p.totem_id === Number(selectedTotem) || p.totem_id === null : true));
 
   return (
@@ -180,7 +232,7 @@ export default function AgencyNews() {
        </div>
 
        <div className="flex-1 overflow-y-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
              {/* Clima Widget Form */}
              <div className="bg-white border border-[#e8edf2] rounded-[24px] p-6 shadow-sm">
                 <div className="flex items-center gap-3 mb-6">
@@ -250,6 +302,72 @@ export default function AgencyNews() {
                    <button type="submit" disabled={loadingLoteria} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-full py-3 text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-50 mt-2 flex items-center justify-center gap-2 shadow-sm">
                      <Plus className="w-4 h-4" />
                      {loadingLoteria ? 'Adicionando...' : 'Adicionar à Playlist'}
+                   </button>
+                </form>
+             </div>
+
+             {/* YouTube Widget Form */}
+             <div className="bg-white border border-[#e8edf2] rounded-[24px] p-6 shadow-sm">
+                <div className="flex items-center gap-3 mb-6">
+                   <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+                      <Youtube className="w-5 h-5 text-red-500" />
+                   </div>
+                   <div>
+                     <h3 className="text-sm font-bold text-zinc-800">Vídeo do YouTube</h3>
+                     <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Transmita vídeos na tela</p>
+                   </div>
+                </div>
+
+                <form onSubmit={handleAddYoutube} className="space-y-4">
+                   <div>
+                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">URL ou ID do Vídeo</label>
+                     <input
+                       type="text"
+                       required
+                       placeholder="https://youtube.com/watch?v=... ou ID"
+                       value={youtubeUrl}
+                       onChange={e => setYoutubeUrl(e.target.value)}
+                       className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-red-400 focus:ring-1 focus:ring-red-400 outline-none transition-all"
+                     />
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Duração na Tela (s)</label>
+                     <input
+                       type="number"
+                       min="5"
+                       required
+                       value={tempoExibicaoYoutube}
+                       onChange={e => setTempoExibicaoYoutube(Number(e.target.value))}
+                       className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-red-400 focus:ring-1 focus:ring-red-400 outline-none transition-all"
+                     />
+                   </div>
+                   <div className="flex items-center justify-between gap-4">
+                     <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-600 font-semibold">
+                       <input
+                         type="checkbox"
+                         checked={youtubeLoop}
+                         onChange={e => setYoutubeLoop(e.target.checked)}
+                         className="w-4 h-4 rounded accent-red-500"
+                       />
+                       Repetir (Loop)
+                     </label>
+                     <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-600 font-semibold">
+                       <input
+                         type="checkbox"
+                         checked={youtubeMute}
+                         onChange={e => setYoutubeMute(e.target.checked)}
+                         className="w-4 h-4 rounded accent-red-500"
+                       />
+                       Silenciado
+                     </label>
+                   </div>
+                   <button
+                     type="submit"
+                     disabled={loadingYoutube}
+                     className="w-full bg-red-600 hover:bg-red-500 text-white rounded-full py-3 text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-50 mt-2 flex items-center justify-center gap-2 shadow-sm"
+                   >
+                     <Plus className="w-4 h-4" />
+                     {loadingYoutube ? 'Adicionando...' : 'Adicionar à Playlist'}
                    </button>
                 </form>
              </div>
