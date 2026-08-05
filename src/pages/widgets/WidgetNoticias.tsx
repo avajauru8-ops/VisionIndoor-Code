@@ -20,7 +20,9 @@ export default function WidgetNoticias() {
         const res = await fetch(`/api/rss-uol?feed=${encodeURIComponent(feed)}`);
         if (!res.ok) throw new Error('Failed to fetch RSS');
         
-        const xmlText = await res.text();
+        const buffer = await res.arrayBuffer();
+        const decoder = new TextDecoder('iso-8859-1');
+        const xmlText = decoder.decode(buffer);
         const parser = new DOMParser();
         const xml = parser.parseFromString(xmlText, 'text/xml');
         const items = Array.from(xml.querySelectorAll('item'));
@@ -92,6 +94,26 @@ export default function WidgetNoticias() {
 
   const bgImage = noticia?.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80';
 
+  const getCategoryName = (f: string) => {
+    const map: Record<string, string> = {
+      noticias: 'Notícias',
+      esporte: 'Esportes',
+      economia: 'Economia',
+      entretenimento: 'Entretenimento',
+      tecnologia: 'Tecnologia',
+      jogos: 'Jogos',
+      carros: 'Carros',
+      educacao: 'Educação',
+      universa: 'Universa',
+      tilt: 'Tilt',
+      vivabem: 'Saúde',
+      ecoa: 'Sustentabilidade',
+      nossauol: 'Nossa'
+    };
+    return map[f] || 'Notícias';
+  };
+  const categoryName = getCategoryName(feed);
+
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-zinc-900 font-sans">
       
@@ -102,13 +124,16 @@ export default function WidgetNoticias() {
       />
       
       {/* Top Right Logo */}
-      <div className="absolute top-[4vh] right-[4vh] w-[12vh] h-[12vh] bg-red-600 rounded-full flex items-center justify-center shadow-lg z-50">
+      <div className="absolute top-[4vh] right-[4vh] w-[12vh] h-[12vh] bg-[#d11111] rounded-full flex items-center justify-center shadow-lg z-50">
          <span className="text-white font-black text-[3.5vh] tracking-tighter">UOL</span>
       </div>
 
       {/* White Box for Text (Description) */}
-      <div className="absolute top-[6vh] left-[5vw] right-[5vw] h-[60vh] bg-white rounded-[3vh] shadow-2xl flex items-center justify-center p-[6vh] z-10 text-center">
-         <p className="text-black font-extrabold text-[5vh] leading-[1.3] line-clamp-6">
+      <div className="absolute top-[6vh] left-[5vw] right-[5vw] h-[60vh] bg-white/90 backdrop-blur-md rounded-[3vh] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center p-[6vh] z-10 text-center border-[0.5vh] border-white/50">
+         <div className="absolute top-[3vh] left-[4vh] bg-[#1a2b4c] text-white px-[2vh] py-[0.5vh] rounded-full text-[2.5vh] font-bold uppercase tracking-widest shadow-md">
+            {categoryName}
+         </div>
+         <p className="text-[#1a2b4c] font-extrabold text-[4.5vh] leading-[1.4] line-clamp-5 mt-[2vh]">
              {noticia?.description || 'Carregando descrição da notícia...'}
          </p>
       </div>
@@ -135,8 +160,8 @@ export default function WidgetNoticias() {
          {/* Main Red Ribbon */}
          <div className="relative bg-[#d11111] h-[11vh] flex items-center pl-[5vw] pr-[4vw] skew-x-[20deg] origin-bottom-left border-r-[1.5vh] border-[#e5e5e5] shadow-xl z-10">
              <div className="skew-x-[-20deg]">
-                 <span className="text-white font-black text-[5vh] uppercase tracking-wider drop-shadow-md">
-                     {feed === 'noticias' ? 'ÚLTIMAS NOTÍCIAS' : feed.toUpperCase()}
+                 <span className="text-white font-black text-[4.5vh] uppercase tracking-wider drop-shadow-md">
+                     ÚLTIMAS NOTÍCIAS
                  </span>
              </div>
          </div>
