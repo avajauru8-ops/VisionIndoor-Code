@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MonitorPlay, Film, Cloud, Hash, LayoutGrid, Trash2, Edit2, Activity, Plus } from 'lucide-react';
+import { ArrowLeft, MonitorPlay, Film, Cloud, Hash, LayoutGrid, Trash2, Edit2, Activity, Plus, Play, Pause } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Totem {
@@ -83,6 +83,21 @@ export default function AgencyPlaylistView() {
         console.error(err);
         alert('Erro ao excluir.');
       }
+    }
+  };
+
+  const handleToggleActive = async (item: Playlist) => {
+    try {
+      const newStatus = item.ativo === 1 ? 0 : 1;
+      await apiFetch(`/api/playlists/${item.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ativo: newStatus })
+      });
+      loadData();
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao alterar status da mídia.');
     }
   };
 
@@ -219,8 +234,10 @@ export default function AgencyPlaylistView() {
                         </span>
                         {expired ? (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-rose-50 text-rose-600 uppercase">Expirado</span>
-                        ) : (
+                        ) : item.ativo === 1 ? (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-emerald-50 text-emerald-600 uppercase">Ativo</span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-semibold bg-amber-50 text-amber-600 uppercase">Pausado</span>
                         )}
                       </div>
                     </div>
@@ -233,6 +250,13 @@ export default function AgencyPlaylistView() {
                       <p className="text-xs text-zinc-600 font-medium mt-1">Até {formatDate(item.data_fim)}</p>
                     </div>
                     <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleToggleActive(item)}
+                        className={`p-2 rounded-lg transition-all border border-transparent ${item.ativo === 1 ? 'text-zinc-400 hover:text-amber-500 hover:bg-amber-50 hover:border-amber-100' : 'text-zinc-400 hover:text-emerald-500 hover:bg-emerald-50 hover:border-emerald-100'}`}
+                        title={item.ativo === 1 ? "Pausar Mídia" : "Tocar Mídia"}
+                      >
+                        {item.ativo === 1 ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      </button>
                       <Link
                         to={`/agency/playlists/cadastrar?edit=${item.id}&totem_id=${id}`}
                         className="p-2 text-zinc-400 hover:text-[#0b462c] hover:bg-[#e8f5ed]/50 rounded-lg transition-all border border-transparent hover:border-[#e8edf2]"

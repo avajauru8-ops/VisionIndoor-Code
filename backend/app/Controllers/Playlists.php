@@ -150,7 +150,7 @@ class Playlists extends ResourceController
                 'tempo_exibicao' => (int)($tempo_exibicao ?? 0),
                 'data_inicio' => $inicio,
                 'data_fim' => $fim,
-                'ativo' => $this->request->getPost('ativo') ?? 1
+                'ativo' => isset($json->ativo) ? (int)$json->ativo : (int)($this->request->getPost('ativo') ?? 1)
             ];
             
             if ($finalUrl) {
