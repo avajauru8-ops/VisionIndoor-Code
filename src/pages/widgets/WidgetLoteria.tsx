@@ -73,20 +73,26 @@ export default function WidgetLoteria() {
   const title = titles[tipo] || 'LOTERIA';
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-center text-white overflow-hidden p-[4vmin]" style={{ backgroundColor: bgColor }}>
-       <div className="bg-white/10 px-[6vmin] py-[2.5vmin] rounded-full border-[0.5vmin] border-white/20 mb-[4vmin] shadow-2xl backdrop-blur-sm">
-          <h1 className="text-[6vmin] font-black uppercase tracking-widest text-white drop-shadow-md text-center">
-             {title}
-          </h1>
+    <div className="w-screen h-screen flex flex-col items-center justify-between text-white overflow-hidden p-[4vh]" style={{ backgroundColor: bgColor }}>
+       
+       {/* HEADER */}
+       <div className="flex flex-col items-center mt-[2vh]">
+           <div className="bg-white/10 px-[6vw] py-[1.5vh] rounded-full border-[0.4vh] border-white/20 shadow-2xl backdrop-blur-sm">
+              <h1 className="text-[5vh] font-black uppercase tracking-widest text-white drop-shadow-md text-center leading-none">
+                 {title}
+              </h1>
+           </div>
+           <h2 className="text-[3.5vh] font-medium mt-[2vh] opacity-90 drop-shadow-sm text-center">
+               SORTEIO: {dataSorteio}
+           </h2>
        </div>
        
-       <h2 className="text-[4vmin] font-medium mb-[6vmin] opacity-90 drop-shadow-sm text-center">SORTEIO: {dataSorteio}</h2>
-       
-       <div className={`flex flex-wrap justify-center content-center max-w-[90vw] ${tipo === 'lotofacil' ? 'gap-[2vmin]' : 'gap-[3vmin]'}`}>
+       {/* NUMBERS (Fills middle space) */}
+       <div className={`flex flex-wrap justify-center items-center content-center flex-1 max-w-[95vw] w-full ${tipo === 'lotofacil' ? 'gap-[1.5vw] py-[2vh]' : 'gap-[2vw] py-[4vh]'}`}>
           {numbers.map((n, i) => (
             <div key={i} 
-                 className={`bg-white rounded-full flex items-center justify-center shadow-[inset_0_-1vmin_0_rgba(0,0,0,0.1)] font-black text-center border-[0.5vmin] border-white/90 drop-shadow-xl ${
-                   tipo === 'lotofacil' ? 'w-[10vmin] h-[10vmin] text-[5vmin]' : 'w-[14vmin] h-[14vmin] text-[7vmin]'
+                 className={`bg-white rounded-full flex items-center justify-center shadow-[inset_0_-0.5vh_0_rgba(0,0,0,0.1)] font-black text-center border-[0.4vh] border-white/90 drop-shadow-xl ${
+                   tipo === 'lotofacil' ? 'w-[12vh] h-[12vh] text-[6vh] m-[0.5vh]' : 'w-[16vh] h-[16vh] text-[8vh] m-[1vh]'
                  }`}
                  style={{ color: bgColor }}>
                {n}
@@ -94,9 +100,11 @@ export default function WidgetLoteria() {
           ))}
        </div>
 
-       <div className="mt-[8vmin] text-[3.5vmin] font-bold opacity-90 bg-black/20 px-[5vmin] py-[2.5vmin] rounded-[2vmin] backdrop-blur-sm text-center max-w-[90vw]">
-         Próximo prêmio estimado: <span className="text-yellow-300 drop-shadow-sm block sm:inline">{premio}</span>
+       {/* FOOTER */}
+       <div className="text-[3.5vh] font-bold opacity-90 bg-black/20 px-[4vw] py-[2vh] rounded-[2vh] backdrop-blur-sm text-center max-w-[95vw] mb-[2vh]">
+         Próximo prêmio estimado: <span className="text-yellow-300 drop-shadow-sm block sm:inline sm:ml-[1vw]">{premio}</span>
        </div>
+
     </div>
   );
 }

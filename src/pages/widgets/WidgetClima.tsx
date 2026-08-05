@@ -47,31 +47,37 @@ export default function WidgetClima() {
   }, [cidade, estado]);
 
   return (
-    <div className={`w-screen h-screen ${weather.isDay ? 'bg-gradient-to-br from-sky-400 to-blue-600' : 'bg-gradient-to-br from-indigo-900 to-slate-900'} flex flex-col items-center justify-center text-white overflow-hidden p-[4vmin]`}>
-       <h1 className="text-[6vmin] font-bold mb-[2vmin] drop-shadow-lg text-center leading-tight max-w-[90vw]">{cidade} - {estado}</h1>
-       <div className="flex flex-col sm:flex-row items-center gap-[4vmin] my-[4vmin] drop-shadow-lg">
+    <div className={`w-screen h-screen ${weather.isDay ? 'bg-gradient-to-br from-sky-400 to-blue-600' : 'bg-gradient-to-br from-indigo-900 to-slate-900'} flex flex-col items-center justify-between text-white overflow-hidden p-[4vh]`}>
+       
+       <h1 className="text-[6vh] font-bold mt-[2vh] drop-shadow-lg text-center leading-tight max-w-[90vw] shrink-0">{cidade} - {estado}</h1>
+       
+       <div className="flex flex-col sm:flex-row items-center justify-center gap-[4vw] flex-1 min-h-0 py-[2vh] drop-shadow-lg w-full">
           {weather.condition === 'Chuvoso' ? (
-             <CloudRain className="w-[20vmin] h-[20vmin] text-blue-200 shrink-0" />
+             <CloudRain className="w-[25vh] h-[25vh] text-blue-200 shrink-0" />
           ) : weather.isDay ? (
-             <Sun className="w-[20vmin] h-[20vmin] text-yellow-300 shrink-0" />
+             <Sun className="w-[25vh] h-[25vh] text-yellow-300 shrink-0" />
           ) : (
-             <Cloud className="w-[20vmin] h-[20vmin] text-slate-300 shrink-0" />
+             <Cloud className="w-[25vh] h-[25vh] text-slate-300 shrink-0" />
           )}
-          <span className="text-[16vmin] font-black leading-none">{weather.temp}°C</span>
+          <div className="flex flex-col items-center">
+             <span className="text-[20vh] font-black leading-none">{weather.temp}°C</span>
+             <span className="text-[5vh] font-medium tracking-wide drop-shadow-md text-center mt-[1vh]">
+                {weather.condition}
+             </span>
+          </div>
        </div>
-       <div className="text-[5vmin] font-medium tracking-wide drop-shadow-md text-center">
-          {weather.condition}
-       </div>
-       <div className="flex flex-wrap justify-center gap-[4vmin] sm:gap-[8vmin] mt-[6vmin] text-[3.5vmin] opacity-90 drop-shadow-md bg-black/20 px-[6vmin] py-[3vmin] rounded-[3vmin] backdrop-blur-sm border border-white/10 max-w-[95vw]">
-          <div className="flex items-center gap-[2vmin]">
-             <CloudRain className="w-[4.5vmin] h-[4.5vmin] shrink-0" />
+       
+       <div className="flex flex-wrap justify-center items-center gap-[4vw] sm:gap-[8vw] mb-[2vh] text-[3.5vh] opacity-90 drop-shadow-md bg-black/20 px-[6vw] py-[2.5vh] rounded-[2.5vh] backdrop-blur-sm border border-white/10 max-w-[95vw] shrink-0">
+          <div className="flex items-center gap-[2vw]">
+             <CloudRain className="w-[5vh] h-[5vh] shrink-0" />
              <span className="whitespace-nowrap">Umidade: {weather.humidity}</span>
           </div>
-          <div className="flex items-center gap-[2vmin]">
-             <Wind className="w-[4.5vmin] h-[4.5vmin] shrink-0" />
+          <div className="flex items-center gap-[2vw]">
+             <Wind className="w-[5vh] h-[5vh] shrink-0" />
              <span className="whitespace-nowrap">Vento: {weather.wind}</span>
           </div>
        </div>
+       
     </div>
   );
 }
