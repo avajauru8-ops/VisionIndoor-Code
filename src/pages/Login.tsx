@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { apiFetch } from '../lib/api';
@@ -36,7 +36,7 @@ export default function Login() {
         <div className="text-center mb-8">
           <div className="flex justify-center items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-indigo-600 rounded flex items-center justify-center font-bold text-white italic text-xl">V</div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">VISIO<span className="text-indigo-400">INDOR</span></h1>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Grand<span className="text-indigo-400">Mídia</span></h1>
           </div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Acesse sua conta</p>
         </div>

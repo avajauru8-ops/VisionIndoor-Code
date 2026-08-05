@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Cloud, CloudLightning, CloudRain, CloudSnow, Sun, Wind } from 'lucide-react';
 
 export default function WidgetClima() {
   const [searchParams] = useSearchParams();
-  const cidade = searchParams.get('cidade') || 'São Paulo';
+  const cidade = searchParams.get('cidade') || 'SÃ£o Paulo';
   const estado = searchParams.get('estado') || 'SP';
   
   const [weather, setWeather] = useState({
@@ -34,7 +34,7 @@ export default function WidgetClima() {
          const weatherData = await weatherRes.json();
          const current = weatherData.current;
          
-         let condition = 'Estável';
+         let condition = 'EstÃ¡vel';
          if (current.precipitation > 0) condition = 'Chuvoso';
          else if (current.is_day === 1) condition = 'Ensolarado';
          else condition = 'Noite Clara';
@@ -49,7 +49,7 @@ export default function WidgetClima() {
 
        } catch (err) {
          console.error(err);
-         setWeather({ temp: 25, condition: 'Sem conexão', humidity: '--', wind: '--', isDay: 1 });
+         setWeather({ temp: 25, condition: 'Sem conexÃ£o', humidity: '--', wind: '--', isDay: 1 });
        }
     }
     fetchWeather();
@@ -66,7 +66,7 @@ export default function WidgetClima() {
           ) : (
              <Cloud className="w-48 h-48 text-slate-300" />
           )}
-          <span className="text-9xl font-black">{weather.temp}°C</span>
+          <span className="text-9xl font-black">{weather.temp}Â°C</span>
        </div>
        <div className="text-4xl font-medium tracking-wide drop-shadow-md">
           {weather.condition}

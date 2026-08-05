@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Newspaper } from 'lucide-react';
 
 export default function AgencyMediaKit() {
@@ -7,7 +7,7 @@ export default function AgencyMediaKit() {
       <div>
         <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight flex items-center gap-2">
           <Newspaper className="w-6 h-6 text-emerald-600" />
-          Mídia Kit Web
+          MÃ­dia Kit Web
         </h2>
         <p className="text-xs text-[#8b9aa5] font-medium mt-1">Sua vitrine para anunciantes (em desenvolvimento).</p>
       </div>
@@ -16,9 +16,9 @@ export default function AgencyMediaKit() {
          <div className="w-16 h-16 bg-emerald-50 border border-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Newspaper className="w-8 h-8 text-emerald-600" />
          </div>
-         <h3 className="text-lg font-extrabold text-zinc-800 mb-2">Módulo em desenvolvimento</h3>
+         <h3 className="text-lg font-extrabold text-zinc-800 mb-2">MÃ³dulo em desenvolvimento</h3>
          <p className="text-sm text-zinc-500 max-w-md mx-auto leading-relaxed">
-            Esta seção estará disponível em breve. Você poderá criar uma vitrine pública com seus pontos publicitários, valores e descrições para enviar aos seus clientes.
+            Esta seÃ§Ã£o estarÃ¡ disponÃ­vel em breve. VocÃª poderÃ¡ criar uma vitrine pÃºblica com seus pontos publicitÃ¡rios, valores e descriÃ§Ãµes para enviar aos seus clientes.
          </p>
       </div>
     </div>

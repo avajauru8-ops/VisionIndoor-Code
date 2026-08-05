@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { apiFetch } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
@@ -60,9 +60,9 @@ export default function AdminDashboard() {
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Administração Global</h2>
+          <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">AdministraÃ§Ã£o Global</h2>
           <p className="text-xs text-[#8b9aa5] font-medium mt-1">
-            Controle de usuários, licenças ativas e monitoramento geral do VisioIndoor.
+            Controle de usuÃ¡rios, licenÃ§as ativas e monitoramento geral do GrandMídia.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -70,18 +70,18 @@ export default function AdminDashboard() {
             to="/admin/users" 
             className="px-4 py-2.5 rounded-full bg-[#0b462c] hover:bg-[#082a1b] text-xs font-bold text-white transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
           >
-            <Plus className="w-4 h-4" /> Novo Usuário / Agência
+            <Plus className="w-4 h-4" /> Novo UsuÃ¡rio / AgÃªncia
           </Link>
         </div>
       </div>
 
       {/* Metrics Row (4 Columns matching style) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Card 1: Total de Usuários/Agências (Dark green card) */}
+        {/* Card 1: Total de UsuÃ¡rios/AgÃªncias (Dark green card) */}
         <Link to="/admin/users" className="bg-[#0b462c] text-white p-6 rounded-[24px] relative overflow-hidden shadow-md flex flex-col justify-between min-h-[140px] group hover:-translate-y-1 transition-all duration-300 block">
           <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-emerald-500/10 blur-xl"></div>
           <div className="flex justify-between items-start">
-            <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-200">Clientes & Agências</span>
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-200">Clientes & AgÃªncias</span>
             <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-xs">
               <ArrowUpRight className="w-4 h-4" />
             </span>
@@ -116,10 +116,10 @@ export default function AdminDashboard() {
           </div>
         </Link>
 
-        {/* Card 3: Licenças Ativas */}
+        {/* Card 3: LicenÃ§as Ativas */}
         <Link to="/admin/users" className="bg-white border border-[#e8edf2] p-6 rounded-[24px] shadow-sm flex flex-col justify-between min-h-[140px] group hover:-translate-y-1 transition-all duration-300 block">
           <div className="flex justify-between items-start">
-            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#8b9aa5]">Licenças Ativas</span>
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#8b9aa5]">LicenÃ§as Ativas</span>
             <span className="w-8 h-8 rounded-full bg-[#f4f6f8] flex items-center justify-center text-[#0b462c] text-xs">
               <ArrowUpRight className="w-4 h-4" />
             </span>
@@ -128,7 +128,7 @@ export default function AdminDashboard() {
             <h3 className="text-4xl font-extrabold tracking-tight text-zinc-800">{stats.activeLicences}</h3>
             <div className="flex items-center gap-1.5 mt-2">
               <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-[#eef2f6] text-emerald-600">
-                {stats.users > 0 ? Math.round((stats.activeLicences / stats.users) * 100) : 100}% taxa de ativação
+                {stats.users > 0 ? Math.round((stats.activeLicences / stats.users) * 100) : 100}% taxa de ativaÃ§Ã£o
               </span>
               <span className="text-[10px] text-[#8b9aa5]">Em conformidade</span>
             </div>
@@ -142,7 +142,7 @@ export default function AdminDashboard() {
         <div className="bg-white border border-[#e8edf2] rounded-[24px] p-6 shadow-sm min-h-[300px] lg:col-span-2 flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-center">
-              <h4 className="text-sm font-extrabold text-[#0b462c] uppercase tracking-wider">Últimos Clientes / Agências</h4>
+              <h4 className="text-sm font-extrabold text-[#0b462c] uppercase tracking-wider">Ãšltimos Clientes / AgÃªncias</h4>
               <Link 
                 to="/admin/users" 
                 className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100"
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold ${
                     client.status_licenca === 'ativa' ? 'bg-[#e8f5ed] text-emerald-600' : 'bg-rose-50 text-rose-600'
                   }`}>
-                    {client.status_licenca === 'ativa' ? 'Licença Ativa' : 'Expirada'}
+                    {client.status_licenca === 'ativa' ? 'LicenÃ§a Ativa' : 'Expirada'}
                   </span>
                   <span className="text-[9px] font-bold text-zinc-400">
                     Validade: {new Date(client.validade_licenca).toLocaleDateString('pt-BR')}
@@ -189,8 +189,8 @@ export default function AdminDashboard() {
         {/* Quick actions panel (Right col) */}
         <div className="bg-white border border-[#e8edf2] rounded-[24px] p-6 shadow-sm min-h-[300px] flex flex-col justify-between">
           <div>
-            <h4 className="text-sm font-extrabold text-[#0b462c] uppercase tracking-wider">Ações Administrativas</h4>
-            <p className="text-[10px] text-[#8b9aa5] mt-1 font-medium">Acesso rápido aos módulos de administração</p>
+            <h4 className="text-sm font-extrabold text-[#0b462c] uppercase tracking-wider">AÃ§Ãµes Administrativas</h4>
+            <p className="text-[10px] text-[#8b9aa5] mt-1 font-medium">Acesso rÃ¡pido aos mÃ³dulos de administraÃ§Ã£o</p>
           </div>
 
           <div className="space-y-3 flex-1 flex flex-col justify-center my-4">
@@ -200,7 +200,7 @@ export default function AdminDashboard() {
             >
               <Users className="w-5 h-5 text-emerald-600" />
               <div className="text-left">
-                <p className="text-xs font-bold">Gerenciar Licenças</p>
+                <p className="text-xs font-bold">Gerenciar LicenÃ§as</p>
                 <p className="text-[9px] text-[#8b9aa5]">Alterar prazos e status de contas</p>
               </div>
             </Link>
@@ -212,7 +212,7 @@ export default function AdminDashboard() {
               <Smartphone className="w-5 h-5 text-emerald-600" />
               <div className="text-left">
                 <p className="text-xs font-bold">Player Android</p>
-                <p className="text-[9px] text-[#8b9aa5]">Gerenciar APK, banner e integração</p>
+                <p className="text-[9px] text-[#8b9aa5]">Gerenciar APK, banner e integraÃ§Ã£o</p>
               </div>
             </Link>
           </div>
@@ -221,7 +221,7 @@ export default function AdminDashboard() {
             to="/admin/settings" 
             className="w-full bg-[#0b462c] hover:bg-[#082a1b] text-white text-xs font-bold text-center py-3 px-4 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
           >
-            <ShieldCheck className="w-4 h-4" /> Configurações Gerais
+            <ShieldCheck className="w-4 h-4" /> ConfiguraÃ§Ãµes Gerais
           </Link>
         </div>
       </div>

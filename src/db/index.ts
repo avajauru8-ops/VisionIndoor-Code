@@ -1,4 +1,4 @@
-import mysql from 'mysql2/promise';
+﻿import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -10,7 +10,7 @@ export async function initDb() {
       host: process.env.MYSQL_HOST || 'localhost',
       user: process.env.MYSQL_USER || 'root',
       password: process.env.MYSQL_PASSWORD || '',
-      database: process.env.MYSQL_DATABASE || 'visioindoor',
+      database: process.env.MYSQL_DATABASE || 'GrandMídia',
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
@@ -69,7 +69,7 @@ export async function initDb() {
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS configuracoes_admin (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        nome_painel VARCHAR(255) DEFAULT 'VisioIndoor',
+        nome_painel VARCHAR(255) DEFAULT 'GrandMídia',
         logo_url TEXT NULL,
         show_apk_banner TINYINT(1) DEFAULT 1,
         apk_banner_title VARCHAR(255) DEFAULT 'Player Android',
