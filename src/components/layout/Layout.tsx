@@ -61,7 +61,10 @@ export default function Layout() {
     return <Navigate to="/login" />;
   }
 
-  const adminLinks = [
+  type SubmenuItem = { name: string; path: string };
+  type MenuItem = { name: string; path: string; icon: React.ElementType; category: string; submenus?: SubmenuItem[] };
+
+  const adminLinks: MenuItem[] = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, category: 'MENU' },
     { name: 'Usuários & Licenças', path: '/admin/users', icon: Users, category: 'MENU' },
     { name: 'Totens Cadastrados', path: '/admin/totems', icon: Tv, category: 'MENU' },
@@ -69,7 +72,7 @@ export default function Layout() {
     { name: 'Configurações', path: '/admin/settings', icon: Settings, category: 'GERAL' },
   ];
 
-  const agencyLinks = [
+  const agencyLinks: MenuItem[] = [
     { name: 'Dashboard', path: '/agency', icon: LayoutDashboard, category: 'MENU' },
     { name: 'Minhas Telas', path: '/agency/totems', icon: Tv, category: 'MENU' },
     { 
