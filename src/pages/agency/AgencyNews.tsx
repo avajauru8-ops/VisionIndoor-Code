@@ -257,7 +257,7 @@ export default function AgencyNews() {
     <div className="space-y-6 flex flex-col lg:h-[calc(100vh-8rem)] h-auto">
        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
          <div>
-           <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Utilizar Notícias & Widgets</h2>
+           <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Entretenimento & Widgets</h2>
            <p className="text-xs text-[#8b9aa5] font-medium mt-1">Configure o widget e selecione a tela de destino para adicioná-lo.</p>
          </div>
        </div>

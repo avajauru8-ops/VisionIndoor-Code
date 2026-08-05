@@ -82,7 +82,7 @@ export default function Layout() {
         { name: 'Telas em Exibição', path: '/agency/playlists/telas' }
       ]
     },
-    { name: 'Utilizar Notícias', path: '/agency/news', icon: Newspaper, category: 'MENU' },
+    { name: 'Entretenimento', path: '/agency/news', icon: Newspaper, category: 'MENU' },
     { name: 'Mídia Kit Web', path: '/agency/media-kit', icon: Newspaper, category: 'MENU' },
     { name: 'Gerador de Contratos', path: '/agency/contracts', icon: FileText, category: 'MENU' },
     { name: 'Dados da Agência', path: '/agency/profile', icon: Landmark, category: 'GERAL' },
