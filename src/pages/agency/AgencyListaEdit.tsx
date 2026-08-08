@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
-import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors, useDraggable, useDroppable } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { List, Settings, Save, X, Search, FileText, Play, DownloadCloud, GripVertical, Plus } from 'lucide-react';
+import { List, Settings, Save, X, Search, FileText, Play, DownloadCloud, GripVertical, Plus, Copy, MinusCircle } from 'lucide-react';
 
 interface Media {
   id: string;
@@ -25,8 +25,9 @@ interface PlaylistItem {
   arquivo_url?: string;
 }
 
-const SortableItem = ({ id, item, onRemove, onTimeChange }: { id: string, item: PlaylistItem, onRemove: () => void, onTimeChange: (val: number) => void }) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+const SortableItem = ({ id, item, onRemove, onDuplicate, onTimeChange }: { id: string, item: PlaylistItem, onRemove: () => void, onDuplicate: () => void, onTimeChange: (val: number) => void }) => {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { type: 'playlist_item', item } });
   
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -59,16 +60,21 @@ const SortableItem = ({ id, item, onRemove, onTimeChange }: { id: string, item: 
           </span>
         </div>
         
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-sm bg-[#2ecc71]"></div>
-          <div className="w-3 h-3 rounded-full bg-[#3498db]"></div>
-          <button onClick={onRemove} className="text-rose-500 hover:text-rose-600 transition-colors ml-2">
-            <X className="w-4 h-4 border-2 border-current rounded-full p-0.5" />
+        <div className="flex items-center gap-3">
+          <button onClick={onDuplicate} className="text-[#2ecc71] hover:text-[#27ae60] transition-colors">
+            <Copy className="w-5 h-5" />
+          </button>
+          <button onClick={() => setIsSettingsOpen(!isSettingsOpen)} className="text-black hover:text-zinc-700 transition-colors">
+            <Settings className="w-5 h-5" />
+          </button>
+          <button onClick={onRemove} className="text-[#e74c3c] hover:text-[#c0392b] transition-colors ml-1">
+            <MinusCircle className="w-5 h-5" />
           </button>
         </div>
       </div>
 
       {/* Body / Settings */}
+      {isSettingsOpen && (
       <div className="p-4 bg-zinc-50/50 space-y-4">
         
         {!isVideo && (
@@ -129,6 +135,47 @@ const SortableItem = ({ id, item, onRemove, onTimeChange }: { id: string, item: 
         )}
 
       </div>
+      )}
+    </div>
+  );
+};
+
+const DraggableLibraryItem = ({ media, onAdd }: { media: Media, onAdd: () => void }) => {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `lib-${media.id}`,
+    data: { type: 'library_item', media }
+  });
+
+  return (
+    <div 
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      className={`flex items-center justify-between p-2 border-b border-zinc-100 bg-white transition-colors cursor-grab ${isDragging ? 'opacity-50' : 'hover:bg-zinc-50 group'}`}
+    >
+      <div className="flex items-center gap-3 pointer-events-none">
+        <div className="w-12 h-10 bg-zinc-100 flex items-center justify-center rounded overflow-hidden shadow-sm">
+          {media.tipo_midia === 'imagem' ? (
+             <img src={media.arquivo_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+             <div className="w-full h-full bg-[#0066ff] flex items-center justify-center"><Play className="w-5 h-5 text-white" /></div>
+          )}
+        </div>
+        <span className="text-xs font-medium text-zinc-700">{media.titulo || 'Mídia'}</span>
+      </div>
+      <button onClick={(e) => { e.stopPropagation(); onAdd(); }} className="opacity-0 group-hover:opacity-100 p-1.5 bg-[#2ecc71] hover:bg-[#27ae60] text-white rounded transition-all z-10 relative">
+        <Plus className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
+
+const DroppablePlaylistContainer = ({ items, children }: { items: PlaylistItem[], children: React.ReactNode }) => {
+  const { setNodeRef } = useDroppable({ id: 'playlist-droppable', data: { type: 'playlist_container' } });
+  
+  return (
+    <div ref={setNodeRef} className="flex-1 overflow-y-auto p-3 relative">
+      {children}
     </div>
   );
 };
@@ -214,7 +261,31 @@ export default function AgencyListaEdit() {
     
     if (!over) return;
 
-    if (active.id !== over.id) {
+    if (active.data.current?.type === 'library_item') {
+      const media = active.data.current.media;
+      const newItem: PlaylistItem = {
+        id: '',
+        unique_id: `new-${Math.random().toString(36).substr(2, 9)}`,
+        campanha_id: media.id,
+        arquivo_titulo: media.titulo,
+        tipo_midia: media.tipo_midia,
+        arquivo_url: media.arquivo_url,
+        tempo_exibicao: 15,
+        ordem: items.length + 1
+      };
+      
+      if (over.data.current?.type === 'playlist_item') {
+        const overIndex = items.findIndex(it => it.unique_id === over.id);
+        const newItems = [...items];
+        newItems.splice(overIndex, 0, newItem);
+        setItems(newItems);
+      } else {
+        setItems([...items, newItem]);
+      }
+      return;
+    }
+
+    if (active.data.current?.type === 'playlist_item' && over.data.current?.type === 'playlist_item' && active.id !== over.id) {
       setItems((items) => {
         const oldIndex = items.findIndex(it => it.unique_id === active.id);
         const newIndex = items.findIndex(it => it.unique_id === over.id);
@@ -239,6 +310,14 @@ export default function AgencyListaEdit() {
 
   const handleRemoveItem = (unique_id: string) => {
     setItems(items.filter(it => it.unique_id !== unique_id));
+  };
+
+  const handleDuplicateItem = (item: PlaylistItem) => {
+    const newItem = { ...item, unique_id: `dup-${Math.random().toString(36).substr(2, 9)}`, id: '' };
+    const index = items.findIndex(it => it.unique_id === item.unique_id);
+    const newItems = [...items];
+    newItems.splice(index + 1, 0, newItem);
+    setItems(newItems);
   };
 
   const handleChangeTime = (unique_id: string, time: number) => {
@@ -320,86 +399,74 @@ export default function AgencyListaEdit() {
              </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* Library Panel (Left) */}
-            <div className="border border-zinc-200 rounded flex flex-col h-[500px]">
-              <div className="flex items-center border-b border-zinc-200 bg-zinc-50">
-                <button className="flex-1 py-3 text-xs font-bold text-zinc-700 bg-white border-r border-zinc-200 border-t-2 border-t-[#2ecc71]">Arquivos</button>
-                <button className="flex-1 py-3 text-xs font-bold text-zinc-400 border-r border-zinc-200">Entretenimentos</button>
-                <button className="flex-1 py-3 text-xs font-bold text-zinc-400">Ferramentas</button>
+          <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Library Panel (Left) */}
+              <div className="border border-zinc-200 rounded flex flex-col h-[500px]">
+                <div className="flex items-center border-b border-zinc-200 bg-zinc-50">
+                  <button className="flex-1 py-3 text-xs font-bold text-zinc-700 bg-white border-r border-zinc-200 border-t-2 border-t-[#2ecc71]">Arquivos</button>
+                  <button className="flex-1 py-3 text-xs font-bold text-zinc-400 border-r border-zinc-200">Entretenimentos</button>
+                  <button className="flex-1 py-3 text-xs font-bold text-zinc-400">Ferramentas</button>
+                </div>
+                <div className="p-3 border-b border-zinc-200 bg-zinc-50">
+                   <div className="relative">
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                      <input type="text" placeholder="Procurar arquivo" className="w-full pl-9 pr-3 py-2 bg-white border border-zinc-200 rounded text-xs focus:outline-none focus:border-[#0066ff]" />
+                   </div>
+                </div>
+                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                   {library.map(media => (
+                      <DraggableLibraryItem key={media.id} media={media} onAdd={() => handleAddItem(media)} />
+                   ))}
+                </div>
               </div>
-              <div className="p-3 border-b border-zinc-200 bg-zinc-50">
-                 <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input type="text" placeholder="Procurar arquivo" className="w-full pl-9 pr-3 py-2 bg-white border border-zinc-200 rounded text-xs focus:outline-none focus:border-[#0066ff]" />
-                 </div>
-              </div>
-              <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                 {library.map(media => (
-                    <div key={media.id} className="flex items-center justify-between p-2 hover:bg-zinc-50 border-b border-zinc-100 last:border-0 transition-colors group">
-                       <div className="flex items-center gap-3">
-                          <div className="w-12 h-10 bg-zinc-100 flex items-center justify-center rounded overflow-hidden shadow-sm">
-                             {media.tipo_midia === 'imagem' ? (
-                                <img src={media.arquivo_url} alt="" className="w-full h-full object-cover" />
-                             ) : (
-                                <div className="w-full h-full bg-[#0066ff] flex items-center justify-center"><Play className="w-5 h-5 text-white" /></div>
-                             )}
-                          </div>
-                          <span className="text-xs font-medium text-zinc-700">{media.titulo || 'Mídia'}</span>
-                       </div>
-                       <button onClick={() => handleAddItem(media)} className="opacity-0 group-hover:opacity-100 p-1.5 bg-[#2ecc71] hover:bg-[#27ae60] text-white rounded transition-all">
-                          <Plus className="w-4 h-4" />
-                       </button>
-                    </div>
-                 ))}
-              </div>
-            </div>
 
-            {/* Playlist Panel (Right) */}
-            <div className="border-2 border-dashed border-[#2ecc71] bg-emerald-50/10 rounded flex flex-col h-[500px]">
-              <div className="py-2 text-center text-xs font-bold text-[#2ecc71] border-b-2 border-dashed border-[#2ecc71]">
-                Lista Final que será exibida na TVs
-              </div>
-              <div className="p-3 border-b border-dashed border-[#2ecc71] bg-emerald-50/20">
-                 <div className="relative flex items-center gap-2">
-                    <input type="text" placeholder="Procurar item" className="w-full pl-3 pr-3 py-2 bg-white border border-dashed border-[#2ecc71] rounded text-xs text-[#2ecc71] placeholder-[#2ecc71]/50 focus:outline-none" />
-                    <Settings className="w-5 h-5 text-[#2ecc71]" />
-                 </div>
+              {/* Playlist Panel (Right) */}
+              <div className="border-2 border-dashed border-[#2ecc71] bg-emerald-50/10 rounded flex flex-col h-[500px]">
+                <div className="py-2 text-center text-xs font-bold text-[#2ecc71] border-b-2 border-dashed border-[#2ecc71]">
+                  Lista Final que será exibida na TVs
+                </div>
+                <div className="p-3 border-b border-dashed border-[#2ecc71] bg-emerald-50/20">
+                   <div className="relative flex items-center gap-2">
+                      <input type="text" placeholder="Procurar item" className="w-full pl-3 pr-3 py-2 bg-white border border-dashed border-[#2ecc71] rounded text-xs text-[#2ecc71] placeholder-[#2ecc71]/50 focus:outline-none" />
+                      <Settings className="w-5 h-5 text-[#2ecc71]" />
+                   </div>
+                </div>
+                
+                <DroppablePlaylistContainer items={items}>
+                   {items.length === 0 ? (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-[#2ecc71] pointer-events-none">
+                         <DownloadCloud className="w-8 h-8 mb-2" />
+                         <span className="text-xs font-bold tracking-widest uppercase">ARRASTE ITEMS PARA CÁ</span>
+                      </div>
+                   ) : (
+                        <SortableContext items={items.map(i => i.unique_id!)} strategy={verticalListSortingStrategy}>
+                          {items.map(item => (
+                            <SortableItem 
+                              key={item.unique_id} 
+                              id={item.unique_id!} 
+                              item={item} 
+                              onRemove={() => handleRemoveItem(item.unique_id!)}
+                              onDuplicate={() => handleDuplicateItem(item)}
+                              onTimeChange={(val) => handleChangeTime(item.unique_id!, val)}
+                            />
+                          ))}
+                        </SortableContext>
+                   )}
+                </DroppablePlaylistContainer>
               </div>
               
-              <div className="flex-1 overflow-y-auto p-3 relative">
-                 {items.length === 0 ? (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-[#2ecc71]">
-                       <DownloadCloud className="w-8 h-8 mb-2" />
-                       <span className="text-xs font-bold tracking-widest uppercase">ARRASTE ITEMS PARA CÁ</span>
-                    </div>
-                 ) : (
-                    <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-                      <SortableContext items={items.map(i => i.unique_id!)} strategy={verticalListSortingStrategy}>
-                        {items.map(item => (
-                          <SortableItem 
-                            key={item.unique_id} 
-                            id={item.unique_id!} 
-                            item={item} 
-                            onRemove={() => handleRemoveItem(item.unique_id!)}
-                            onTimeChange={(val) => handleChangeTime(item.unique_id!, val)}
-                          />
-                        ))}
-                      </SortableContext>
-                      <DragOverlay>
-                        {activeId ? (
-                           <div className="opacity-80 bg-white p-2 border border-[#0066ff] shadow-xl rounded">
-                              <span className="text-xs font-bold text-[#0066ff]">Movendo item...</span>
-                           </div>
-                        ) : null}
-                      </DragOverlay>
-                    </DndContext>
-                 )}
-              </div>
+              <DragOverlay>
+                {activeId ? (
+                   <div className="opacity-90 bg-white p-3 border border-[#0066ff] shadow-xl rounded flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-[#0066ff] animate-pulse"></div>
+                      <span className="text-xs font-bold text-[#0066ff]">Movendo item...</span>
+                   </div>
+                ) : null}
+              </DragOverlay>
             </div>
-
-          </div>
+          </DndContext>
         </div>
 
       </div>
