@@ -222,9 +222,9 @@ export default function AgencyTotems() {
                 <input
                   type="text"
                   required
-                  className="w-full border border-zinc-300 rounded px-4 py-2.5 text-sm focus:border-[#104a9e] focus:outline-none transition-colors"
+                  className="w-full border border-zinc-300 rounded px-4 py-2.5 text-sm focus:border-[#104a9e] focus:outline-none transition-colors uppercase"
                   value={deviceId}
-                  onChange={e => setDeviceId(e.target.value)}
+                  onChange={e => setDeviceId(e.target.value.toUpperCase())}
                   placeholder="Informe o código exibido na TV"
                 />
                 <p className="text-[10px] text-zinc-400 mt-2">O nome da TV será gerado automaticamente.</p>
