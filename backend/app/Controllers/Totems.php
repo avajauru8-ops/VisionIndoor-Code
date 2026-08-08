@@ -100,6 +100,15 @@ class Totems extends ResourceController
             if (isset($json->device_id)) $data['device_id'] = $json->device_id;
             if (isset($json->status)) $data['status'] = $json->status;
             if (isset($json->auto_iniciar)) $data['auto_iniciar'] = $json->auto_iniciar ? 1 : 0;
+            if (isset($json->iniciar_tv_energia)) $data['iniciar_tv_energia'] = $json->iniciar_tv_energia ? 1 : 0;
+            if (isset($json->fuso_horario)) $data['fuso_horario'] = $json->fuso_horario;
+            if (isset($json->exibir_barra_tarefas)) $data['exibir_barra_tarefas'] = $json->exibir_barra_tarefas ? 1 : 0;
+            if (isset($json->audio_ligado)) $data['audio_ligado'] = $json->audio_ligado ? 1 : 0;
+            if (isset($json->auto_reiniciar_horas)) $data['auto_reiniciar_horas'] = (int)$json->auto_reiniciar_horas;
+            if (isset($json->exibir_notificacoes)) $data['exibir_notificacoes'] = $json->exibir_notificacoes ? 1 : 0;
+            if (isset($json->limpeza_automatica)) $data['limpeza_automatica'] = $json->limpeza_automatica ? 1 : 0;
+            if (isset($json->tempo_exibicao_padrao)) $data['tempo_exibicao_padrao'] = (int)$json->tempo_exibicao_padrao;
+            if (isset($json->id_monetizacao)) $data['id_monetizacao'] = $json->id_monetizacao;
             if (property_exists($json, 'playlist_id')) $data['playlist_id'] = empty($json->playlist_id) ? null : $json->playlist_id;
             
             if (!empty($data)) {

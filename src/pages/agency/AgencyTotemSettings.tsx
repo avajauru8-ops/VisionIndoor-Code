@@ -20,6 +20,15 @@ interface Totem {
   espaco_utilizado?: string;
   espaco_livre?: string;
   playlist_id?: string | null;
+  iniciar_tv_energia?: number | boolean;
+  fuso_horario?: string;
+  exibir_barra_tarefas?: number | boolean;
+  audio_ligado?: number | boolean;
+  auto_reiniciar_horas?: number;
+  exibir_notificacoes?: number | boolean;
+  limpeza_automatica?: number | boolean;
+  tempo_exibicao_padrao?: number;
+  id_monetizacao?: string;
 }
 
 export default function AgencyTotemSettings() {
@@ -36,6 +45,18 @@ export default function AgencyTotemSettings() {
   const [listas, setListas] = useState<{id: string, nome: string}[]>([]);
   const [rotacao, setRotacao] = useState('padrao');
 
+  // Extras State
+  const [autoIniciar, setAutoIniciar] = useState(false);
+  const [iniciarTvEnergia, setIniciarTvEnergia] = useState(false);
+  const [fusoHorario, setFusoHorario] = useState('America/Sao_Paulo');
+  const [exibirBarraTarefas, setExibirBarraTarefas] = useState(true);
+  const [audioLigado, setAudioLigado] = useState(true);
+  const [autoReiniciarHoras, setAutoReiniciarHoras] = useState(0);
+  const [exibirNotificacoes, setExibirNotificacoes] = useState(false);
+  const [limpezaAutomatica, setLimpezaAutomatica] = useState(true);
+  const [tempoExibicao, setTempoExibicao] = useState(10);
+  const [idMonetizacao, setIdMonetizacao] = useState('');
+
   useEffect(() => {
     loadTotem();
   }, [id]);
@@ -50,6 +71,18 @@ export default function AgencyTotemSettings() {
       setNome(data.nome);
       setListaReproducao(data.playlist_id || '');
       setListas(listasData || []);
+      
+      // Load Extras state
+      setAutoIniciar(!!data.auto_iniciar);
+      setIniciarTvEnergia(!!data.iniciar_tv_energia);
+      setFusoHorario(data.fuso_horario || 'America/Sao_Paulo');
+      setExibirBarraTarefas(data.exibir_barra_tarefas !== undefined ? !!data.exibir_barra_tarefas : true);
+      setAudioLigado(data.audio_ligado !== undefined ? !!data.audio_ligado : true);
+      setAutoReiniciarHoras(data.auto_reiniciar_horas || 0);
+      setExibirNotificacoes(!!data.exibir_notificacoes);
+      setLimpezaAutomatica(data.limpeza_automatica !== undefined ? !!data.limpeza_automatica : true);
+      setTempoExibicao(data.tempo_exibicao_padrao || 10);
+      setIdMonetizacao(data.id_monetizacao || '');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -63,7 +96,17 @@ export default function AgencyTotemSettings() {
         method: 'PUT',
         body: JSON.stringify({ 
           nome, 
-          playlist_id: listaReproducao 
+          playlist_id: listaReproducao,
+          auto_iniciar: autoIniciar,
+          iniciar_tv_energia: iniciarTvEnergia,
+          fuso_horario: fusoHorario,
+          exibir_barra_tarefas: exibirBarraTarefas,
+          audio_ligado: audioLigado,
+          auto_reiniciar_horas: autoReiniciarHoras,
+          exibir_notificacoes: exibirNotificacoes,
+          limpeza_automatica: limpezaAutomatica,
+          tempo_exibicao_padrao: tempoExibicao,
+          id_monetizacao: idMonetizacao
         }),
       });
       loadTotem();
@@ -81,6 +124,18 @@ export default function AgencyTotemSettings() {
       } catch (err: any) {
         alert(err.message);
       }
+    }
+  };
+
+  const handleCommand = async (commandName: string) => {
+    try {
+      await apiFetch(`/api/totems/${id}/comando`, {
+        method: 'POST',
+        body: JSON.stringify({ comando: commandName })
+      });
+      alert(`Comando '${commandName}' enviado para a TV com sucesso!`);
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
@@ -163,7 +218,8 @@ export default function AgencyTotemSettings() {
       {/* Tab Content */}
       <div className="bg-white border border-zinc-200 border-t-0 -mt-px rounded-b-lg p-6 md:p-8 space-y-10">
         
-        {/* Configurações básicas */}
+        {/* Configurações básicas (Only on Configurações tab) */}
+        {activeTab === 'configuracoes' && (
         <section>
           <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
             <Settings className="w-4 h-4" />
@@ -213,8 +269,191 @@ export default function AgencyTotemSettings() {
             </div>
           </div>
         </section>
+        )}
 
-        {/* Status e Informações */}
+        {/* Extras Tab Content */}
+        {activeTab === 'extras' && (
+          <div className="space-y-10">
+            {/* Painel de Controle */}
+            <section className="border-b border-zinc-100 pb-8">
+              <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
+                <Settings className="w-4 h-4" />
+                Painel de controle
+              </h3>
+              <div className="space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <label className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">Auto-Iniciar Aplicativo:</label>
+                  <select 
+                    value={autoIniciar ? 'sim' : 'nao'}
+                    onChange={e => setAutoIniciar(e.target.value === 'sim')}
+                    className="flex-1 max-w-sm border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none"
+                  >
+                    <option value="sim">Sim (Recomendado)</option>
+                    <option value="nao">Não</option>
+                  </select>
+                </div>
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <label className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">Iniciar TV ao Ligar na Energia:</label>
+                  <select 
+                    value={iniciarTvEnergia ? 'sim' : 'nao'}
+                    onChange={e => setIniciarTvEnergia(e.target.value === 'sim')}
+                    className="flex-1 max-w-sm border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none"
+                  >
+                    <option value="sim">Sim</option>
+                    <option value="nao">Não</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            {/* Idioma e Fuso */}
+            <section className="border-b border-zinc-100 pb-8">
+              <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
+                <Calendar className="w-4 h-4" />
+                Idioma de Exibição
+              </h3>
+              <div className="flex flex-col md:flex-row md:items-center gap-4">
+                <label className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">Fuso Horário:</label>
+                <select 
+                  value={fusoHorario}
+                  onChange={e => setFusoHorario(e.target.value)}
+                  className="flex-1 max-w-sm border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none"
+                >
+                  <option value="America/Sao_Paulo">America/Sao_Paulo (UTC-03:00)</option>
+                  <option value="America/Manaus">America/Manaus (UTC-04:00)</option>
+                  <option value="America/Belem">America/Belem (UTC-03:00)</option>
+                  <option value="America/Rio_Branco">America/Rio_Branco (UTC-05:00)</option>
+                  <option value="America/Fortaleza">America/Fortaleza (UTC-03:00)</option>
+                  <option value="America/Recife">America/Recife (UTC-03:00)</option>
+                </select>
+              </div>
+            </section>
+
+            {/* App Settings */}
+            <section className="border-b border-zinc-100 pb-8">
+              <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
+                <Monitor className="w-4 h-4" />
+                Configurações do App
+              </h3>
+              <div className="space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <label className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">Barra de Tarefas do Android:</label>
+                  <select 
+                    value={exibirBarraTarefas ? 'exibir' : 'ocultar'}
+                    onChange={e => setExibirBarraTarefas(e.target.value === 'exibir')}
+                    className="flex-1 max-w-sm border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none"
+                  >
+                    <option value="ocultar">Ocultar</option>
+                    <option value="exibir">Exibir</option>
+                  </select>
+                </div>
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <label className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">Áudio Principal:</label>
+                  <select 
+                    value={audioLigado ? 'ligado' : 'desligado'}
+                    onChange={e => setAudioLigado(e.target.value === 'ligado')}
+                    className="flex-1 max-w-sm border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none"
+                  >
+                    <option value="ligado">Ligado (Reproduzir Som)</option>
+                    <option value="desligado">Desligado (Mudo)</option>
+                  </select>
+                </div>
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <label className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">Auto-Reiniciar Diário:</label>
+                  <select 
+                    value={autoReiniciarHoras.toString()}
+                    onChange={e => setAutoReiniciarHoras(parseInt(e.target.value))}
+                    className="flex-1 max-w-sm border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none"
+                  >
+                    <option value="0">Desligado (Não reiniciar)</option>
+                    <option value="12">A cada 12 horas</option>
+                    <option value="24">A cada 24 horas</option>
+                    <option value="48">A cada 48 horas</option>
+                  </select>
+                </div>
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <label className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">Notificações do Android:</label>
+                  <select 
+                    value={exibirNotificacoes ? 'exibir' : 'ocultar'}
+                    onChange={e => setExibirNotificacoes(e.target.value === 'exibir')}
+                    className="flex-1 max-w-sm border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none"
+                  >
+                    <option value="ocultar">Ocultar</option>
+                    <option value="exibir">Exibir</option>
+                  </select>
+                </div>
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <label className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">Gerenciamento de Armazenamento:</label>
+                  <select 
+                    value={limpezaAutomatica ? 'automatica' : 'manual'}
+                    onChange={e => setLimpezaAutomatica(e.target.value === 'automatica')}
+                    className="flex-1 max-w-sm border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none"
+                  >
+                    <option value="automatica">Limpeza Automática (Recomendado)</option>
+                    <option value="manual">Manual</option>
+                  </select>
+                </div>
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <label className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">Tempo de Exibição Padrão (s):</label>
+                  <input 
+                    type="number"
+                    min="1"
+                    value={tempoExibicao}
+                    onChange={e => setTempoExibicao(parseInt(e.target.value) || 10)}
+                    className="flex-1 max-w-sm border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none"
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Comandos / Ações */}
+            <section className="border-b border-zinc-100 pb-8">
+              <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
+                <Activity className="w-4 h-4" />
+                Ação / Comando
+              </h3>
+              <div className="flex flex-wrap items-center gap-3 md:pl-28">
+                <button onClick={() => handleCommand('limpar_dados')} className="bg-[#e67e22] hover:bg-[#d35400] text-white text-[10px] font-bold px-4 py-2.5 rounded uppercase flex items-center gap-2 transition-colors">
+                  <Trash2 className="w-3.5 h-3.5" />
+                  LIMPAR DADOS
+                </button>
+                <button onClick={() => handleCommand('reiniciar')} className="bg-[#3498db] hover:bg-[#2980b9] text-white text-[10px] font-bold px-4 py-2.5 rounded uppercase flex items-center gap-2 transition-colors">
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  REINICIAR APP
+                </button>
+                <button onClick={() => handleCommand('formatar')} className="bg-[#c0392b] hover:bg-[#a93226] text-white text-[10px] font-bold px-4 py-2.5 rounded uppercase flex items-center gap-2 transition-colors">
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  FORMATAR
+                </button>
+                <button onClick={() => handleCommand('reiniciar_tv')} className="bg-[#7f8c8d] hover:bg-[#6c7a7d] text-white text-[10px] font-bold px-4 py-2.5 rounded uppercase flex items-center gap-2 transition-colors">
+                  <Monitor className="w-3.5 h-3.5" />
+                  REINICIAR TV
+                </button>
+              </div>
+            </section>
+
+            {/* Monetização */}
+            <section>
+              <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
+                <Puzzle className="w-4 h-4" />
+                Monetização
+              </h3>
+              <div className="flex flex-col md:flex-row md:items-center gap-4">
+                <label className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">ID de Monetização (Ex: GrandMidia):</label>
+                <input 
+                  type="text" 
+                  value={idMonetizacao}
+                  onChange={e => setIdMonetizacao(e.target.value)}
+                  placeholder="Deixe em branco para desativar"
+                  className="flex-1 max-w-sm border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none border-dashed"
+                />
+              </div>
+            </section>
+          </div>
+        )}
+
+        {/* Status e Informações (Only on Configurações tab) */}
+        {activeTab === 'configuracoes' && (
         <section>
           <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
             <Activity className="w-4 h-4" />
@@ -285,8 +524,10 @@ export default function AgencyTotemSettings() {
 
           </div>
         </section>
+        )}
 
-        {/* Comandos */}
+        {/* Comandos (Only on Configurações tab) */}
+        {activeTab === 'configuracoes' && (
         <section className="pt-4 border-t border-zinc-100">
           <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
             Comandos
@@ -306,6 +547,7 @@ export default function AgencyTotemSettings() {
             </button>
           </div>
         </section>
+        )}
 
       </div>
 

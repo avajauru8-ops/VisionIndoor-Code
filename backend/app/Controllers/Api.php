@@ -21,12 +21,35 @@ class Api extends ResourceController
     {
         try {
             $db = \Config\Database::connect();
+            // Existing ones for status support
             $db->query("ALTER TABLE totens MODIFY COLUMN status VARCHAR(255) DEFAULT 'offline'");
             $db->query("ALTER TABLE totens MODIFY COLUMN ultima_informacao VARCHAR(255) DEFAULT NULL");
             $db->query("ALTER TABLE totens MODIFY COLUMN versao_app VARCHAR(100) DEFAULT NULL");
             $db->query("ALTER TABLE totens MODIFY COLUMN sistema_operacional VARCHAR(100) DEFAULT NULL");
             $db->query("ALTER TABLE totens MODIFY COLUMN resolucao VARCHAR(50) DEFAULT NULL");
-            return $this->respond(['success' => 'Colunas atualizadas na produção!']);
+            
+            // New columns for "Extras" tab
+            $columns = [
+                'iniciar_tv_energia' => "BOOLEAN DEFAULT FALSE",
+                'fuso_horario' => "VARCHAR(100) DEFAULT 'America/Sao_Paulo'",
+                'exibir_barra_tarefas' => "BOOLEAN DEFAULT TRUE",
+                'audio_ligado' => "BOOLEAN DEFAULT TRUE",
+                'auto_reiniciar_horas' => "INT DEFAULT 0",
+                'exibir_notificacoes' => "BOOLEAN DEFAULT FALSE",
+                'limpeza_automatica' => "BOOLEAN DEFAULT TRUE",
+                'tempo_exibicao_padrao' => "INT DEFAULT 10",
+                'id_monetizacao' => "VARCHAR(150) DEFAULT NULL"
+            ];
+            
+            foreach ($columns as $col => $def) {
+                try {
+                    $db->query("ALTER TABLE totens ADD COLUMN {$col} {$def}");
+                } catch (\Exception $e) {
+                    // Ignore column already exists errors
+                }
+            }
+            
+            return $this->respond(['success' => 'Todas as colunas extras foram atualizadas/criadas na produção!']);
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => $e->getMessage()])->setStatusCode(500);
         }
@@ -216,6 +239,15 @@ class Api extends ResourceController
             $resposta = [
                 'totem_id' => $device_id,
                 'auto_iniciar' => isset($totem['auto_iniciar']) ? (bool)$totem['auto_iniciar'] : false,
+                'iniciar_tv_energia' => isset($totem['iniciar_tv_energia']) ? (bool)$totem['iniciar_tv_energia'] : false,
+                'fuso_horario' => $totem['fuso_horario'] ?? 'America/Sao_Paulo',
+                'exibir_barra_tarefas' => isset($totem['exibir_barra_tarefas']) ? (bool)$totem['exibir_barra_tarefas'] : true,
+                'audio_ligado' => isset($totem['audio_ligado']) ? (bool)$totem['audio_ligado'] : true,
+                'auto_reiniciar_horas' => isset($totem['auto_reiniciar_horas']) ? (int)$totem['auto_reiniciar_horas'] : 0,
+                'exibir_notificacoes' => isset($totem['exibir_notificacoes']) ? (bool)$totem['exibir_notificacoes'] : false,
+                'limpeza_automatica' => isset($totem['limpeza_automatica']) ? (bool)$totem['limpeza_automatica'] : true,
+                'tempo_exibicao_padrao' => isset($totem['tempo_exibicao_padrao']) ? (int)$totem['tempo_exibicao_padrao'] : 10,
+                'id_monetizacao' => $totem['id_monetizacao'] ?? null,
                 'playlist' => $playlist
             ];
             
