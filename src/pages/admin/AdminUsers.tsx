@@ -11,6 +11,8 @@ interface User {
   nivel: 'admin' | 'agencia';
   status_licenca: 'ativa' | 'expirada';
   validade_licenca: string;
+  plano: 'gratis' | 'pago';
+  limite_tvs: number;
 }
 
 export default function AdminUsers() {
@@ -27,6 +29,8 @@ export default function AdminUsers() {
   const [senha, setSenha] = useState('');
   const [nivel, setNivel] = useState<'admin' | 'agencia'>('agencia');
   const [validade, setValidade] = useState('');
+  const [plano, setPlano] = useState<'gratis' | 'pago'>('gratis');
+  const [limiteTvs, setLimiteTvs] = useState(1);
 
   const loadUsers = async () => {
     try {
@@ -48,7 +52,7 @@ export default function AdminUsers() {
     try {
       await apiFetch('/api/admin/users', {
         method: 'POST',
-        body: JSON.stringify({ nome, cpf, email, senha, nivel, validade_licenca: new Date(validade).toISOString() }),
+        body: JSON.stringify({ nome, cpf, email, senha, nivel, validade_licenca: new Date(validade).toISOString(), plano, limite_tvs: limiteTvs }),
       });
       setShowForm(false);
       setNome('');
@@ -56,6 +60,8 @@ export default function AdminUsers() {
       setEmail('');
       setSenha('');
       setValidade('');
+      setPlano('gratis');
+      setLimiteTvs(1);
       loadUsers();
     } catch (err: any) {
       alert(err.message);
@@ -74,7 +80,9 @@ export default function AdminUsers() {
            senha: editSenha,
            nivel: editingUser.nivel,
            status_licenca: editingUser.status_licenca, 
-           validade_licenca: new Date(editingUser.validade_licenca).toISOString() 
+           validade_licenca: new Date(editingUser.validade_licenca).toISOString(),
+           plano: editingUser.plano,
+           limite_tvs: editingUser.limite_tvs
         }),
       });
       setEditingUser(null);
@@ -126,6 +134,19 @@ export default function AdminUsers() {
                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Data de Expiração da Licença</label>
                <input type="date" required value={validade} onChange={e=>setValidade(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm font-mono focus:border-emerald-500 outline-none [color-scheme:light]" />
              </div>
+             <div>
+               <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Plano</label>
+               <select value={plano} onChange={e=>setPlano(e.target.value as any)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 outline-none">
+                 <option value="gratis">Grátis (1 TV)</option>
+                 <option value="pago">Pago</option>
+               </select>
+             </div>
+             {plano === 'pago' && (
+               <div>
+                 <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Limite de TVs</label>
+                 <input type="number" min="1" required value={limiteTvs} onChange={e=>setLimiteTvs(Number(e.target.value))} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm font-mono focus:border-emerald-500 outline-none transition-all" />
+               </div>
+             )}
              <div className="md:col-span-2 flex justify-end gap-3 pt-4">
                 <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-800 border border-zinc-200 hover:border-zinc-300 rounded-full transition-colors">Cancelar</button>
                 <button type="submit" className="px-5 py-2.5 bg-[#0b462c] hover:bg-[#082a1b] text-white rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm">Salvar Usuário</button>
@@ -202,6 +223,32 @@ export default function AdminUsers() {
                      onChange={e => setEditingUser({...editingUser, validade_licenca: e.target.value})} 
                      className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm font-mono focus:border-emerald-500 outline-none [color-scheme:light]" 
                    />
+                 </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div>
+                     <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Plano</label>
+                     <select 
+                       value={editingUser.plano} 
+                       onChange={e => setEditingUser({...editingUser, plano: e.target.value as any})} 
+                       className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 outline-none"
+                     >
+                       <option value="gratis">Grátis (1 TV)</option>
+                       <option value="pago">Pago</option>
+                     </select>
+                   </div>
+                   {editingUser.plano === 'pago' && (
+                     <div>
+                       <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Limite de TVs</label>
+                       <input 
+                         type="number" 
+                         min="1"
+                         required 
+                         value={editingUser.limite_tvs} 
+                         onChange={e => setEditingUser({...editingUser, limite_tvs: Number(e.target.value)})} 
+                         className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm font-mono focus:border-emerald-500 outline-none transition-all" 
+                       />
+                     </div>
+                   )}
                  </div>
                  <div className="flex justify-end gap-3 pt-6">
                     <button type="button" onClick={() => { setEditingUser(null); setEditSenha(''); }} className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-800 border border-zinc-200 hover:border-zinc-300 rounded-full transition-colors">Cancelar</button>

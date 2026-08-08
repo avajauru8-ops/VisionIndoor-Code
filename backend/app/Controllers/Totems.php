@@ -38,8 +38,30 @@ class Totems extends ResourceController
             $db = \Config\Database::connect();
             $user_id = $this->request->getHeaderLine('X-User-Id');
             
+            // Limit Check
+            $user = $db->table('usuarios')->where('id', $user_id)->get()->getRowArray();
+            if (!$user) {
+                return $this->response->setJSON(['error' => 'Usuário não encontrado'])->setStatusCode(404);
+            }
+            
+            $totens_count = $db->table('totens')->where('usuario_id', $user_id)->countAllResults();
+            $plano = $user['plano'] ?? 'gratis';
+            $limite = (int)($user['limite_tvs'] ?? 1);
+            
+            if ($plano === 'gratis' && $totens_count >= 1) {
+                return $this->response->setJSON(['error' => 'Limite de TVs atingindo', 'code' => 'LIMIT_REACHED'])->setStatusCode(403);
+            }
+            if ($plano === 'pago' && $totens_count >= $limite) {
+                return $this->response->setJSON(['error' => 'Limite de TVs atingindo', 'code' => 'LIMIT_REACHED'])->setStatusCode(403);
+            }
+            
+            $nome = $json->nome ?? '';
+            if (empty($nome)) {
+                $nome = 'TV - ' . date('d/m/Y');
+            }
+
             $data = [
-                'nome' => $json->nome ?? '',
+                'nome' => $nome,
                 'device_id' => $json->device_id ?? '',
                 'usuario_id' => $user_id,
                 'status' => 'offline'

@@ -11,7 +11,7 @@ class Users extends ResourceController
         try {
             $db = \Config\Database::connect();
             $builder = $db->table('usuarios');
-            $users = $builder->select('id, nome, cpf, email, nivel, status_licenca, validade_licenca, created_at')->get()->getResultArray();
+            $users = $builder->select('id, nome, cpf, email, nivel, status_licenca, validade_licenca, plano, limite_tvs, created_at')->get()->getResultArray();
             
             // Convert ID to string for JS compatibility
             foreach ($users as &$u) {
@@ -40,6 +40,8 @@ class Users extends ResourceController
                 'nivel' => $json->nivel ?? 'agencia',
                 'status_licenca' => $json->status_licenca ?? 'ativa',
                 'validade_licenca' => $json->validade_licenca ?? '2099-12-31 23:59:59',
+                'plano' => $json->plano ?? 'gratis',
+                'limite_tvs' => $json->limite_tvs ?? 1,
                 'created_at' => date('Y-m-d H:i:s')
             ];
             
@@ -75,7 +77,9 @@ class Users extends ResourceController
             'email' => $json->email,
             'nivel' => $json->nivel,
             'status_licenca' => $json->status_licenca,
-            'validade_licenca' => $json->validade_licenca ?? null
+            'validade_licenca' => $json->validade_licenca ?? null,
+            'plano' => $json->plano ?? 'gratis',
+            'limite_tvs' => $json->limite_tvs ?? 1
         ];
         
         if (!empty($json->senha)) {

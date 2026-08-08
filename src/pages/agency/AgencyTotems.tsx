@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
-import { Tv, Plus, Search, Trash2 } from 'lucide-react';
+import { Tv, Plus, Search, Trash2, Camera, Play, Tag, ChevronDown, CheckSquare, Square, X } from 'lucide-react';
 
 interface Totem {
   id: number;
@@ -15,8 +15,8 @@ export default function AgencyTotems() {
   const [totems, setTotems] = useState<Totem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
   
-  const [nome, setNome] = useState('');
   const [deviceId, setDeviceId] = useState('');
   const [error, setError] = useState('');
 
@@ -41,19 +41,24 @@ export default function AgencyTotems() {
     try {
       await apiFetch('/api/totems', {
         method: 'POST',
-        body: JSON.stringify({ nome, device_id: deviceId }),
+        // The backend automatically generates a name if not provided
+        body: JSON.stringify({ device_id: deviceId }),
       });
-      setNome('');
       setDeviceId('');
       setShowForm(false);
       loadTotems();
     } catch (err: any) {
-      setError(err.message);
+      if (err.message === 'Limite de TVs atingindo' || err.code === 'LIMIT_REACHED') {
+        setShowForm(false);
+        setShowLimitModal(true);
+      } else {
+        setError(err.message);
+      }
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm('Deseja realmente excluir este totem?')) {
+    if (confirm('Deseja realmente excluir esta TV?')) {
       try {
         await apiFetch(`/api/totems/${id}`, { method: 'DELETE' });
         loadTotems();
@@ -63,139 +68,215 @@ export default function AgencyTotems() {
     }
   };
 
-  const handleToggleAutoIniciar = async (totem: Totem) => {
-    const newStatus = totem.auto_iniciar ? 0 : 1;
-    
-    // Optimistic UI update
-    setTotems(prev => prev.map(t => t.id === totem.id ? { ...t, auto_iniciar: newStatus } : t));
-    
-    try {
-      await apiFetch(`/api/totems/${totem.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ auto_iniciar: newStatus })
-      });
-    } catch (err) {
-      console.error('Erro ao atualizar auto_iniciar:', err);
-      // Revert if error
-      setTotems(prev => prev.map(t => t.id === totem.id ? { ...t, auto_iniciar: totem.auto_iniciar } : t));
-    }
-  };
-
   return (
-    <div className="space-y-6">
-      {showForm && (
-        <div className="bg-white border border-[#e8edf2] rounded-2xl p-6 shadow-sm">
-          <h3 className="text-[#0b462c] text-xs font-bold uppercase tracking-wider mb-4">Novo Totem</h3>
-          <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
-            {error && <div className="text-rose-500 text-xs font-mono bg-rose-50 border border-rose-100 p-3 rounded-xl">{error}</div>}
-            
-            <div>
-              <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Nome do Ponto</label>
-              <input
-                type="text"
-                required
-                className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all"
-                value={nome}
-                onChange={e => setNome(e.target.value)}
-                placeholder="Ex: Recepção Matriz"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Device ID (Código Único)</label>
-              <input
-                type="text"
-                required
-                className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm font-mono focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all"
-                value={deviceId}
-                onChange={e => setDeviceId(e.target.value)}
-                placeholder="Ex: TOTEM-001"
-              />
-            </div>
-            
-            <div className="flex justify-end gap-3 pt-2">
-              <button 
-                type="button" 
-                onClick={() => setShowForm(false)} 
-                className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-800 border border-zinc-200 hover:border-zinc-300 rounded-full transition-colors"
-              >
-                Cancelar
-              </button>
-              <button 
-                type="submit" 
-                className="px-5 py-2.5 bg-[#0b462c] hover:bg-[#082a1b] text-white rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm"
-              >
-                Salvar
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+    <div className="space-y-6 text-zinc-600 font-sans relative min-h-full">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-[#104a9e] flex items-center gap-2 uppercase tracking-wide">
+          <Tv className="w-6 h-6" />
+          TVS
+        </h2>
+        <button 
+          onClick={() => { setShowForm(true); setError(''); }}
+          className="bg-[#0066ff] hover:bg-[#0052cc] text-white text-[11px] font-bold px-4 py-2.5 rounded transition-colors flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          VINCULAR TV
+        </button>
+      </div>
 
-      <div className="flex-1 bg-white border border-[#e8edf2] rounded-[24px] flex flex-col overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-[#e8edf2] flex justify-between items-center bg-zinc-50/50">
-          <h2 className="text-sm font-extrabold text-[#0b462c] uppercase tracking-wider">Monitoramento de Totens</h2>
-          <button 
-            onClick={() => setShowForm(!showForm)}
-            className="bg-[#0b462c] hover:bg-[#082a1b] text-white text-[10px] font-bold px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shadow-sm"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            CADASTRAR NOVO TOTEM
+      {/* Search and Filters */}
+      <div className="flex flex-col items-center gap-4 py-4">
+        <div className="relative w-full max-w-md">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+            <Search className="w-4 h-4 text-[#104a9e]" />
+          </span>
+          <input 
+            type="text" 
+            placeholder="PESQUISAR" 
+            className="w-full border-b border-zinc-200 bg-transparent py-2 pl-10 pr-4 text-xs font-bold text-[#104a9e] uppercase placeholder-[#104a9e] focus:outline-none focus:border-[#104a9e] transition-colors"
+          />
+        </div>
+        
+        <button className="flex items-center gap-2 text-xs font-bold text-zinc-500 uppercase hover:text-zinc-800 transition-colors">
+          <Tag className="w-4 h-4" />
+          ETIQUETAS / PASTAS
+        </button>
+      </div>
+
+      {/* Sorting / Pagination Info */}
+      <div className="flex items-center justify-end gap-6 text-[10px] font-bold uppercase text-zinc-400">
+        <div className="flex items-center gap-2">
+          ORDENAR POR
+          <button className="flex items-center gap-1 text-zinc-600 border-b border-zinc-300 pb-0.5">
+            Data de Vínculo <ChevronDown className="w-3 h-3" />
           </button>
         </div>
+        <div className="flex items-center gap-2">
+          TVS POR PÁGINA
+          <button className="flex items-center gap-1 text-zinc-600 border border-zinc-300 rounded px-2 py-0.5">
+            15 <ChevronDown className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white border border-zinc-200 shadow-sm rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 border-b border-[#e8edf2] bg-zinc-50/50">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-zinc-50 text-zinc-500 border-b border-zinc-200">
               <tr>
-                <th className="px-6 py-4">Nome do Ponto</th>
-                <th className="px-6 py-4 font-sans uppercase">Device ID</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Última Sincronização</th>
-                <th className="px-6 py-4 text-center">Abrir Automático</th>
-                <th className="px-6 py-4 text-right">Ações</th>
+                <th className="px-4 py-3 w-10 text-center"><Square className="w-4 h-4 inline-block text-zinc-300" /></th>
+                <th className="px-4 py-3 font-semibold">Nome</th>
+                <th className="px-4 py-3 font-semibold">Lista de Reprodução</th>
+                <th className="px-4 py-3 font-semibold text-center">Captura de Tela</th>
               </tr>
             </thead>
-            <tbody className="text-xs font-mono text-zinc-600">
-               {totems.length === 0 && !loading ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-[#8b9aa5] font-sans">Nenhum totem cadastrado.</td>
+            <tbody>
+              {totems.length === 0 && !loading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-zinc-400">Nenhuma TV cadastrada.</td>
+                </tr>
+              ) : (
+                totems.map(totem => (
+                  <tr key={totem.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors group">
+                    <td className="px-4 py-4 text-center">
+                      <Square className="w-4 h-4 inline-block text-zinc-300" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        {/* Play Icon Box */}
+                        <div className="w-8 h-8 rounded bg-[#f5a623] flex items-center justify-center shrink-0">
+                          <Play className="w-4 h-4 text-white ml-0.5" />
+                        </div>
+                        <span className="font-semibold text-zinc-700">{totem.nome}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      {/* For now we show the alert button since playlists aren't fully linked in the DB in this scope */}
+                      <button className="bg-[#e74c3c] hover:bg-[#c0392b] text-white text-[10px] font-bold px-3 py-1.5 rounded transition-colors uppercase">
+                        Selecione uma lista de reprodução para essa TV!
+                      </button>
+                    </td>
+                    <td className="px-4 py-4 text-center relative">
+                      <button className="w-8 h-8 rounded bg-[#9b59b6] flex items-center justify-center text-white mx-auto hover:bg-[#8e44ad] transition-colors">
+                        <Camera className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(totem.id)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-2 text-zinc-400 hover:text-red-500 transition-all"
+                        title="Excluir TV"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
                   </tr>
-               ) : (
-                  totems.map(totem => (
-                     <tr key={totem.id} className="border-b border-[#e8edf2] hover:bg-zinc-50/50 transition-colors">
-                        <td className="px-6 py-4 font-sans text-zinc-800 font-bold">{totem.nome}</td>
-                        <td className="px-6 py-4 text-zinc-500">{totem.device_id}</td>
-                        <td className="px-6 py-4">
-                           {totem.status === 'online' ? (
-                             <span className="bg-[#e8f5ed] text-emerald-600 px-2.5 py-1 rounded-full border border-emerald-100 text-[9px] uppercase font-bold tracking-wider">ONLINE</span>
-                           ) : (
-                             <span className="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-full border border-rose-100 text-[9px] uppercase font-bold tracking-wider">OFFLINE</span>
-                           )}
-                        </td>
-                        <td className="px-6 py-4 text-zinc-500 font-sans">
-                           {totem.ultima_sincronizacao ? new Date(totem.ultima_sincronizacao).toLocaleString() : 'Nunca'}
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                           <button 
-                             onClick={() => handleToggleAutoIniciar(totem)}
-                             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${totem.auto_iniciar ? 'bg-emerald-500' : 'bg-zinc-300'}`}
-                           >
-                             <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${totem.auto_iniciar ? 'translate-x-4.5' : 'translate-x-1'}`} style={{ transform: totem.auto_iniciar ? 'translateX(18px)' : 'translateX(4px)' }} />
-                           </button>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                           <button onClick={() => handleDelete(totem.id)} className="text-zinc-400 hover:text-rose-500 p-1.5 transition-all rounded-lg hover:bg-rose-50">
-                              <Trash2 className="w-4 h-4 inline" />
-                           </button>
-                        </td>
-                     </tr>
-                  ))
-               )}
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Pagination Footer */}
+      <div className="text-[10px] text-zinc-500 uppercase tracking-wide">
+        Mostrando de 1 a {totems.length} de {totems.length} TV{totems.length !== 1 ? 'S' : ''}
+      </div>
+
+      {/* Legends */}
+      <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold text-zinc-500 uppercase">
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-4 bg-[#2ecc71] rounded-sm"></div>
+          Funcionando corretamente
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-4 bg-[#f1c40f] rounded-sm"></div>
+          Em Verificação
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-4 bg-[#e74c3c] rounded-sm"></div>
+          Sem Comunicação
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-4 bg-[#bdc3c7] rounded-sm"></div>
+          Sem Comunicação fora do Horário de Funcionamento
+        </div>
+      </div>
+
+      {/* Modal Vincular TV */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
+              <h3 className="text-sm font-bold text-zinc-800">Vincular TV</h3>
+              <button onClick={() => setShowForm(false)} className="text-zinc-400 hover:text-zinc-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6">
+              {error && <div className="mb-4 text-xs text-red-600 bg-red-50 p-3 rounded">{error}</div>}
+              
+              <div className="mb-6">
+                <label className="block text-xs font-bold text-zinc-600 mb-2">Código da TV</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full border border-zinc-300 rounded px-4 py-2.5 text-sm focus:border-[#104a9e] focus:outline-none transition-colors"
+                  value={deviceId}
+                  onChange={e => setDeviceId(e.target.value)}
+                  placeholder="Informe o código exibido na TV"
+                />
+                <p className="text-[10px] text-zinc-400 mt-2">O nome da TV será gerado automaticamente.</p>
+              </div>
+              
+              <div className="flex justify-end gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setShowForm(false)} 
+                  className="px-4 py-2 text-xs font-bold text-zinc-500 hover:text-zinc-700 transition-colors"
+                >
+                  CANCELAR
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-6 py-2 bg-[#0066ff] hover:bg-[#0052cc] text-white rounded text-xs font-bold transition-colors"
+                >
+                  VINCULAR
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Limite de TVs Atingido */}
+      {showLimitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
+              <h3 className="text-sm font-bold text-zinc-800">Limite de TVs atingindo</h3>
+              <button onClick={() => setShowLimitModal(false)} className="text-zinc-400 hover:text-zinc-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-8 text-center">
+              <p className="text-sm text-zinc-600 mb-2">
+                Você poderá vincular mais TVs ao realizar o upgrade de seu <a href="#" className="text-[#104a9e] hover:underline">plano</a>.
+              </p>
+              <p className="text-sm text-zinc-600 mb-8">
+                <a href="#" className="text-[#104a9e] hover:underline">Contate o Suporte</a> caso tenha qualquer dúvida.
+              </p>
+              
+              <button 
+                onClick={() => setShowLimitModal(false)} 
+                className="px-8 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded text-xs font-bold uppercase transition-colors"
+              >
+                FECHAR
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
