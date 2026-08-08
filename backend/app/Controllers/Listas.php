@@ -14,7 +14,7 @@ class Listas extends ResourceController
             $nivel = $this->request->getHeaderLine('X-User-Nivel');
             
             $builder = $db->table('playlists p');
-            $builder->select('p.*, COUNT(t.id) as totens_vinculados, SUM(pi.tempo_exibicao) as tempo_total');
+            $builder->select('p.*, COUNT(DISTINCT t.id) as totens_vinculados, GROUP_CONCAT(DISTINCT t.nome SEPARATOR \'||\') as totens_nomes, SUM(pi.tempo_exibicao) as tempo_total');
             $builder->join('totens t', 't.playlist_id = p.id', 'left');
             $builder->join('playlist_itens pi', 'pi.playlist_id = p.id', 'left');
             

@@ -65,14 +65,14 @@ export default function AgencyMedia() {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const newItems: UploadItem[] = Array.from(e.target.files).map(file => ({
+      const newItems: UploadItem[] = Array.from(e.target.files).map((file: File) => ({
         id: Math.random().toString(36).substring(7),
         file,
         progress: 0,
         status: 'pending',
         previewUrl: URL.createObjectURL(file)
       }));
-      setUploadQueue(prev => [...prev, ...newItems]);
+      setUploadQueue((prev: UploadItem[]) => [...prev, ...newItems]);
       setShowUploader(true);
       
       // Limpa o input para poder selecionar os mesmos arquivos novamente
@@ -81,7 +81,7 @@ export default function AgencyMedia() {
   };
 
   const removeUploadItem = (id: string) => {
-    setUploadQueue(prev => prev.filter(item => item.id !== id));
+    setUploadQueue((prev: UploadItem[]) => prev.filter((item: UploadItem) => item.id !== id));
   };
 
   const clearUploader = () => {
@@ -98,11 +98,11 @@ export default function AgencyMedia() {
 
   // Efeito para processar a fila de upload
   useEffect(() => {
-    const pendingItem = uploadQueue.find(item => item.status === 'pending');
+    const pendingItem = uploadQueue.find((item: UploadItem) => item.status === 'pending');
     
     if (pendingItem) {
       // Iniciar o upload deste item
-      setUploadQueue(prev => prev.map(item => 
+      setUploadQueue((prev: UploadItem[]) => prev.map((item: UploadItem) => 
         item.id === pendingItem.id ? { ...item, status: 'uploading' } : item
       ));
 
@@ -114,7 +114,7 @@ export default function AgencyMedia() {
     const token = localStorage.getItem('token');
     if (!token) {
       console.error('Token não encontrado!');
-      setUploadQueue(prev => prev.map(q => 
+      setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) => 
         q.id === item.id ? { ...q, status: 'error' } : q
       ));
       return;
@@ -129,10 +129,10 @@ export default function AgencyMedia() {
     const tipo = item.file.type.startsWith('video/') ? 'video' : 'imagem';
     formData.append('tipo_midia', tipo);
 
-    xhr.upload.addEventListener('progress', (e) => {
+    xhr.upload.addEventListener('progress', (e: ProgressEvent) => {
       if (e.lengthComputable) {
         const percent = Math.round((e.loaded / e.total) * 100);
-        setUploadQueue(prev => prev.map(q => 
+        setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) => 
           q.id === item.id ? { ...q, progress: percent } : q
         ));
       }
@@ -140,25 +140,25 @@ export default function AgencyMedia() {
 
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        setUploadQueue(prev => prev.map(q => 
+        setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) => 
           q.id === item.id ? { ...q, status: 'done', progress: 100 } : q
         ));
       } else {
-        setUploadQueue(prev => prev.map(q => 
+        setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) => 
           q.id === item.id ? { ...q, status: 'error' } : q
         ));
       }
     });
 
     xhr.addEventListener('error', () => {
-      setUploadQueue(prev => prev.map(q => 
+      setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) => 
         q.id === item.id ? { ...q, status: 'error' } : q
       ));
     });
 
     xhr.open('POST', 'http://localhost:8080/api/playlists'); // Em dev. Em prod ele ajusta pelo baseURL configurado no axios, mas para xhr:
     // Melhor usar a URL correta baseada no ambiente:
-    const baseUrl = import.meta.env.VITE_API_URL || '';
+    const baseUrl = (import.meta as any).env.VITE_API_URL || '';
     xhr.open('POST', `${baseUrl}/api/playlists`);
     
     xhr.setRequestHeader('Authorization', `Bearer ${token}`);

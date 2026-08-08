@@ -7,6 +7,7 @@ interface Playlist {
   id: string;
   nome: string;
   totens_vinculados: number;
+  totens_nomes?: string;
   tempo_total: number;
   criado_em: string;
 }
@@ -168,7 +169,17 @@ export default function AgencyListas() {
                         </Link>
                       </td>
                       <td className="px-4 py-4 text-center border-l border-zinc-200 text-zinc-500 font-medium">
-                        {item.totens_vinculados}
+                        {item.totens_nomes ? (
+                          <div className="flex flex-wrap justify-center gap-2">
+                            {item.totens_nomes.split('||').map((nome, i) => (
+                              <span key={i} className="bg-[#eaf2f8] text-[#3498db] px-2.5 py-1 rounded text-[10px] font-bold shadow-sm whitespace-nowrap">
+                                {nome}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          "0"
+                        )}
                       </td>
                       <td className="px-4 py-4 text-center border-l border-zinc-200">
                         <span className="text-[#e67e22] text-xs font-mono font-bold px-2 py-1 border border-[#e67e22]/30 rounded">
