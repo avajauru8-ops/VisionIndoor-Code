@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Image as ImageIcon, Plus, Search, Tag, Play } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Image as ImageIcon, Plus, Search, Tag, Play, X, Trash2, CheckCircle2 } from 'lucide-react';
 import { apiFetch } from '../../lib/api';
 
 interface Media {
@@ -10,9 +9,22 @@ interface Media {
   arquivo_url: string;
 }
 
+interface UploadItem {
+  id: string;
+  file: File;
+  progress: number;
+  status: 'pending' | 'uploading' | 'done' | 'error';
+  previewUrl: string;
+}
+
 export default function AgencyMedia() {
   const [media, setMedia] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Uploader State
+  const [uploadQueue, setUploadQueue] = useState<UploadItem[]>([]);
+  const [showUploader, setShowUploader] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadMedia();
@@ -21,8 +33,11 @@ export default function AgencyMedia() {
   const loadMedia = async () => {
     try {
       const data = await apiFetch('/api/playlists');
-      // For this page, we only care about unique media files (or all campaigns acting as media)
-      setMedia(data);
+      // Filtra apenas arquivos físicos (imagem, video) e ignora widgets (loteria, clima, etc)
+      const filtered = (data || []).filter((item: Media) => 
+        item.tipo_midia === 'imagem' || item.tipo_midia === 'video'
+      );
+      setMedia(filtered);
     } catch (err) {
       console.error(err);
     } finally {
@@ -30,8 +45,105 @@ export default function AgencyMedia() {
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newItems: UploadItem[] = Array.from(e.target.files).map(file => ({
+        id: Math.random().toString(36).substring(7),
+        file,
+        progress: 0,
+        status: 'pending',
+        previewUrl: URL.createObjectURL(file)
+      }));
+      setUploadQueue(prev => [...prev, ...newItems]);
+      setShowUploader(true);
+      
+      // Limpa o input para poder selecionar os mesmos arquivos novamente
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const removeUploadItem = (id: string) => {
+    setUploadQueue(prev => prev.filter(item => item.id !== id));
+  };
+
+  const clearUploader = () => {
+    setUploadQueue([]);
+    setShowUploader(false);
+  };
+
+  const finishUploader = () => {
+    // Recarrega a tabela e fecha o modal
+    setLoading(true);
+    loadMedia();
+    clearUploader();
+  };
+
+  // Efeito para processar a fila de upload
+  useEffect(() => {
+    const pendingItem = uploadQueue.find(item => item.status === 'pending');
+    
+    if (pendingItem) {
+      // Iniciar o upload deste item
+      setUploadQueue(prev => prev.map(item => 
+        item.id === pendingItem.id ? { ...item, status: 'uploading' } : item
+      ));
+
+      uploadFile(pendingItem);
+    }
+  }, [uploadQueue]);
+
+  const uploadFile = (item: UploadItem) => {
+    const token = localStorage.getItem('@GrandMidia:token');
+    if (!token) return;
+
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+    
+    formData.append('arquivo', item.file);
+    formData.append('titulo', item.file.name);
+    // Identificar tipo de midia baseado no mime type
+    const tipo = item.file.type.startsWith('video/') ? 'video' : 'imagem';
+    formData.append('tipo_midia', tipo);
+
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        setUploadQueue(prev => prev.map(q => 
+          q.id === item.id ? { ...q, progress: percent } : q
+        ));
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        setUploadQueue(prev => prev.map(q => 
+          q.id === item.id ? { ...q, status: 'done', progress: 100 } : q
+        ));
+      } else {
+        setUploadQueue(prev => prev.map(q => 
+          q.id === item.id ? { ...q, status: 'error' } : q
+        ));
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      setUploadQueue(prev => prev.map(q => 
+        q.id === item.id ? { ...q, status: 'error' } : q
+      ));
+    });
+
+    xhr.open('POST', 'http://localhost:8080/api/playlists'); // Em dev. Em prod ele ajusta pelo baseURL configurado no axios, mas para xhr:
+    // Melhor usar a URL correta baseada no ambiente:
+    const baseUrl = import.meta.env.VITE_API_URL || '';
+    xhr.open('POST', `${baseUrl}/api/playlists`);
+    
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.send(formData);
+  };
+
+
   return (
-    <div className="space-y-6 max-w-[1200px] mx-auto text-zinc-600 font-sans min-h-full pb-20">
+    <div className="space-y-6 max-w-[1200px] mx-auto text-zinc-600 font-sans min-h-full pb-20 relative">
       {/* Header and Add Button */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
@@ -40,13 +152,24 @@ export default function AgencyMedia() {
             ARQUIVOS
           </h2>
         </div>
-        <Link 
-          to="/agency/playlists/cadastrar"
-          className="bg-[#0066ff] hover:bg-[#0052cc] text-white text-[10px] font-bold px-4 py-2 rounded transition-colors uppercase flex items-center gap-1.5 shadow-sm"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          ADICIONAR ARQUIVOS
-        </Link>
+        
+        <div>
+          <input 
+            type="file" 
+            multiple 
+            className="hidden" 
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            accept=".jpg,.jpeg,.gif,.png,.mp4,.flv,.3gp,.avi,.m4v,.mkv,.mov,.mpg,.rm,.rmvb,.vob,.webm,.wmv"
+          />
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            className="bg-[#0066ff] hover:bg-[#0052cc] text-white text-[10px] font-bold px-4 py-2 rounded transition-colors uppercase flex items-center gap-1.5 shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            ADICIONAR ARQUIVOS
+          </button>
+        </div>
       </div>
 
       {/* Info Card */}
@@ -164,7 +287,7 @@ export default function AgencyMedia() {
           Mostrando de 1 a {media.length} de {media.length} arquivos
         </div>
 
-        {/* Storage Bar (Mocked as per reference) */}
+        {/* Storage Bar */}
         <div className="mt-6 flex flex-wrap items-center gap-6 text-[10px] font-bold">
           <div className="flex items-center gap-2">
             <span className="w-4 h-4 rounded-sm bg-[#27ae60]"></span>
@@ -179,8 +302,122 @@ export default function AgencyMedia() {
             <span className="text-zinc-800">125.0 MB | <span className="text-zinc-400 font-normal">Limite</span></span>
           </div>
         </div>
-
       </div>
+
+      {/* Upload Popup (Flutuante inferior direito) */}
+      {showUploader && (
+        <div className="fixed bottom-6 right-6 w-96 bg-[#1f1f1f] text-zinc-200 rounded-xl shadow-2xl border border-zinc-800 z-50 overflow-hidden flex flex-col">
+          {/* Header Popup */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-[#141414]">
+            <h3 className="font-bold text-sm text-white">{uploadQueue.length} arquivo(s) carregado(s)</h3>
+            <button onClick={finishUploader} className="text-zinc-400 hover:text-white transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Lista de Arquivos */}
+          <div className="flex-1 overflow-y-auto max-h-60 p-2 space-y-1 custom-scrollbar">
+            {uploadQueue.map((item) => {
+              const radius = 14;
+              const circumference = radius * 2 * Math.PI;
+              const offset = circumference - (item.progress / 100) * circumference;
+
+              return (
+                <div key={item.id} className="flex items-center justify-between p-2 hover:bg-white/5 rounded-lg transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-10 h-10 rounded overflow-hidden bg-zinc-800 border border-zinc-700 shrink-0 flex items-center justify-center">
+                      {item.file.type.startsWith('video/') ? (
+                         <div className="w-full h-full bg-black flex items-center justify-center"><Play className="w-4 h-4 text-white"/></div>
+                      ) : (
+                         <img src={item.previewUrl} alt={item.file.name} className="w-full h-full object-cover" />
+                      )}
+                      
+                      {/* Overlay para progresso e concluído */}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                        {item.status === 'done' ? (
+                          <CheckCircle2 className="w-5 h-5 text-[#0066ff] bg-white rounded-full" />
+                        ) : item.status === 'error' ? (
+                          <X className="w-5 h-5 text-rose-500" />
+                        ) : (
+                          // Progress Bar Redonda (SVG)
+                          <svg className="w-8 h-8 transform -rotate-90">
+                            <circle 
+                              cx="16" cy="16" r="14" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              fill="transparent"
+                              className="text-white/20"
+                            />
+                            <circle 
+                              cx="16" cy="16" r="14" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              fill="transparent"
+                              strokeDasharray={circumference}
+                              strokeDashoffset={offset}
+                              className="text-[#0066ff] transition-all duration-300 ease-out"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-xs truncate max-w-[180px] font-medium text-zinc-300">
+                      {item.file.name}
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => removeUploadItem(item.id)}
+                    className="p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-400/10 rounded opacity-0 group-hover:opacity-100 transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Footer Botoes Popup */}
+          <div className="p-4 border-t border-zinc-800 bg-[#141414] flex items-center justify-between">
+            <button 
+              onClick={clearUploader}
+              className="px-4 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+            >
+              Limpar
+            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              >
+                Adicionar mais
+              </button>
+              <button 
+                onClick={finishUploader}
+                className="px-5 py-1.5 rounded-lg text-xs font-bold text-white bg-[#0066ff] hover:bg-[#0052cc] transition-colors"
+              >
+                Concluído
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Style para Scrollbar do Popup */}
+      <style dangerouslySetInnerHTML={{__html:`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #3f3f46;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #52525b;
+        }
+      `}} />
     </div>
   );
 }
