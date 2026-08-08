@@ -365,7 +365,8 @@ export default function AgencyListaEdit() {
       const newItem: PlaylistItem = {
         id: '',
         unique_id: `new-${Math.random().toString(36).substr(2, 9)}`,
-        campanha_id: media.id,
+        campanha_id: media.tipo_midia === 'widget' ? undefined : media.id,
+        widget_nome: media.tipo_midia === 'widget' ? media.arquivo_url : undefined,
         arquivo_titulo: media.titulo,
         tipo_midia: media.tipo_midia,
         arquivo_url: media.arquivo_url,
@@ -397,7 +398,8 @@ export default function AgencyListaEdit() {
     const newItem: PlaylistItem = {
       id: '',
       unique_id: `new-${Math.random().toString(36).substr(2, 9)}`,
-      campanha_id: media.id,
+      campanha_id: media.tipo_midia === 'widget' ? undefined : media.id,
+      widget_nome: media.tipo_midia === 'widget' ? media.arquivo_url : undefined,
       arquivo_titulo: media.titulo,
       tipo_midia: media.tipo_midia,
       arquivo_url: media.arquivo_url,
