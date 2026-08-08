@@ -4,7 +4,7 @@ import { apiFetch } from '../../lib/api';
 import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { List, Settings, Save, X, Search, FileText, Play, DownloadCloud, GripVertical } from 'lucide-react';
+import { List, Settings, Save, X, Search, FileText, Play, DownloadCloud, GripVertical, Plus } from 'lucide-react';
 
 interface Media {
   id: string;
