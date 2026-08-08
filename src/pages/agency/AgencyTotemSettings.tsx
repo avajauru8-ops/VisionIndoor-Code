@@ -533,15 +533,15 @@ export default function AgencyTotemSettings() {
             Comandos
           </h3>
           <div className="flex flex-wrap items-center gap-3">
-            <button className="bg-[#8e44ad] hover:bg-[#732d91] text-white text-[10px] font-bold px-4 py-2.5 rounded uppercase flex items-center gap-2 transition-colors">
+            <button onClick={() => handleCommand('captura_tela')} className="bg-[#8e44ad] hover:bg-[#732d91] text-white text-[10px] font-bold px-4 py-2.5 rounded uppercase flex items-center gap-2 transition-colors">
               <Camera className="w-3.5 h-3.5" />
               CAPTURA DE TELA
             </button>
-            <button className="bg-[#7f8c8d] hover:bg-[#6c7a7d] text-white text-[10px] font-bold px-4 py-2.5 rounded uppercase flex items-center gap-2 transition-colors">
+            <button onClick={() => handleCommand('reiniciar_app')} className="bg-[#7f8c8d] hover:bg-[#6c7a7d] text-white text-[10px] font-bold px-4 py-2.5 rounded uppercase flex items-center gap-2 transition-colors">
               <RotateCcw className="w-3.5 h-3.5" />
               REINICIAR APLICATIVO
             </button>
-            <button className="bg-[#1abc9c] hover:bg-[#16a085] text-white text-[10px] font-bold px-4 py-2.5 rounded uppercase flex items-center gap-2 transition-colors">
+            <button onClick={() => handleCommand('limpar_cache')} className="bg-[#1abc9c] hover:bg-[#16a085] text-white text-[10px] font-bold px-4 py-2.5 rounded uppercase flex items-center gap-2 transition-colors">
               <Settings className="w-3.5 h-3.5" />
               LIMPAR CACHE
             </button>
