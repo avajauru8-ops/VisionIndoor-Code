@@ -76,12 +76,13 @@ export default function AgencyTotems() {
   const getTotemStatusColor = (totem: Totem) => {
     if (!totem.ultima_sincronizacao) return 'bg-[#e74c3c]'; // Sem Comunicação
     
-    const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T'));
+    // Server sends UTC time, so we append Z to ensure the browser parses it correctly
+    const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T') + 'Z');
     const now = new Date();
     
     const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
 
-    if (diffMinutes > 15 || diffMinutes < -15) { // < -15 to handle potential timezone mismatch where server is ahead
+    if (diffMinutes > 15 || diffMinutes < -15) {
       // Check if out of operating hours
       const hInicio = totem.horario_liga || totem.horario_inicio;
       const hFim = totem.horario_desliga || totem.horario_fim;
