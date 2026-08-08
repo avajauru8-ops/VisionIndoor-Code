@@ -58,6 +58,16 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
         $routes->delete('(:segment)', 'Playlists::delete/$1');
     });
 
+    // Listas de Reprodução (Novo Modelo)
+    $routes->group('listas', ['filter' => 'auth'], static function ($routes) {
+        $routes->get('/', 'Listas::index');
+        $routes->get('', 'Listas::index');
+        $routes->get('(:segment)', 'Listas::show/$1');
+        $routes->post('', 'Listas::create');
+        $routes->put('(:segment)', 'Listas::update/$1');
+        $routes->delete('(:segment)', 'Listas::delete/$1');
+    });
+
     $routes->get('config', 'Api::config');
     $routes->post('blob/upload', 'Api::blobUpload');
 });

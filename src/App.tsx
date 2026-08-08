@@ -21,6 +21,8 @@ import AgencyPlaylistScreens from './pages/agency/AgencyPlaylistScreens';
 import AgencyPlaylistView from './pages/agency/AgencyPlaylistView';
 import AgencyTotemSettings from './pages/agency/AgencyTotemSettings';
 import AgencyMedia from './pages/agency/AgencyMedia';
+import AgencyListas from './pages/agency/AgencyListas';
+import AgencyListaEdit from './pages/agency/AgencyListaEdit';
 import AgencyNews from './pages/agency/AgencyNews';
 import AgencyProfile from './pages/agency/AgencyProfile';
 import AgencyMediaKit from './pages/agency/AgencyMediaKit';
@@ -58,10 +60,8 @@ export default function App() {
              <Route path="agency/totems" element={<AgencyTotems />} />
              <Route path="agency/totems/:id" element={<AgencyTotemSettings />} />
              <Route path="agency/arquivos" element={<AgencyMedia />} />
-             <Route path="agency/playlists" element={<Navigate to="/agency/playlists/cadastrar" replace />} />
-             <Route path="agency/playlists/cadastrar" element={<AgencyPlaylists />} />
-             <Route path="agency/playlists/telas" element={<AgencyPlaylistScreens />} />
-             <Route path="agency/playlists/telas/:id" element={<AgencyPlaylistView />} />
+             <Route path="agency/listas" element={<AgencyListas />} />
+             <Route path="agency/listas/:id" element={<AgencyListaEdit />} />
              <Route path="agency/news" element={<AgencyNews />} />
              <Route path="agency/profile" element={<AgencyProfile />} />
              <Route path="agency/media-kit" element={<AgencyMediaKit />} />

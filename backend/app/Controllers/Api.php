@@ -115,29 +115,56 @@ class Api extends ResourceController
             // ========================================================
             $now = date('Y-m-d H:i:s');
             
-            $campanhas = $db->table('campanhas')
-                ->select('campanhas.*')
-                ->join('usuarios', 'usuarios.id = campanhas.usuario_id', 'left')
-                ->groupStart()
-                    // Mídias atribuídas especificamente a este totem (pelo dono ou por um admin)
+            $campanhas = [];
+
+            if (!empty($totem['playlist_id'])) {
+                // Novo modelo: Traz os itens da Lista de Reprodução, mantendo a ordem
+                $itensLista = $db->table('playlist_itens pi')
+                    ->select('c.*, pi.tempo_exibicao as tempo_exibicao_lista, pi.widget_nome')
+                    ->join('campanhas c', 'c.id = pi.campanha_id', 'left')
+                    ->where('pi.playlist_id', $totem['playlist_id'])
+                    ->orderBy('pi.ordem', 'ASC')
+                    ->get()->getResultArray();
+
+                foreach ($itensLista as $item) {
+                    if (!empty($item['widget_nome'])) {
+                        $campanhas[] = [
+                            'id' => rand(1000, 9999),
+                            'tipo_midia' => 'widget',
+                            'arquivo_url' => '/widget/' . $item['widget_nome'],
+                            'tempo_exibicao' => $item['tempo_exibicao_lista'],
+                            'data_inicio' => null,
+                            'data_fim' => null
+                        ];
+                    } else if (!empty($item['id'])) { // Is valid campaign
+                        $item['tempo_exibicao'] = $item['tempo_exibicao_lista'];
+                        $campanhas[] = $item;
+                    }
+                }
+            } else {
+                // Modelo Antigo (Fallback)
+                $campanhas = $db->table('campanhas')
+                    ->select('campanhas.*')
+                    ->join('usuarios', 'usuarios.id = campanhas.usuario_id', 'left')
                     ->groupStart()
-                        ->where('campanhas.totem_id', $totem['id'])
                         ->groupStart()
+                            ->where('campanhas.totem_id', $totem['id'])
+                            ->groupStart()
+                                ->where('campanhas.usuario_id', $user['id'])
+                                ->orWhere('usuarios.nivel', 'admin')
+                            ->groupEnd()
+                        ->groupEnd()
+                        ->orGroupStart()
                             ->where('campanhas.usuario_id', $user['id'])
-                            ->orWhere('usuarios.nivel', 'admin')
+                            ->groupStart()
+                                ->where('campanhas.totem_id', null)
+                                ->orWhere('campanhas.totem_id', 0)
+                            ->groupEnd()
                         ->groupEnd()
                     ->groupEnd()
-                    // OU Mídias globais do dono do totem
-                    ->orGroupStart()
-                        ->where('campanhas.usuario_id', $user['id'])
-                        ->groupStart()
-                            ->where('campanhas.totem_id', null)
-                            ->orWhere('campanhas.totem_id', 0)
-                        ->groupEnd()
-                    ->groupEnd()
-                ->groupEnd()
-                ->where('campanhas.ativo', 1)
-                ->get()->getResultArray();
+                    ->where('campanhas.ativo', 1)
+                    ->get()->getResultArray();
+            }
                 
             $playlist = [];
             foreach ($campanhas as $c) {
