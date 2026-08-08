@@ -19,7 +19,10 @@ import {
   Menu,
   X,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Image as ImageIcon,
+  List,
+  HelpCircle
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -61,6 +64,8 @@ export default function Layout() {
     return <Navigate to="/login" />;
   }
 
+  const isAgency = user?.nivel !== 'admin';
+
   type SubmenuItem = { name: string; path: string };
   type MenuItem = { name: string; path: string; icon: React.ElementType; category: string; submenus?: SubmenuItem[] };
 
@@ -73,25 +78,12 @@ export default function Layout() {
   ];
 
   const agencyLinks: MenuItem[] = [
-    { name: 'Dashboard', path: '/agency', icon: LayoutDashboard, category: 'MENU' },
-    { name: 'Minhas Telas', path: '/agency/totems', icon: Tv, category: 'MENU' },
-    { 
-      name: 'Playlists', 
-      path: '/agency/playlists', 
-      icon: MonitorPlay, 
-      category: 'MENU',
-      submenus: [
-        { name: 'Cadastrar Mídias', path: '/agency/playlists/cadastrar' },
-        { name: 'Telas em Exibição', path: '/agency/playlists/telas' }
-      ]
-    },
-    { name: 'Entretenimento', path: '/agency/news', icon: Newspaper, category: 'MENU' },
-    { name: 'Mídia Kit Web', path: '/agency/media-kit', icon: Newspaper, category: 'MENU' },
-    { name: 'Gerador de Contratos', path: '/agency/contracts', icon: FileText, category: 'MENU' },
-    { name: 'Dados da Agência', path: '/agency/profile', icon: Landmark, category: 'GERAL' },
+    { name: 'TVs', path: '/agency/totems', icon: Tv, category: 'MENU' },
+    { name: 'Arquivos', path: '/agency/playlists/cadastrar', icon: ImageIcon, category: 'MENU' },
+    { name: 'Lista de Reprodução', path: '/agency/playlists/telas', icon: List, category: 'MENU' },
   ];
 
-  const rawLinks = user?.nivel === 'admin' ? adminLinks : agencyLinks;
+  const rawLinks = isAgency ? agencyLinks : adminLinks;
 
   // Group links by category
   const menuLinks = rawLinks.filter(link => link.category === 'MENU');
@@ -103,44 +95,55 @@ export default function Layout() {
 
   // Sidebar content component to dry up code
   const SidebarContent = () => (
-    <>
+    <div className={cn("flex flex-col h-full", isAgency ? "bg-[#104a9e] text-white" : "bg-white text-zinc-800")}>
       <div className="flex flex-col flex-1 min-h-0">
         {/* Brand Logo */}
-        <div className="p-6 border-b border-[#e8edf2] flex items-center justify-between relative">
-          <div className={cn("flex items-center gap-2", sysSettings.logo_url ? "mx-auto justify-center" : "")}>
-            {sysSettings.logo_url ? (
+        <div className={cn("p-6 flex items-center justify-between relative", !isAgency && "border-b border-[#e8edf2]")}>
+          <div className={cn("flex items-center gap-2", sysSettings.logo_url && !isAgency ? "mx-auto justify-center" : "")}>
+            {!isAgency && sysSettings.logo_url ? (
               <img src={sysSettings.logo_url} alt="Logo" className="h-16 max-w-[180px] object-contain shrink-0" />
             ) : (
               <>
-                <div className="w-8 h-8 rounded-full bg-emerald-50 border-2 border-emerald-600 flex items-center justify-center shadow-sm">
-                  <div className="w-4 h-4 rounded-full border border-emerald-600 flex items-center justify-center font-bold text-[8px] text-[#0b462c]">
-                    V
+                {!isAgency ? (
+                  <>
+                    <div className="w-8 h-8 rounded-full bg-emerald-50 border-2 border-emerald-600 flex items-center justify-center shadow-sm">
+                      <div className="w-4 h-4 rounded-full border border-emerald-600 flex items-center justify-center font-bold text-[8px] text-[#0b462c]">
+                        V
+                      </div>
+                    </div>
+                    <div>
+                      <h1 className="text-base font-extrabold tracking-tight text-[#0b462c] uppercase truncate max-w-[120px]">
+                        {sysSettings.nome_painel || 'GRANDMÍDIA'}
+                      </h1>
+                      <p className="text-[9px] text-[#8b9aa5] uppercase tracking-widest font-bold">
+                        Administrador
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-3">
+                     {/* No Logo ou usa icone simples para a agencia se desejar */}
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-[10px] text-white">
+                       <Tv className="w-6 h-6 text-white/90" />
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <h1 className="text-base font-extrabold tracking-tight text-[#0b462c] uppercase truncate max-w-[120px]">
-                    {sysSettings.nome_painel || 'GRANDMÍDIA'}
-                  </h1>
-                  <p className="text-[9px] text-[#8b9aa5] uppercase tracking-widest font-bold">
-                    {user?.nivel === 'admin' ? 'Administrador' : 'Mídia Indoor'}
-                  </p>
-                </div>
+                )}
               </>
             )}
           </div>
           <button 
             onClick={() => setIsMobileSidebarOpen(false)}
-            className="lg:hidden absolute right-6 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-700 transition-colors"
+            className={cn("lg:hidden absolute right-6 top-1/2 -translate-y-1/2 p-1 transition-colors", isAgency ? "text-white/70 hover:text-white" : "text-zinc-400 hover:text-zinc-700")}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Navigation Links */}
-        <div className="flex-1 py-6 px-4 space-y-6 overflow-y-auto">
+        <div className="flex-1 py-6 space-y-6 overflow-y-auto">
           {/* Category: MENU */}
           <div>
-            <p className="px-3 text-[10px] font-bold text-[#8b9aa5] uppercase tracking-widest mb-3">Menu</p>
+            {!isAgency && <p className="px-7 text-[10px] font-bold text-[#8b9aa5] uppercase tracking-widest mb-3">Menu</p>}
             <nav className="space-y-1">
               {menuLinks.map((link) => {
                 const Icon = link.icon;
@@ -149,19 +152,20 @@ export default function Layout() {
                 const isActive = !hasSubmenu && (location.pathname === link.path || (link.path !== '/agency' && link.path !== '/admin' && location.pathname.startsWith(link.path + '/')));
                 
                 return (
-                  <div key={link.path}>
+                  <div key={link.path} className={cn(!isAgency && "px-4")}>
                     {hasSubmenu ? (
                       <button
                         onClick={() => toggleMenu(link.name)}
                         className={cn(
-                          "w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer group relative",
-                          isExpanded 
-                            ? "bg-[#e8f5ed] text-[#0b462c] font-semibold" 
-                            : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800"
+                          "w-full flex items-center justify-between py-2.5 transition-all cursor-pointer group relative",
+                          isAgency ? "px-6" : "px-3 rounded-xl",
+                          isAgency 
+                            ? (isExpanded ? "bg-[#1d5baf] text-white font-semibold" : "text-blue-100 hover:bg-[#1d5baf] hover:text-white")
+                            : (isExpanded ? "bg-[#e8f5ed] text-[#0b462c] font-semibold" : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800")
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <Icon className={cn("w-5 h-5", isExpanded ? "text-emerald-600" : "text-zinc-400 group-hover:text-zinc-600")} />
+                          <Icon className={cn("w-5 h-5", isAgency ? (isExpanded ? "text-white" : "text-blue-200 group-hover:text-white") : (isExpanded ? "text-emerald-600" : "text-zinc-400 group-hover:text-zinc-600"))} />
                           <span className="text-sm">{link.name}</span>
                         </div>
                         {isExpanded ? <ChevronDown className="w-4 h-4 opacity-50" /> : <ChevronRight className="w-4 h-4 opacity-50" />}
@@ -171,22 +175,23 @@ export default function Layout() {
                         to={link.path}
                         onClick={() => setIsMobileSidebarOpen(false)}
                         className={cn(
-                          "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer group relative",
-                          isActive 
-                            ? "bg-[#e8f5ed] text-[#0b462c] font-semibold" 
-                            : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800"
+                          "flex items-center gap-3 py-2.5 transition-all cursor-pointer group relative",
+                          isAgency ? "px-6" : "px-3 rounded-xl",
+                          isAgency 
+                            ? (isActive ? "bg-[#1d5baf] text-white font-semibold" : "text-blue-100 hover:bg-[#1d5baf] hover:text-white")
+                            : (isActive ? "bg-[#e8f5ed] text-[#0b462c] font-semibold" : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800")
                         )}
                       >
                         {isActive && (
-                          <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-emerald-600 rounded-r" />
+                          <span className={cn("absolute left-0 w-1", isAgency ? "top-0 bottom-0 bg-white" : "top-1/4 bottom-1/4 bg-emerald-600 rounded-r")} />
                         )}
-                        <Icon className={cn("w-5 h-5", isActive ? "text-emerald-600" : "text-zinc-400 group-hover:text-zinc-600")} />
+                        <Icon className={cn("w-5 h-5", isAgency ? (isActive ? "text-white" : "text-blue-200 group-hover:text-white") : (isActive ? "text-emerald-600" : "text-zinc-400 group-hover:text-zinc-600"))} />
                         <span className="text-sm">{link.name}</span>
                       </Link>
                     )}
                     
                     {hasSubmenu && isExpanded && (
-                      <div className="mt-1 ml-6 pl-3 border-l-2 border-[#e8edf2] space-y-1">
+                      <div className={cn("mt-1 space-y-1 border-l-2", isAgency ? "ml-9 pl-3 border-white/20" : "ml-6 pl-3 border-[#e8edf2]")}>
                         {link.submenus!.map(sub => {
                           const isSubActive = location.pathname === sub.path;
                           return (
@@ -196,9 +201,9 @@ export default function Layout() {
                               onClick={() => setIsMobileSidebarOpen(false)}
                               className={cn(
                                 "block px-3 py-2 rounded-lg text-xs font-medium transition-colors",
-                                isSubActive
-                                  ? "bg-emerald-50 text-emerald-700 font-bold"
-                                  : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50"
+                                isAgency 
+                                  ? (isSubActive ? "bg-white/10 text-white font-bold" : "text-blue-100 hover:text-white hover:bg-white/5")
+                                  : (isSubActive ? "bg-emerald-50 text-emerald-700 font-bold" : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50")
                               )}
                             >
                               {sub.name}
@@ -214,39 +219,59 @@ export default function Layout() {
           </div>
 
           {/* Category: GERAL */}
-          <div>
-            <p className="px-3 text-[10px] font-bold text-[#8b9aa5] uppercase tracking-widest mb-3">Geral</p>
-            <nav className="space-y-1">
-              {generalLinks.map((link) => {
-                const Icon = link.icon;
-                const isActive = location.pathname === link.path || location.pathname.startsWith(link.path + '/');
-                return (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    onClick={() => setIsMobileSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer group relative",
-                      isActive 
-                        ? "bg-[#e8f5ed] text-[#0b462c] font-semibold" 
-                        : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800"
-                    )}
-                  >
-                    {isActive && (
-                      <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-emerald-600 rounded-r" />
-                    )}
-                    <Icon className={cn("w-5 h-5", isActive ? "text-emerald-600" : "text-zinc-400 group-hover:text-zinc-600")} />
-                    <span className="text-sm">{link.name}</span>
-                  </Link>
-                )
-              })}
-            </nav>
-          </div>
+          {!isAgency && generalLinks.length > 0 && (
+            <div className="px-4">
+              <p className="px-3 text-[10px] font-bold text-[#8b9aa5] uppercase tracking-widest mb-3">Geral</p>
+              <nav className="space-y-1">
+                {generalLinks.map((link) => {
+                  const Icon = link.icon;
+                  const isActive = location.pathname === link.path || location.pathname.startsWith(link.path + '/');
+                  return (
+                    <Link
+                      key={link.path}
+                      to={link.path}
+                      onClick={() => setIsMobileSidebarOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer group relative",
+                        isActive 
+                          ? "bg-[#e8f5ed] text-[#0b462c] font-semibold" 
+                          : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800"
+                      )}
+                    >
+                      {isActive && (
+                        <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-emerald-600 rounded-r" />
+                      )}
+                      <Icon className={cn("w-5 h-5", isActive ? "text-emerald-600" : "text-zinc-400 group-hover:text-zinc-600")} />
+                      <span className="text-sm">{link.name}</span>
+                    </Link>
+                  )
+                })}
+              </nav>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Sidebar Banner */}
-      {sysSettings.show_apk_banner && (
+      {/* Footer (Agency Profile & Logout) */}
+      {isAgency && (
+        <div className="mt-auto p-4 flex items-center justify-between border-t border-white/10 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-sm shadow-inner shrink-0">
+              {user?.nome.substring(0, 1).toUpperCase()}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-white">Olá, {user?.nome}</span>
+              <span className="text-[10px] text-blue-200 truncate max-w-[120px]">{user?.email}</span>
+            </div>
+          </div>
+          <button onClick={logout} className="p-2 text-blue-200 hover:text-white hover:bg-white/10 rounded-lg transition-colors shrink-0" title="Sair">
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      {/* Sidebar Banner (Admin Only) */}
+      {!isAgency && sysSettings.show_apk_banner && (
         <div className="px-4 py-2 shrink-0 border-t border-[#e8edf2] bg-zinc-50/50">
           <div className="my-4 p-4 rounded-2xl bg-gradient-to-br from-[#0b462c] to-[#082a1b] text-white text-xs relative overflow-hidden shadow-sm">
             <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-emerald-500/20 blur-lg"></div>
@@ -279,13 +304,13 @@ export default function Layout() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 
   return (
     <div className="flex h-screen bg-[#f4f6f8] text-zinc-800 font-sans overflow-hidden">
       {/* Desktop Sidebar (visible only on lg screens and larger) */}
-      <aside className="hidden lg:flex w-66 bg-white border-r border-[#e8edf2] flex-col justify-between shrink-0">
+      <aside className={cn("hidden lg:flex w-66 flex-col justify-between shrink-0 shadow-lg relative z-20", !isAgency && "border-r border-[#e8edf2]")}>
         <SidebarContent />
       </aside>
 
@@ -297,80 +322,86 @@ export default function Layout() {
         />
       )}
       <aside className={cn(
-        "fixed inset-y-0 left-0 w-66 bg-white z-50 flex flex-col justify-between shadow-xl transition-transform duration-300 lg:hidden",
+        "fixed inset-y-0 left-0 w-66 z-50 flex flex-col justify-between shadow-xl transition-transform duration-300 lg:hidden",
         isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <SidebarContent />
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="h-20 bg-white border-b border-[#e8edf2] flex items-center justify-between px-4 sm:px-8 shrink-0">
-          
-          <div className="flex items-center gap-3">
-            {/* Hamburger Button (visible only on small screens) */}
+      <main className={cn("flex-1 flex flex-col overflow-hidden", isAgency && "bg-white relative z-10")}>
+        {/* Header (Admin: Full header, Agency: Minimal mobile header) */}
+        {!isAgency ? (
+          <header className="h-20 bg-white border-b border-[#e8edf2] flex items-center justify-between px-4 sm:px-8 shrink-0">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsMobileSidebarOpen(true)}
+                className="lg:hidden p-2 rounded-xl hover:bg-zinc-50 border border-zinc-200 text-zinc-600 transition-colors"
+                title="Abrir Menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+
+              <div className="relative w-40 sm:w-60 md:w-80">
+                <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                  <Search className="w-4 h-4 text-zinc-400" />
+                </span>
+                <input 
+                  type="text" 
+                  placeholder="Buscar..." 
+                  className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-full pl-9 pr-10 py-2 text-xs text-[#0b462c] placeholder-zinc-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-sans" 
+                />
+                <span className="hidden sm:inline absolute right-3 top-1/2 -translate-y-1/2 bg-white border border-zinc-200 rounded px-1.5 py-0.5 text-[9px] font-mono text-zinc-400 shadow-sm pointer-none">
+                  ⌘ F
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 sm:gap-6">
+              <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-50 border border-[#e8edf2] flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all relative">
+                <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full"></span>
+              </button>
+              <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-50 border border-[#e8edf2] flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all relative">
+                <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full"></span>
+              </button>
+
+              <div className="h-6 w-px bg-zinc-200" />
+
+              <div className="flex items-center gap-1.5 sm:gap-3">
+                <div className="text-right hidden md:block">
+                  <p className="text-xs font-bold text-zinc-800 leading-none">Olá, {user?.nome}</p>
+                  <p className="text-[10px] text-zinc-400 mt-1 leading-none truncate max-w-[120px]">{user?.email}</p>
+                </div>
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-emerald-500 to-[#0b462c] flex items-center justify-center text-xs font-extrabold text-white shadow-sm border border-emerald-100 relative shrink-0">
+                  {user?.nome.substring(0, 2).toUpperCase()}
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="p-1 sm:p-1.5 text-zinc-400 hover:text-rose-500 transition-all rounded-lg hover:bg-rose-50 shrink-0"
+                  title="Sair"
+                >
+                  <LogOut className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                </button>
+              </div>
+            </div>
+          </header>
+        ) : (
+          <header className="lg:hidden h-16 bg-[#104a9e] text-white flex items-center justify-between px-4 shrink-0 shadow-sm">
+            <span className="font-bold text-sm tracking-widest uppercase">Painel Mídia</span>
             <button 
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl hover:bg-zinc-50 border border-zinc-200 text-zinc-600 transition-colors"
-              title="Abrir Menu"
+              className="p-2 text-white/70 hover:text-white transition-colors"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-6 h-6" />
             </button>
-
-            {/* Left: Search Box */}
-            <div className="relative w-40 sm:w-60 md:w-80">
-              <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <Search className="w-4 h-4 text-zinc-400" />
-              </span>
-              <input 
-                type="text" 
-                placeholder="Buscar..." 
-                className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-full pl-9 pr-10 py-2 text-xs text-[#0b462c] placeholder-zinc-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-sans" 
-              />
-              <span className="hidden sm:inline absolute right-3 top-1/2 -translate-y-1/2 bg-white border border-zinc-200 rounded px-1.5 py-0.5 text-[9px] font-mono text-zinc-400 shadow-sm pointer-none">
-                ⌘ F
-              </span>
-            </div>
-          </div>
-
-          {/* Right: Quick actions, notifications and Profile */}
-          <div className="flex items-center gap-2 sm:gap-6">
-            <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-50 border border-[#e8edf2] flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all relative">
-              <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full"></span>
-            </button>
-            <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-50 border border-[#e8edf2] flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all relative">
-              <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full"></span>
-            </button>
-
-            {/* Divider */}
-            <div className="h-6 w-px bg-zinc-200" />
-
-            {/* Profile Avatar Card */}
-            <div className="flex items-center gap-1.5 sm:gap-3">
-              <div className="text-right hidden md:block">
-                <p className="text-xs font-bold text-zinc-800 leading-none">Olá, {user?.nome}</p>
-                <p className="text-[10px] text-zinc-400 mt-1 leading-none truncate max-w-[120px]">{user?.email}</p>
-              </div>
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-emerald-500 to-[#0b462c] flex items-center justify-center text-xs font-extrabold text-white shadow-sm border border-emerald-100 relative shrink-0">
-                {user?.nome.substring(0, 2).toUpperCase()}
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
-              </div>
-              <button
-                onClick={logout}
-                className="p-1 sm:p-1.5 text-zinc-400 hover:text-rose-500 transition-all rounded-lg hover:bg-rose-50 shrink-0"
-                title="Sair"
-              >
-                <LogOut className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-              </button>
-            </div>
-          </div>
-        </header>
+          </header>
+        )}
 
         {/* Content Body Container */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-8 relative">
+        <div className={cn("flex-1 overflow-y-auto relative", isAgency ? "p-6 md:p-12" : "p-4 sm:p-8")}>
           <Outlet />
         </div>
       </main>
