@@ -17,6 +17,21 @@ class Api extends ResourceController
         }
     }
 
+    public function migrateNow()
+    {
+        try {
+            $db = \Config\Database::connect();
+            $db->query("ALTER TABLE totens MODIFY COLUMN status VARCHAR(255) DEFAULT 'offline'");
+            $db->query("ALTER TABLE totens MODIFY COLUMN ultima_informacao VARCHAR(255) DEFAULT NULL");
+            $db->query("ALTER TABLE totens MODIFY COLUMN versao_app VARCHAR(100) DEFAULT NULL");
+            $db->query("ALTER TABLE totens MODIFY COLUMN sistema_operacional VARCHAR(100) DEFAULT NULL");
+            $db->query("ALTER TABLE totens MODIFY COLUMN resolucao VARCHAR(50) DEFAULT NULL");
+            return $this->respond(['success' => 'Colunas atualizadas na produção!']);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['error' => $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
     public function blobUpload()
     {
         return $this->respond(['error' => 'Blob upload via API descontinuado. Use o upload do CodeIgniter.'], 400);
