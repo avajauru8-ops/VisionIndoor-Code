@@ -25,7 +25,101 @@ interface PlaylistItem {
   arquivo_url?: string;
 }
 
-const SortableItem = ({ id, item, onRemove, onDuplicate, onTimeChange }: { id: string, item: PlaylistItem, onRemove: () => void, onDuplicate: () => void, onTimeChange: (val: number) => void }) => {
+const WIDGETS_BASE: Media[] = [
+  { id: 'w-clima', titulo: 'Widget de Clima', tipo_midia: 'widget', arquivo_url: 'clima?cidade=São Paulo&estado=SP' },
+  { id: 'w-loteria', titulo: 'Widget de Loteria', tipo_midia: 'widget', arquivo_url: 'loteria?tipo=megasena' },
+  { id: 'w-noticias', titulo: 'Widget de Notícias (RSS)', tipo_midia: 'widget', arquivo_url: 'noticias?feed=noticias' },
+  { id: 'w-youtube', titulo: 'Widget do YouTube', tipo_midia: 'widget', arquivo_url: 'youtube?url=&loop=1&mute=1' },
+];
+
+const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key: string, value: string) => void }) => {
+  const parsedUrl = new URL(item.widget_nome || '', 'http://localhost');
+  const params = parsedUrl.searchParams;
+  const widgetType = parsedUrl.pathname.replace('/', '');
+
+  const handleParamChange = (key: string, value: string) => {
+    const newParams = new URLSearchParams(parsedUrl.search);
+    newParams.set(key, value);
+    const newWidgetNome = `${widgetType}?${newParams.toString()}`;
+    onUpdate('widget_nome', newWidgetNome);
+  };
+
+  if (widgetType === 'clima') {
+    return (
+      <>
+        <div className="flex items-center justify-end gap-4">
+          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Cidade:</label>
+          <div className="w-40">
+            <input type="text" value={params.get('cidade') || ''} onChange={e => handleParamChange('cidade', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="Ex: São Paulo" />
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-4">
+          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Estado (Sigla):</label>
+          <div className="w-40">
+            <input type="text" value={params.get('estado') || ''} onChange={e => handleParamChange('estado', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="Ex: SP" maxLength={2} />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (widgetType === 'loteria') {
+    return (
+      <div className="flex items-center justify-end gap-4">
+        <label className="text-xs font-bold text-zinc-500 w-48 text-right">Tipo de Sorteio:</label>
+        <div className="w-40">
+          <select value={params.get('tipo') || 'megasena'} onChange={e => handleParamChange('tipo', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+            <option value="megasena">Mega-Sena</option>
+            <option value="virada">Mega da Virada</option>
+          </select>
+        </div>
+      </div>
+    );
+  }
+
+  if (widgetType === 'youtube') {
+    return (
+      <>
+        <div className="flex items-center justify-end gap-4">
+          <label className="text-xs font-bold text-zinc-500 w-48 text-right">URL do Vídeo:</label>
+          <div className="w-40">
+            <input type="text" value={params.get('url') || ''} onChange={e => handleParamChange('url', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="https://youtube.com/..." />
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-4">
+          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Repetir em Loop:</label>
+          <div className="w-40">
+            <select value={params.get('loop') || '1'} onChange={e => handleParamChange('loop', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+              <option value="1">Sim</option>
+              <option value="0">Não</option>
+            </select>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (widgetType === 'noticias' || widgetType === 'rss') {
+    return (
+      <div className="flex items-center justify-end gap-4">
+        <label className="text-xs font-bold text-zinc-500 w-48 text-right">Fonte de Notícias:</label>
+        <div className="w-40">
+          <select value={params.get('feed') || 'noticias'} onChange={e => handleParamChange('feed', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+            <option value="noticias">UOL Notícias</option>
+            <option value="esporte">UOL Esporte</option>
+            <option value="economia">UOL Economia</option>
+            <option value="fofocas">UOL Splash (Fofocas)</option>
+            <option value="tecnologia">UOL Tilt (Tecnologia)</option>
+          </select>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+const SortableItem = ({ id, item, onRemove, onDuplicate, onTimeChange, onUpdateField }: { id: string, item: PlaylistItem, onRemove: () => void, onDuplicate: () => void, onTimeChange: (val: number) => void, onUpdateField: (key: string, value: string) => void }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { type: 'playlist_item', item } });
   
@@ -122,6 +216,8 @@ const SortableItem = ({ id, item, onRemove, onDuplicate, onTimeChange }: { id: s
               </select>
             </div>
           </div>
+        ) : item.tipo_midia === 'widget' ? (
+          <WidgetSettings item={item} onUpdate={onUpdateField} />
         ) : (
           <div className="flex items-center justify-end gap-4">
             <label className="text-xs font-bold text-zinc-500 w-48 text-right">Preenchimento:</label>
@@ -327,6 +423,10 @@ export default function AgencyListaEdit() {
     setItems(items.map(it => it.unique_id === unique_id ? { ...it, tempo_exibicao: time } : it));
   };
 
+  const handleUpdateField = (unique_id: string, key: string, value: string) => {
+    setItems(items.map(it => it.unique_id === unique_id ? { ...it, [key]: value } : it));
+  };
+
   if (loading) {
     return <div className="p-8 text-center text-zinc-500">Carregando editor...</div>;
   }
@@ -428,15 +528,19 @@ export default function AgencyListaEdit() {
                    </div>
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                   {library
-                     .filter(media => {
-                       if (libraryTab === 'arquivos') return media.tipo_midia === 'imagem' || media.tipo_midia === 'video';
-                       if (libraryTab === 'entretenimentos') return media.tipo_midia !== 'imagem' && media.tipo_midia !== 'video';
-                       return false;
-                     })
-                     .map(media => (
-                      <DraggableLibraryItem key={media.id} media={media} onAdd={() => handleAddItem(media)} />
-                   ))}
+                   {libraryTab === 'entretenimentos' ? (
+                      WIDGETS_BASE.map(media => (
+                        <DraggableLibraryItem key={media.id} media={media} onAdd={() => handleAddItem(media)} />
+                      ))
+                   ) : libraryTab === 'arquivos' ? (
+                     library
+                       .filter(media => media.tipo_midia === 'imagem' || media.tipo_midia === 'video')
+                       .map(media => (
+                        <DraggableLibraryItem key={media.id} media={media} onAdd={() => handleAddItem(media)} />
+                     ))
+                   ) : (
+                     <div className="text-center text-xs text-zinc-400 mt-4">Nenhuma ferramenta disponível.</div>
+                   )}
                 </div>
               </div>
 
@@ -468,6 +572,7 @@ export default function AgencyListaEdit() {
                               onRemove={() => handleRemoveItem(item.unique_id!)}
                               onDuplicate={() => handleDuplicateItem(item)}
                               onTimeChange={(val) => handleChangeTime(item.unique_id!, val)}
+                              onUpdateField={(key, val) => handleUpdateField(item.unique_id!, key, val)}
                             />
                           ))}
                         </SortableContext>
