@@ -120,7 +120,7 @@ class Api extends ResourceController
             if (!empty($totem['playlist_id'])) {
                 // Novo modelo: Traz os itens da Lista de Reprodução, mantendo a ordem
                 $itensLista = $db->table('playlist_itens pi')
-                    ->select('c.*, pi.tempo_exibicao as tempo_exibicao_lista, pi.widget_nome')
+                    ->select('c.*, pi.tempo_exibicao as tempo_exibicao_lista, pi.widget_nome, pi.ordem')
                     ->join('campanhas c', 'c.id = pi.campanha_id', 'left')
                     ->where('pi.playlist_id', $totem['playlist_id'])
                     ->orderBy('pi.ordem', 'ASC')
