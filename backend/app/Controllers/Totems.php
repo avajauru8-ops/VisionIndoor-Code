@@ -31,6 +31,30 @@ class Totems extends ResourceController
         }
     }
 
+    public function show($id = null)
+    {
+        try {
+            $db = \Config\Database::connect();
+            $user_id = $this->request->getHeaderLine('X-User-Id');
+            $nivel = $this->request->getHeaderLine('X-User-Nivel');
+            
+            $builder = $db->table('totens')->where('id', $id);
+            if ($nivel !== 'admin') {
+                $builder->where('usuario_id', $user_id);
+            }
+            
+            $totem = $builder->get()->getRowArray();
+            if (!$totem) {
+                return $this->response->setJSON(['error' => 'Totem não encontrado'])->setStatusCode(404);
+            }
+            
+            $totem['id'] = (string)$totem['id'];
+            return $this->respond($totem);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
     public function create()
     {
         try {

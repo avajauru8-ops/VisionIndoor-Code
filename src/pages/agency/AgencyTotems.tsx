@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { Tv, Plus, Search, Trash2, Camera, Play, Tag, ChevronDown, CheckSquare, Square, X } from 'lucide-react';
 
@@ -144,19 +145,19 @@ export default function AgencyTotems() {
                       <Square className="w-4 h-4 inline-block text-zinc-300" />
                     </td>
                     <td className="px-4 py-4">
-                      <div className="flex items-center gap-3">
+                      <Link to={`/agency/totems/${totem.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         {/* Play Icon Box */}
                         <div className="w-8 h-8 rounded bg-[#f5a623] flex items-center justify-center shrink-0">
                           <Play className="w-4 h-4 text-white ml-0.5" />
                         </div>
-                        <span className="font-semibold text-zinc-700">{totem.nome}</span>
-                      </div>
+                        <span className="font-semibold text-zinc-700 hover:text-[#104a9e] hover:underline">{totem.nome}</span>
+                      </Link>
                     </td>
                     <td className="px-4 py-4">
-                      {/* For now we show the alert button since playlists aren't fully linked in the DB in this scope */}
-                      <button className="bg-[#e74c3c] hover:bg-[#c0392b] text-white text-[10px] font-bold px-3 py-1.5 rounded transition-colors uppercase">
+                      {/* Link to Settings page */}
+                      <Link to={`/agency/totems/${totem.id}`} className="inline-block bg-[#e74c3c] hover:bg-[#c0392b] text-white text-[10px] font-bold px-3 py-1.5 rounded transition-colors uppercase">
                         Selecione uma lista de reprodução para essa TV!
-                      </button>
+                      </Link>
                     </td>
                     <td className="px-4 py-4 text-center relative">
                       <button className="w-8 h-8 rounded bg-[#9b59b6] flex items-center justify-center text-white mx-auto hover:bg-[#8e44ad] transition-colors">
