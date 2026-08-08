@@ -100,6 +100,7 @@ class Totems extends ResourceController
             if (isset($json->device_id)) $data['device_id'] = $json->device_id;
             if (isset($json->status)) $data['status'] = $json->status;
             if (isset($json->auto_iniciar)) $data['auto_iniciar'] = $json->auto_iniciar ? 1 : 0;
+            if (property_exists($json, 'playlist_id')) $data['playlist_id'] = empty($json->playlist_id) ? null : $json->playlist_id;
             
             if (!empty($data)) {
                 $db->table('totens')->where('id', $id)->update($data);

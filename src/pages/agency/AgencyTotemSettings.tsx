@@ -19,6 +19,7 @@ interface Totem {
   resolucao?: string;
   espaco_utilizado?: string;
   espaco_livre?: string;
+  playlist_id?: string | null;
 }
 
 export default function AgencyTotemSettings() {
@@ -31,7 +32,8 @@ export default function AgencyTotemSettings() {
 
   // Form State
   const [nome, setNome] = useState('');
-  const [listaReproducao, setListaReproducao] = useState(''); // Mocked for now
+  const [listaReproducao, setListaReproducao] = useState('');
+  const [listas, setListas] = useState<{id: string, nome: string}[]>([]);
   const [rotacao, setRotacao] = useState('padrao');
 
   useEffect(() => {
@@ -40,9 +42,14 @@ export default function AgencyTotemSettings() {
 
   const loadTotem = async () => {
     try {
-      const data = await apiFetch(`/api/totems/${id}`);
+      const [data, listasData] = await Promise.all([
+        apiFetch(`/api/totems/${id}`),
+        apiFetch('/api/listas')
+      ]);
       setTotem(data);
       setNome(data.nome);
+      setListaReproducao(data.playlist_id || '');
+      setListas(listasData || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -54,7 +61,10 @@ export default function AgencyTotemSettings() {
     try {
       await apiFetch(`/api/totems/${id}`, {
         method: 'PUT',
-        body: JSON.stringify({ nome }),
+        body: JSON.stringify({ 
+          nome, 
+          playlist_id: listaReproducao 
+        }),
       });
       loadTotem();
       alert('Configurações salvas com sucesso!');
@@ -177,9 +187,9 @@ export default function AgencyTotemSettings() {
                 className={`flex-1 border-2 rounded px-3 py-2 text-sm text-zinc-700 focus:outline-none ${!listaReproducao ? 'border-[#e74c3c] border-dashed' : 'border-zinc-300'}`}
               >
                 <option value="">Selecione uma Lista de Reprodução</option>
-                {/* Options mocked for visual completeness until backend supports lists */}
-                <option value="lista1">Minha Lista de Vídeos 1</option>
-                <option value="lista2">Campanha Promoção</option>
+                {listas.map(l => (
+                  <option key={l.id} value={l.id}>{l.nome}</option>
+                ))}
               </select>
             </div>
             <div className="flex flex-col md:flex-row md:items-center gap-4">
