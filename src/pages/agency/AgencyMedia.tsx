@@ -93,8 +93,14 @@ export default function AgencyMedia() {
   }, [uploadQueue]);
 
   const uploadFile = (item: UploadItem) => {
-    const token = localStorage.getItem('@GrandMidia:token');
-    if (!token) return;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token não encontrado!');
+      setUploadQueue(prev => prev.map(q => 
+        q.id === item.id ? { ...q, status: 'error' } : q
+      ));
+      return;
+    }
 
     const xhr = new XMLHttpRequest();
     const formData = new FormData();
@@ -304,9 +310,9 @@ export default function AgencyMedia() {
         </div>
       </div>
 
-      {/* Upload Popup (Flutuante inferior direito) */}
+      {/* Upload Popup (Flutuante no centro) */}
       {showUploader && (
-        <div className="fixed bottom-6 right-6 w-96 bg-[#1f1f1f] text-zinc-200 rounded-xl shadow-2xl border border-zinc-800 z-50 overflow-hidden flex flex-col">
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 bg-[#1f1f1f] text-zinc-200 rounded-xl shadow-2xl border border-zinc-800 z-50 overflow-hidden flex flex-col">
           {/* Header Popup */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-[#141414]">
             <h3 className="font-bold text-sm text-white">{uploadQueue.length} arquivo(s) carregado(s)</h3>
