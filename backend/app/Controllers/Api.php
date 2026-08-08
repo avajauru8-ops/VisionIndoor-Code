@@ -27,18 +27,18 @@ class Api extends ResourceController
         try {
             $db = \Config\Database::connect();
             
-            $device_id = $this->request->getGetPost('device_id');
-            $code = $this->request->getGetPost('code');
+            // 1. LÊ OS DADOS EM JSON ENVIADOS PELO APP ANDROID
+            $jsonRecebido = $this->request->getJSON(true);
             
-            $builder = $db->table('totens');
+            // Pega o device_id (prioriza o JSON novo, mas aceita o GET/POST antigo por segurança)
+            $device_id = $jsonRecebido['device_id'] ?? $this->request->getGetPost('device_id');
             
-            if (!empty($device_id)) {
-                $builder->where('device_id', $device_id);
-            } else {
+            if (empty($device_id)) {
                 return $this->respond(['erro' => 'Identificador do dispositivo nao fornecido.']);
             }
             
-            $totem = $builder->get()->getRowArray();
+            $builder = $db->table('totens');
+            $totem = $builder->where('device_id', $device_id)->get()->getRowArray();
             
             if (!$totem) {
                 return $this->respond([
@@ -48,27 +48,44 @@ class Api extends ResourceController
                 ]);
             }
             
-            $versao_app = $this->request->getGetPost('versao_app');
-            $sistema_operacional = $this->request->getGetPost('sistema_operacional');
-            $resolucao = $this->request->getGetPost('resolucao');
-            $espaco_utilizado = $this->request->getGetPost('espaco_utilizado');
-            $espaco_livre = $this->request->getGetPost('espaco_livre');
-            
-            // Atualiza ultima_sincronizacao e informações do dispositivo
+            // ========================================================
+            // 2. ATUALIZA INFORMAÇÕES DE HARDWARE E STATUS DA TV
+            // ========================================================
             $updateData = [
                 'ultima_sincronizacao' => date('Y-m-d H:i:s'), 
                 'status' => 'online'
             ];
             
-            if ($versao_app !== null) $updateData['versao_app'] = $versao_app;
-            if ($sistema_operacional !== null) $updateData['sistema_operacional'] = $sistema_operacional;
-            if ($resolucao !== null) $updateData['resolucao'] = $resolucao;
-            if ($espaco_utilizado !== null) $updateData['espaco_utilizado'] = $espaco_utilizado;
-            if ($espaco_livre !== null) $updateData['espaco_livre'] = $espaco_livre;
+            if (isset($jsonRecebido['info'])) {
+                // Novos dados vindos do Payload JSON
+                $updateData['ultima_informacao'] = $jsonRecebido['status_atual'] ?? null;
+                $updateData['versao_app'] = $jsonRecebido['info']['versao_app'] ?? null;
+                $updateData['sistema_operacional'] = $jsonRecebido['info']['sistema_operacional'] ?? null;
+                $updateData['resolucao'] = $jsonRecebido['info']['resolucao'] ?? null;
+                $updateData['espaco_utilizado'] = $jsonRecebido['info']['espaco_usado'] ?? null; // Mapeado para sua coluna
+                $updateData['espaco_livre'] = $jsonRecebido['info']['espaco_livre'] ?? null;
+                $updateData['data_hora_tv'] = $jsonRecebido['info']['data_hora'] ?? null;
+            } else {
+                // Suporte legado (caso teste no navegador ou app antigo)
+                $versao_app = $this->request->getGetPost('versao_app');
+                $sistema_operacional = $this->request->getGetPost('sistema_operacional');
+                $resolucao = $this->request->getGetPost('resolucao');
+                $espaco_utilizado = $this->request->getGetPost('espaco_utilizado');
+                $espaco_livre = $this->request->getGetPost('espaco_livre');
+                
+                if ($versao_app !== null) $updateData['versao_app'] = $versao_app;
+                if ($sistema_operacional !== null) $updateData['sistema_operacional'] = $sistema_operacional;
+                if ($resolucao !== null) $updateData['resolucao'] = $resolucao;
+                if ($espaco_utilizado !== null) $updateData['espaco_utilizado'] = $espaco_utilizado;
+                if ($espaco_livre !== null) $updateData['espaco_livre'] = $espaco_livre;
+            }
             
+            // Salva no banco de dados
             $db->table('totens')->where('id', $totem['id'])->update($updateData);
             
-            // Verifica licença do usuário
+            // ========================================================
+            // 3. VERIFICAÇÃO DE LICENÇA
+            // ========================================================
             $user = $db->table('usuarios')->where('id', $totem['usuario_id'])->get()->getRowArray();
             if (!$user || $user['status_licenca'] !== 'ativa') {
                 return $this->respond(['erro' => 'Licença expirada ou inativa']);
@@ -78,7 +95,24 @@ class Api extends ResourceController
                  return $this->respond(['erro' => 'Licença expirada ou inativa']);
             }
             
-            // Verifica campanhas ativas
+            // ========================================================
+            // 4. PREPARA COMANDOS REMOTOS (Se houver no banco)
+            // ========================================================
+            $comando_remoto = null;
+            // Se houver uma coluna 'comando_acao' preenchida no BD, envia para a TV
+            if (!empty($totem['comando_acao'])) {
+                $comando_remoto = [
+                    'id' => $totem['comando_id'] ?? (string)time(), // Envia o ID ou um timestamp
+                    'acao' => $totem['comando_acao']
+                ];
+                
+                // Opcional: Você pode limpar o comando do banco logo após enviar para evitar loop
+                // $db->table('totens')->where('id', $totem['id'])->update(['comando_acao' => null]);
+            }
+            
+            // ========================================================
+            // 5. PROCESSA CAMPANHAS E PLAYLIST
+            // ========================================================
             $now = date('Y-m-d H:i:s');
             
             $campanhas = $db->table('campanhas')
@@ -129,11 +163,22 @@ class Api extends ResourceController
                 ];
             }
             
-            return $this->respond([
+            // ========================================================
+            // 6. RETORNO FINAL DA API (JSON)
+            // ========================================================
+            $resposta = [
                 'totem_id' => $device_id,
                 'auto_iniciar' => isset($totem['auto_iniciar']) ? (bool)$totem['auto_iniciar'] : false,
                 'playlist' => $playlist
-            ]);
+            ];
+            
+            // Insere o comando na resposta apenas se houver um pendente
+            if ($comando_remoto !== null) {
+                $resposta['comando_remoto'] = $comando_remoto;
+            }
+            
+            return $this->respond($resposta);
+            
         } catch (\Exception $e) {
             return $this->respond(['erro' => 'Erro interno: ' . $e->getMessage()]);
         }
