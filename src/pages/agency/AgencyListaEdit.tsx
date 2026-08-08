@@ -157,8 +157,10 @@ const DraggableLibraryItem = ({ media, onAdd }: { media: Media, onAdd: () => voi
         <div className="w-12 h-10 bg-zinc-100 flex items-center justify-center rounded overflow-hidden shadow-sm">
           {media.tipo_midia === 'imagem' ? (
              <img src={media.arquivo_url} alt="" className="w-full h-full object-cover" />
-          ) : (
+          ) : media.tipo_midia === 'video' ? (
              <div className="w-full h-full bg-[#0066ff] flex items-center justify-center"><Play className="w-5 h-5 text-white" /></div>
+          ) : (
+             <div className="w-full h-full bg-amber-500 flex items-center justify-center"><FileText className="w-5 h-5 text-white" /></div>
           )}
         </div>
         <span className="text-xs font-medium text-zinc-700">{media.titulo || 'Mídia'}</span>
@@ -188,6 +190,7 @@ export default function AgencyListaEdit() {
   const [lista, setLista] = useState<{nome: string, id: string}>({ nome: '', id: '' });
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [library, setLibrary] = useState<Media[]>([]);
+  const [libraryTab, setLibraryTab] = useState<'arquivos' | 'entretenimentos' | 'ferramentas'>('arquivos');
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -213,7 +216,7 @@ export default function AgencyListaEdit() {
       }));
       setItems(formattedItems);
       
-      setLibrary((libraryData || []).filter((m: Media) => m.tipo_midia === 'imagem' || m.tipo_midia === 'video'));
+      setLibrary(libraryData || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -405,18 +408,33 @@ export default function AgencyListaEdit() {
               {/* Library Panel (Left) */}
               <div className="border border-zinc-200 rounded flex flex-col h-[500px]">
                 <div className="flex items-center border-b border-zinc-200 bg-zinc-50">
-                  <button className="flex-1 py-3 text-xs font-bold text-zinc-700 bg-white border-r border-zinc-200 border-t-2 border-t-[#2ecc71]">Arquivos</button>
-                  <button className="flex-1 py-3 text-xs font-bold text-zinc-400 border-r border-zinc-200">Entretenimentos</button>
-                  <button className="flex-1 py-3 text-xs font-bold text-zinc-400">Ferramentas</button>
+                  <button 
+                    onClick={() => setLibraryTab('arquivos')}
+                    className={`flex-1 py-3 text-xs font-bold ${libraryTab === 'arquivos' ? 'text-zinc-700 bg-white border-t-2 border-t-[#2ecc71]' : 'text-zinc-400'} border-r border-zinc-200 transition-colors`}
+                  >Arquivos</button>
+                  <button 
+                    onClick={() => setLibraryTab('entretenimentos')}
+                    className={`flex-1 py-3 text-xs font-bold ${libraryTab === 'entretenimentos' ? 'text-zinc-700 bg-white border-t-2 border-t-[#2ecc71]' : 'text-zinc-400'} border-r border-zinc-200 transition-colors`}
+                  >Entretenimentos</button>
+                  <button 
+                    onClick={() => setLibraryTab('ferramentas')}
+                    className={`flex-1 py-3 text-xs font-bold ${libraryTab === 'ferramentas' ? 'text-zinc-700 bg-white border-t-2 border-t-[#2ecc71]' : 'text-zinc-400'} transition-colors`}
+                  >Ferramentas</button>
                 </div>
                 <div className="p-3 border-b border-zinc-200 bg-zinc-50">
                    <div className="relative">
                       <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-                      <input type="text" placeholder="Procurar arquivo" className="w-full pl-9 pr-3 py-2 bg-white border border-zinc-200 rounded text-xs focus:outline-none focus:border-[#0066ff]" />
+                      <input type="text" placeholder="Procurar item" className="w-full pl-9 pr-3 py-2 bg-white border border-zinc-200 rounded text-xs focus:outline-none focus:border-[#0066ff]" />
                    </div>
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                   {library.map(media => (
+                   {library
+                     .filter(media => {
+                       if (libraryTab === 'arquivos') return media.tipo_midia === 'imagem' || media.tipo_midia === 'video';
+                       if (libraryTab === 'entretenimentos') return media.tipo_midia !== 'imagem' && media.tipo_midia !== 'video';
+                       return false;
+                     })
+                     .map(media => (
                       <DraggableLibraryItem key={media.id} media={media} onAdd={() => handleAddItem(media)} />
                    ))}
                 </div>
