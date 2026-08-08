@@ -52,21 +52,26 @@ class Api extends ResourceController
             // 2. ATUALIZA INFORMAÇÕES DE HARDWARE E STATUS DA TV
             // ========================================================
             $updateData = [
-                'ultima_sincronizacao' => date('Y-m-d H:i:s'), 
-                'status' => 'online'
+                'ultima_sincronizacao' => date('Y-m-d H:i:s')
+                // Removi a tag "status => online" bruta daqui para usar a inteligente abaixo
             ];
             
             if (isset($jsonRecebido['info'])) {
-                // Novos dados vindos do Payload JSON
+                // Pega a cor principal enviada pelo app (Verde ou Amarelo)
+                $updateData['status'] = $jsonRecebido['status_operacional'] ?? 'FUNCIONANDO CORRETAMENTE';
+                
+                // Dados detalhados de Hardware e Ação
                 $updateData['ultima_informacao'] = $jsonRecebido['status_atual'] ?? null;
                 $updateData['versao_app'] = $jsonRecebido['info']['versao_app'] ?? null;
                 $updateData['sistema_operacional'] = $jsonRecebido['info']['sistema_operacional'] ?? null;
                 $updateData['resolucao'] = $jsonRecebido['info']['resolucao'] ?? null;
-                $updateData['espaco_utilizado'] = $jsonRecebido['info']['espaco_usado'] ?? null; // Mapeado para sua coluna
+                $updateData['espaco_utilizado'] = $jsonRecebido['info']['espaco_usado'] ?? null;
                 $updateData['espaco_livre'] = $jsonRecebido['info']['espaco_livre'] ?? null;
                 $updateData['data_hora_tv'] = $jsonRecebido['info']['data_hora'] ?? null;
             } else {
-                // Suporte legado (caso teste no navegador ou app antigo)
+                // Suporte legado
+                $updateData['status'] = 'FUNCIONANDO CORRETAMENTE';
+                
                 $versao_app = $this->request->getGetPost('versao_app');
                 $sistema_operacional = $this->request->getGetPost('sistema_operacional');
                 $resolucao = $this->request->getGetPost('resolucao');
