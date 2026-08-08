@@ -70,7 +70,9 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="w-40">
           <select value={params.get('tipo') || 'megasena'} onChange={e => handleParamChange('tipo', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
             <option value="megasena">Mega-Sena</option>
-            <option value="virada">Mega da Virada</option>
+            <option value="megavirada">Mega da Virada</option>
+            <option value="lotofacil">Lotofácil</option>
+            <option value="quina">Quina</option>
           </select>
         </div>
       </div>
@@ -95,24 +97,57 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
             </select>
           </div>
         </div>
+        <div className="flex items-center justify-end gap-4">
+          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Mudo (Obrigatório para Autoplay):</label>
+          <div className="w-40">
+            <select value={params.get('mute') || '1'} onChange={e => handleParamChange('mute', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+              <option value="1">Sim</option>
+              <option value="0">Não</option>
+            </select>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-4">
+          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Iniciar em (segundos):</label>
+          <div className="w-40">
+            <input type="number" min="0" value={params.get('start') || '0'} onChange={e => handleParamChange('start', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="0" />
+          </div>
+        </div>
       </>
     );
   }
 
   if (widgetType === 'noticias' || widgetType === 'rss') {
     return (
-      <div className="flex items-center justify-end gap-4">
-        <label className="text-xs font-bold text-zinc-500 w-48 text-right">Fonte de Notícias:</label>
-        <div className="w-40">
-          <select value={params.get('feed') || 'noticias'} onChange={e => handleParamChange('feed', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
-            <option value="noticias">UOL Notícias</option>
-            <option value="esporte">UOL Esporte</option>
-            <option value="economia">UOL Economia</option>
-            <option value="fofocas">UOL Splash (Fofocas)</option>
-            <option value="tecnologia">UOL Tilt (Tecnologia)</option>
-          </select>
+      <>
+        <div className="flex items-center justify-end gap-4">
+          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Fonte de Notícias:</label>
+          <div className="w-40">
+            <select value={params.get('feed') || 'noticias'} onChange={e => handleParamChange('feed', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+              <option value="noticias">UOL Notícias</option>
+              <option value="esporte">UOL Esporte</option>
+              <option value="economia">UOL Economia</option>
+              <option value="entretenimento">UOL Splash (Fofocas)</option>
+              <option value="tecnologia">UOL Tilt (Tecnologia)</option>
+              <option value="jogos">UOL Jogos</option>
+              <option value="carros">UOL Carros</option>
+              <option value="educacao">UOL Educação</option>
+              <option value="universa">UOL Universa</option>
+              <option value="vivabem">UOL VivaBem (Saúde)</option>
+              <option value="ecoa">UOL Ecoa</option>
+              <option value="nossauol">UOL Nossa</option>
+            </select>
+          </div>
         </div>
-      </div>
+        <div className="flex items-center justify-end gap-4">
+          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Modo de Exibição:</label>
+          <div className="w-40">
+            <select value={params.get('mode') || 'random'} onChange={e => handleParamChange('mode', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+              <option value="random">Aleatório (Qualquer notícia)</option>
+              <option value="latest3">Apenas as 3 mais recentes</option>
+            </select>
+          </div>
+        </div>
+      </>
     );
   }
 
