@@ -129,8 +129,8 @@ class Api extends ResourceController
                 foreach ($itensLista as $item) {
                     if (!empty($item['widget_nome'])) {
                         $campanhas[] = [
-                            'id' => rand(1000, 9999),
-                            'tipo_midia' => 'widget',
+                            'id' => intval($totem['playlist_id'] . '0' . $item['ordem']),
+                            'tipo_midia' => 'noticia',
                             'arquivo_url' => '/widget/' . $item['widget_nome'],
                             'tempo_exibicao' => $item['tempo_exibicao_lista'],
                             'data_inicio' => null,
