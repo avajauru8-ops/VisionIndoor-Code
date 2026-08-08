@@ -14,6 +14,11 @@ interface Totem {
   status: 'online' | 'offline';
   ultima_sincronizacao: string | null;
   auto_iniciar?: number | boolean;
+  versao_app?: string;
+  sistema_operacional?: string;
+  resolucao?: string;
+  espaco_utilizado?: string;
+  espaco_livre?: string;
 }
 
 export default function AgencyTotemSettings() {
@@ -241,29 +246,29 @@ export default function AgencyTotemSettings() {
                 <div className="flex justify-between items-center">
                   <span>Versão do Aplicativo:</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[#104a9e]">5.12.78</span>
-                    <span className="bg-[#104a9e] text-white text-[8px] px-1.5 py-0.5 rounded">ATUALIZADO</span>
+                    <span className="text-[#104a9e]">{totem.versao_app || 'N/A'}</span>
+                    {totem.versao_app && <span className="bg-[#104a9e] text-white text-[8px] px-1.5 py-0.5 rounded">ATUALIZADO</span>}
                   </div>
                 </div>
                 <div className="flex justify-between">
                   <span>Sistema Operacional:</span>
-                  <span className="text-[#104a9e]">Android 11 (ARM)</span>
+                  <span className="text-[#104a9e]">{totem.sistema_operacional || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Resolução:</span>
-                  <span className="text-[#104a9e]">1280 x 720 (horizontal)</span>
+                  <span className="text-[#104a9e]">{totem.resolucao || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Espaço utilizado pelo Aplicativo:</span>
-                  <span className="text-[#104a9e]">2.1 KB</span>
+                  <span className="text-[#104a9e]">{totem.espaco_utilizado || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Espaço livre:</span>
-                  <span className="text-[#104a9e]">1.0 GB</span>
+                  <span className="text-[#104a9e]">{totem.espaco_livre || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Data/Hora da TV:</span>
-                  <span className="text-[#104a9e]">08/08/2026 00:58 (GMT-0300)</span>
+                  <span className="text-[#104a9e]">{totem.ultima_sincronizacao ? format(new Date(totem.ultima_sincronizacao.replace(' ','T')), 'dd/MM/yyyy HH:mm') : 'N/A'}</span>
                 </div>
               </div>
             </div>

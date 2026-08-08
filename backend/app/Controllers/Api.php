@@ -48,8 +48,25 @@ class Api extends ResourceController
                 ]);
             }
             
-            // Atualiza ultima_sincronizacao
-            $db->table('totens')->where('id', $totem['id'])->update(['ultima_sincronizacao' => date('Y-m-d H:i:s'), 'status' => 'online']);
+            $versao_app = $this->request->getGetPost('versao_app');
+            $sistema_operacional = $this->request->getGetPost('sistema_operacional');
+            $resolucao = $this->request->getGetPost('resolucao');
+            $espaco_utilizado = $this->request->getGetPost('espaco_utilizado');
+            $espaco_livre = $this->request->getGetPost('espaco_livre');
+            
+            // Atualiza ultima_sincronizacao e informações do dispositivo
+            $updateData = [
+                'ultima_sincronizacao' => date('Y-m-d H:i:s'), 
+                'status' => 'online'
+            ];
+            
+            if ($versao_app !== null) $updateData['versao_app'] = $versao_app;
+            if ($sistema_operacional !== null) $updateData['sistema_operacional'] = $sistema_operacional;
+            if ($resolucao !== null) $updateData['resolucao'] = $resolucao;
+            if ($espaco_utilizado !== null) $updateData['espaco_utilizado'] = $espaco_utilizado;
+            if ($espaco_livre !== null) $updateData['espaco_livre'] = $espaco_livre;
+            
+            $db->table('totens')->where('id', $totem['id'])->update($updateData);
             
             // Verifica licença do usuário
             $user = $db->table('usuarios')->where('id', $totem['usuario_id'])->get()->getRowArray();
