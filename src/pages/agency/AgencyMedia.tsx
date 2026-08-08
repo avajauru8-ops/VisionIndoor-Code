@@ -21,10 +21,12 @@ export default function AgencyMedia() {
   const [media, setMedia] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Uploader State
   const [uploadQueue, setUploadQueue] = useState<UploadItem[]>([]);
   const [showUploader, setShowUploader] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Selection State
+  const [selectedMedia, setSelectedMedia] = useState<string[]>([]);
 
   useEffect(() => {
     loadMedia();
@@ -33,17 +35,33 @@ export default function AgencyMedia() {
   const loadMedia = async () => {
     try {
       const data = await apiFetch('/api/playlists');
-      // Filtra apenas arquivos físicos (imagem, video) e ignora widgets (loteria, clima, etc)
       const filtered = (data || []).filter((item: Media) => 
         item.tipo_midia === 'imagem' || item.tipo_midia === 'video'
       );
       setMedia(filtered);
+      setSelectedMedia([]);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  const deleteSelected = async () => {
+    if (!confirm(`Deseja apagar os ${selectedMedia.length} arquivos selecionados?`)) return;
+    
+    setLoading(true);
+    try {
+      await Promise.all(selectedMedia.map(id => apiFetch(`/api/playlists/${id}`, { method: 'DELETE' })));
+      setSelectedMedia([]);
+      loadMedia();
+    } catch (err: any) {
+      alert(err.message);
+      setLoading(false);
+    }
+  };
+
+
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -223,6 +241,22 @@ export default function AgencyMedia() {
           </div>
         </div>
 
+        {/* Bulk Actions Dropdown */}
+        {selectedMedia.length > 0 && (
+          <div className="mt-4 flex items-center">
+            <select 
+              value=""
+              onChange={(e) => {
+                if (e.target.value === 'delete') deleteSelected();
+              }}
+              className="border border-zinc-300 rounded px-3 py-1.5 text-sm font-medium text-zinc-700 bg-white focus:outline-none focus:border-[#104a9e] shadow-sm cursor-pointer"
+            >
+              <option value="" disabled hidden>{selectedMedia.length} selecionado...</option>
+              <option value="delete">Apagar</option>
+            </select>
+          </div>
+        )}
+
         {/* Table */}
         <div className="mt-4 border border-zinc-200 rounded overflow-hidden">
           <div className="overflow-x-auto">
@@ -230,7 +264,15 @@ export default function AgencyMedia() {
               <thead>
                 <tr className="bg-zinc-50 border-b border-zinc-200 text-xs text-zinc-500">
                   <th className="px-4 py-3 w-12 text-center">
-                    <input type="checkbox" className="rounded border-zinc-300 text-[#104a9e] focus:ring-[#104a9e]" />
+                    <input 
+                      type="checkbox" 
+                      checked={media.length > 0 && selectedMedia.length === media.length}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedMedia(media.map(m => m.id));
+                        else setSelectedMedia([]);
+                      }}
+                      className="rounded border-zinc-300 text-[#104a9e] focus:ring-[#104a9e]" 
+                    />
                   </th>
                   <th className="px-4 py-3 font-semibold">Nome</th>
                   <th className="px-4 py-3 font-semibold w-48 text-center border-l border-zinc-200">
@@ -258,7 +300,15 @@ export default function AgencyMedia() {
                   media.map((item, idx) => (
                     <tr key={item.id || idx} className="hover:bg-zinc-50 transition-colors">
                       <td className="px-4 py-4 text-center">
-                        <input type="checkbox" className="rounded border-zinc-300 text-[#104a9e] focus:ring-[#104a9e]" />
+                        <input 
+                          type="checkbox" 
+                          checked={selectedMedia.includes(item.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) setSelectedMedia([...selectedMedia, item.id]);
+                            else setSelectedMedia(selectedMedia.filter(id => id !== item.id));
+                          }}
+                          className="rounded border-zinc-300 text-[#104a9e] focus:ring-[#104a9e]" 
+                        />
                       </td>
                       <td className="px-4 py-4">
                         <span className="bg-zinc-100 text-zinc-600 text-[11px] px-2 py-1 rounded border border-zinc-200">

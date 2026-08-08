@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
-import { Tv, Plus, Search, Trash2, Camera, Play, Tag, ChevronDown, CheckSquare, Square, X } from 'lucide-react';
+import { Tv, Plus, Search, Trash2, Camera, Play, Tag, ChevronDown, CheckSquare, Square, X, SkipForward } from 'lucide-react';
 
 interface Totem {
   id: number;
@@ -192,13 +192,34 @@ export default function AgencyTotems() {
                       <Square className="w-4 h-4 inline-block text-zinc-300" />
                     </td>
                     <td className="px-4 py-4">
-                      <Link to={`/agency/totems/${totem.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        {/* Play Icon Box */}
-                        <div className={`w-8 h-8 rounded ${getTotemStatusColor(totem)} flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300`}>
-                          <Play className="w-4 h-4 text-white ml-0.5" />
-                        </div>
-                        <span className="font-semibold text-zinc-700 hover:text-[#104a9e] hover:underline">{totem.nome}</span>
-                      </Link>
+                      <div className="flex items-center gap-3">
+                        <Link to={`/agency/totems/${totem.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                          {/* Play Icon Box */}
+                          <div className={`w-8 h-8 rounded ${getTotemStatusColor(totem)} flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300`}>
+                            <Play className="w-4 h-4 text-white ml-0.5" />
+                          </div>
+                        </Link>
+                        
+                        {/* New Icon Button here */}
+                        <a 
+                          href="https://meu.adeuspendrive.com/hc/autostartdisabled/e9c2da4f9400f13c866475aaf11c90f2" 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="w-7 h-7 rounded border border-orange-200 bg-orange-50 text-orange-400 flex items-center justify-center hover:bg-orange-100 transition-colors relative group shrink-0"
+                        >
+                          <SkipForward className="w-3.5 h-3.5" />
+                          
+                          {/* Tooltip */}
+                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2 bg-[#2d2d2d] text-white text-[11px] font-normal normal-case rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none text-center">
+                            O app não iniciará automaticamente até que seja liberado a permissão de "sobreposição sobre outros apps" no Android.
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#2d2d2d]"></div>
+                          </div>
+                        </a>
+
+                        <Link to={`/agency/totems/${totem.id}`} className="font-semibold text-zinc-700 hover:text-[#104a9e] hover:underline whitespace-nowrap">
+                          {totem.nome}
+                        </Link>
+                      </div>
                     </td>
                     <td className="px-4 py-4">
                       {/* Link to Settings page */}
