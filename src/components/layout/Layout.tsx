@@ -79,7 +79,7 @@ export default function Layout() {
 
   const agencyLinks: MenuItem[] = [
     { name: 'TVs', path: '/agency/totems', icon: Tv, category: 'MENU' },
-    { name: 'Arquivos', path: '/agency/playlists/cadastrar', icon: ImageIcon, category: 'MENU' },
+    { name: 'Arquivos', path: '/agency/arquivos', icon: ImageIcon, category: 'MENU' },
     { name: 'Lista de Reprodução', path: '/agency/playlists/telas', icon: List, category: 'MENU' },
   ];
 
