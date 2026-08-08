@@ -10,6 +10,10 @@ interface Totem {
   status: 'online' | 'offline';
   ultima_sincronizacao: string | null;
   auto_iniciar?: number | boolean;
+  horario_liga?: string;
+  horario_desliga?: string;
+  horario_inicio?: string;
+  horario_fim?: string;
 }
 
 export default function AgencyTotems() {
@@ -66,6 +70,48 @@ export default function AgencyTotems() {
       } catch (err) {
         console.error(err);
       }
+    }
+  };
+
+  const getTotemStatusColor = (totem: Totem) => {
+    if (!totem.ultima_sincronizacao) return 'bg-[#e74c3c]'; // Sem Comunicação
+    
+    const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T'));
+    const now = new Date();
+    
+    const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
+
+    if (diffMinutes > 15 || diffMinutes < -15) { // < -15 to handle potential timezone mismatch where server is ahead
+      // Check if out of operating hours
+      const hInicio = totem.horario_liga || totem.horario_inicio;
+      const hFim = totem.horario_desliga || totem.horario_fim;
+      
+      if (hInicio && hFim) {
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const [startH, startM] = hInicio.split(':').map(Number);
+        const [endH, endM] = hFim.split(':').map(Number);
+        
+        const startMinutes = startH * 60 + (startM || 0);
+        const endMinutes = endH * 60 + (endM || 0);
+        
+        // Handle cases where end time is on the next day (e.g., 22:00 to 02:00)
+        let isOut = false;
+        if (startMinutes <= endMinutes) {
+          isOut = currentMinutes < startMinutes || currentMinutes > endMinutes;
+        } else {
+          // Crosses midnight
+          isOut = currentMinutes < startMinutes && currentMinutes > endMinutes;
+        }
+
+        if (isOut) {
+          return 'bg-[#bdc3c7]'; // Sem comunicação (fora de horário)
+        }
+      }
+      return 'bg-[#e74c3c]'; // Sem Comunicação
+    } else if (diffMinutes > 5) {
+      return 'bg-[#f1c40f]'; // Em Verificação
+    } else {
+      return 'bg-[#2ecc71]'; // Funcionando corretamente
     }
   };
 
@@ -147,7 +193,7 @@ export default function AgencyTotems() {
                     <td className="px-4 py-4">
                       <Link to={`/agency/totems/${totem.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         {/* Play Icon Box */}
-                        <div className="w-8 h-8 rounded bg-[#f5a623] flex items-center justify-center shrink-0">
+                        <div className={`w-8 h-8 rounded ${getTotemStatusColor(totem)} flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300`}>
                           <Play className="w-4 h-4 text-white ml-0.5" />
                         </div>
                         <span className="font-semibold text-zinc-700 hover:text-[#104a9e] hover:underline">{totem.nome}</span>
