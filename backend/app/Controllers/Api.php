@@ -65,13 +65,27 @@ class Api extends ResourceController
             $now = date('Y-m-d H:i:s');
             
             $campanhas = $db->table('campanhas')
-                ->where('usuario_id', $user['id'])
+                ->select('campanhas.*')
+                ->join('usuarios', 'usuarios.id = campanhas.usuario_id', 'left')
                 ->groupStart()
-                    ->where('totem_id', $totem['id'])
-                    ->orWhere('totem_id', null)
-                    ->orWhere('totem_id', 0)
+                    // Mídias atribuídas especificamente a este totem (pelo dono ou por um admin)
+                    ->groupStart()
+                        ->where('campanhas.totem_id', $totem['id'])
+                        ->groupStart()
+                            ->where('campanhas.usuario_id', $user['id'])
+                            ->orWhere('usuarios.nivel', 'admin')
+                        ->groupEnd()
+                    ->groupEnd()
+                    // OU Mídias globais do dono do totem
+                    ->orGroupStart()
+                        ->where('campanhas.usuario_id', $user['id'])
+                        ->groupStart()
+                            ->where('campanhas.totem_id', null)
+                            ->orWhere('campanhas.totem_id', 0)
+                        ->groupEnd()
+                    ->groupEnd()
                 ->groupEnd()
-                ->where('ativo', 1)
+                ->where('campanhas.ativo', 1)
                 ->get()->getResultArray();
                 
             $playlist = [];
@@ -192,7 +206,6 @@ class Api extends ResourceController
             
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
 
             if ($httpCode !== 200 || !$response) {
                 return $this->fail('Erro ao buscar dados da Caixa', 500);
