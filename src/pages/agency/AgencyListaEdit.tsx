@@ -306,10 +306,26 @@ export default function AgencyListaEdit() {
       setLista({ nome: listaData.nome, id: listaData.id });
       
       // Inject unique_id for dnd to work properly with duplicate items
-      const formattedItems = (listaData.itens || []).map((it: any) => ({
-        ...it,
-        unique_id: `item-${it.id || Math.random().toString(36).substr(2, 9)}`
-      }));
+      const formattedItems = (listaData.itens || []).map((it: any) => {
+        let titulo = it.arquivo_titulo;
+        let tipo_midia = it.tipo_midia;
+        
+        if (it.widget_nome) {
+           tipo_midia = 'widget';
+           const baseName = it.widget_nome.split('?')[0];
+           const wType = WIDGETS_BASE.find(w => w.arquivo_url.split('?')[0] === baseName);
+           if (wType) {
+              titulo = wType.titulo;
+           }
+        }
+        
+        return {
+          ...it,
+          tipo_midia,
+          arquivo_titulo: titulo,
+          unique_id: `item-${it.id || Math.random().toString(36).substr(2, 9)}`
+        };
+      });
       setItems(formattedItems);
       
       setLibrary(libraryData || []);
