@@ -171,11 +171,18 @@ export default function AgencyListas() {
                       <td className="px-4 py-4 text-center border-l border-zinc-200 text-zinc-500 font-medium">
                         {item.totens_nomes ? (
                           <div className="flex flex-wrap justify-center gap-2">
-                            {item.totens_nomes.split('||').map((nome, i) => (
-                              <span key={i} className="bg-[#eaf2f8] text-[#3498db] px-2.5 py-1 rounded text-[10px] font-bold shadow-sm whitespace-nowrap">
-                                {nome}
-                              </span>
-                            ))}
+                            {item.totens_nomes.split('||').map((tvInfo, i) => {
+                              const [id, nome] = tvInfo.split('::');
+                              return (
+                                <Link 
+                                  key={i} 
+                                  to={`/agency/totems/${id}`}
+                                  className="bg-[#eaf2f8] text-[#3498db] hover:bg-[#d6eaf8] px-2.5 py-1 rounded text-[10px] font-bold shadow-sm whitespace-nowrap transition-colors"
+                                >
+                                  {nome}
+                                </Link>
+                              );
+                            })}
                           </div>
                         ) : (
                           "0"
