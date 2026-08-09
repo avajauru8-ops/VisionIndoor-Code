@@ -11,7 +11,8 @@ interface Totem {
   id: string;
   nome: string;
   device_id: string;
-  status: 'online' | 'offline';
+  status: string;
+  ultima_informacao?: string;
   ultima_sincronizacao: string | null;
   auto_iniciar?: number | boolean;
   versao_app?: string;
@@ -471,7 +472,9 @@ export default function AgencyTotemSettings() {
               <div className="space-y-3 text-[11px] font-bold text-zinc-500 border-l-2 border-[#104a9e] pl-4">
                 <div className="flex justify-between">
                   <span>App:</span>
-                  <span className="text-[#104a9e]">Aguardando Conteúdo</span>
+                  <span className={`font-bold ${totem.status === 'FUNCIONANDO CORRETAMENTE' ? 'text-green-600' : (totem.status === 'online' ? 'text-green-600' : 'text-orange-500')}`}>
+                    {totem.status || 'Desconhecido'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Online a:</span>
@@ -488,7 +491,7 @@ export default function AgencyTotemSettings() {
                 <div className="flex justify-between">
                   <span>Última informação:</span>
                 </div>
-                <div className="text-zinc-800">Aguardando Conteúdo para Veiculação</div>
+                <div className="text-zinc-800">{totem.ultima_informacao || 'Aguardando Conteúdo para Veiculação'}</div>
               </div>
             </div>
 
