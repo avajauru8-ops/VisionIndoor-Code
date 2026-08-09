@@ -25,6 +25,7 @@ try {
     $columns = $query->fetchAll(PDO::FETCH_COLUMN);
 
     $colsToAdd = [
+        'rotacao' => "VARCHAR(20) DEFAULT 'padrao'",
         'auto_iniciar' => "BOOLEAN DEFAULT TRUE",
         'iniciar_tv_energia' => "BOOLEAN DEFAULT FALSE",
         'fuso_horario' => "VARCHAR(100) DEFAULT 'America/Sao_Paulo'",

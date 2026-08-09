@@ -110,6 +110,7 @@ class Totems extends ResourceController
             $data = [];
             if (isset($json->nome)) $data['nome'] = $json->nome;
             if (isset($json->device_id)) $data['device_id'] = $json->device_id;
+            if (isset($json->rotacao)) $data['rotacao'] = $json->rotacao;
             if (isset($json->status)) $data['status'] = $json->status;
             if (isset($json->auto_iniciar)) $data['auto_iniciar'] = $json->auto_iniciar ? 1 : 0;
             if (isset($json->iniciar_tv_energia)) $data['iniciar_tv_energia'] = $json->iniciar_tv_energia ? 1 : 0;

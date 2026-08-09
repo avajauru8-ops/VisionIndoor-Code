@@ -20,6 +20,7 @@ interface Totem {
   espaco_utilizado?: string;
   espaco_livre?: string;
   playlist_id?: string | null;
+  rotacao?: string;
   iniciar_tv_energia?: number | boolean;
   fuso_horario?: string;
   exibir_barra_tarefas?: number | boolean;
@@ -70,6 +71,7 @@ export default function AgencyTotemSettings() {
       setTotem(data);
       setNome(data.nome);
       setListaReproducao(data.playlist_id || '');
+      setRotacao(data.rotacao || 'padrao');
       setListas(listasData || []);
       
       // Load Extras state
@@ -97,6 +99,7 @@ export default function AgencyTotemSettings() {
         body: JSON.stringify({ 
           nome, 
           playlist_id: listaReproducao,
+          rotacao,
           auto_iniciar: autoIniciar,
           iniciar_tv_energia: iniciarTvEnergia,
           fuso_horario: fusoHorario,
@@ -533,7 +536,7 @@ export default function AgencyTotemSettings() {
             Comandos
           </h3>
           <div className="flex flex-wrap items-center gap-3">
-            <button onClick={() => handleCommand('captura_tela')} className="bg-[#8e44ad] hover:bg-[#732d91] text-white text-[10px] font-bold px-4 py-2.5 rounded uppercase flex items-center gap-2 transition-colors">
+            <button onClick={() => handleCommand('capturar_tela')} className="bg-[#8e44ad] hover:bg-[#732d91] text-white text-[10px] font-bold px-4 py-2.5 rounded uppercase flex items-center gap-2 transition-colors">
               <Camera className="w-3.5 h-3.5" />
               CAPTURA DE TELA
             </button>

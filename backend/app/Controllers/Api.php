@@ -238,6 +238,7 @@ class Api extends ResourceController
             // ========================================================
             $resposta = [
                 'totem_id' => $device_id,
+                'rotacao' => $totem['rotacao'] ?? 'padrao',
                 'auto_iniciar' => isset($totem['auto_iniciar']) ? (bool)$totem['auto_iniciar'] : false,
                 'iniciar_tv_energia' => isset($totem['iniciar_tv_energia']) ? (bool)$totem['iniciar_tv_energia'] : false,
                 'fuso_horario' => $totem['fuso_horario'] ?? 'America/Sao_Paulo',
