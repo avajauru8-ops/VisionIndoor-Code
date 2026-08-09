@@ -62,7 +62,18 @@ export default function AgencyTotemSettings() {
 
   useEffect(() => {
     loadTotem();
+    const intervalId = setInterval(loadTotemStatus, 5000); // Poll every 5 seconds
+    return () => clearInterval(intervalId);
   }, [id]);
+
+  const loadTotemStatus = async () => {
+    try {
+      const data = await apiFetch(`/api/totems/${id}`);
+      setTotem(data);
+    } catch (err) {
+      console.error('Failed to poll totem status', err);
+    }
+  };
 
   const loadTotem = async () => {
     try {
