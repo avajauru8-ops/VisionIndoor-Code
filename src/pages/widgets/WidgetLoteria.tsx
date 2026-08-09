@@ -7,7 +7,7 @@ export default function WidgetLoteria() {
   const tipo = searchParams.get('tipo') || 'megasena';
   
   const generateNumbers = (count: number, seed: number) => {
-    let result = [];
+    let result: number[] = [];
     let currentSeed = seed;
     const random = () => {
       const x = Math.sin(currentSeed++) * 10000;

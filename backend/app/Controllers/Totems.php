@@ -14,15 +14,21 @@ class Totems extends ResourceController
             $nivel = $this->request->getHeaderLine('X-User-Nivel');
             
             $builder = $db->table('totens');
+            $builder->select('totens.*, usuarios.nome as usuario_nome, usuarios.email as usuario_email');
+            $builder->join('usuarios', 'usuarios.id = totens.usuario_id', 'left');
             
             if ($nivel !== 'admin') {
-                $builder->where('usuario_id', $user_id);
+                $builder->where('totens.usuario_id', $user_id);
             }
             
             $totens = $builder->get()->getResultArray();
             
             foreach ($totens as &$t) {
                 $t['id'] = (string)$t['id'];
+                // fallback if data_cadastro is missing but created_at exists
+                if (!isset($t['data_cadastro']) && isset($t['created_at'])) {
+                    $t['data_cadastro'] = $t['created_at'];
+                }
             }
             
             return $this->respond($totens);
@@ -38,9 +44,12 @@ class Totems extends ResourceController
             $user_id = $this->request->getHeaderLine('X-User-Id');
             $nivel = $this->request->getHeaderLine('X-User-Nivel');
             
-            $builder = $db->table('totens')->where('id', $id);
+            $builder = $db->table('totens')->where('totens.id', $id);
+            $builder->select('totens.*, usuarios.nome as usuario_nome, usuarios.email as usuario_email');
+            $builder->join('usuarios', 'usuarios.id = totens.usuario_id', 'left');
+            
             if ($nivel !== 'admin') {
-                $builder->where('usuario_id', $user_id);
+                $builder->where('totens.usuario_id', $user_id);
             }
             
             $totem = $builder->get()->getRowArray();
@@ -49,6 +58,9 @@ class Totems extends ResourceController
             }
             
             $totem['id'] = (string)$totem['id'];
+            if (!isset($totem['data_cadastro']) && isset($totem['created_at'])) {
+                $totem['data_cadastro'] = $totem['created_at'];
+            }
             return $this->respond($totem);
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
