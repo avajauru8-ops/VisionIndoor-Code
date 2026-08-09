@@ -149,8 +149,8 @@ class Api extends ResourceController
                     'acao' => $totem['comando_acao']
                 ];
                 
-                // Opcional: Você pode limpar o comando do banco logo após enviar para evitar loop
-                // $db->table('totens')->where('id', $totem['id'])->update(['comando_acao' => null]);
+                // Limpa o comando do banco logo após enviar para evitar loop de reinicialização
+                $db->table('totens')->where('id', $totem['id'])->update(['comando_acao' => null, 'comando_id' => null]);
             }
             
             // ========================================================
