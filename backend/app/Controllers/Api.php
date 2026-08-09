@@ -298,16 +298,14 @@ class Api extends ResourceController
         }
 
         try {
-            $db = \Config\Database::connect();
-            $config = $db->table('configuracoes_admin')->get()->getRowArray();
-            $apiKey = $config ? $config['openweather_api_key'] : null;
+            $apiKey = null;
             if ($widgetCheck && !empty($widgetCheck['api_key'])) {
                 $apiKey = $widgetCheck['api_key'];
             }
             $apiUrl = ($widgetCheck && !empty($widgetCheck['api_url'])) ? $widgetCheck['api_url'] : "https://api.openweathermap.org/data/2.5/weather";
 
             if (empty($apiKey)) {
-                return $this->fail('Chave de API do OpenWeather não configurada no painel', 500);
+                return $this->fail('Chave de API do OpenWeather não configurada na Gestão de Widgets', 500);
             }
 
             // Step 1: OpenWeather 2.5 API
