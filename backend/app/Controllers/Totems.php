@@ -144,4 +144,26 @@ class Totems extends ResourceController
             return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
         }
     }
+
+    public function comando($id = null)
+    {
+        try {
+            $json = $this->request->getJSON();
+            if (!isset($json->comando)) {
+                return $this->response->setJSON(['error' => 'Comando não especificado'])->setStatusCode(400);
+            }
+            
+            $db = \Config\Database::connect();
+            $data = [
+                'comando_acao' => $json->comando,
+                'comando_id' => (string)time()
+            ];
+            
+            $db->table('totens')->where('id', $id)->update($data);
+            
+            return $this->respond(['success' => true]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
+        }
+    }
 }

@@ -53,6 +53,7 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
         $routes->get('(:segment)', 'Totems::show/$1');
         $routes->post('', 'Totems::create');
         $routes->put('(:segment)', 'Totems::update/$1');
+        $routes->post('(:segment)/comando', 'Totems::comando/$1');
         $routes->delete('(:segment)', 'Totems::delete/$1');
     });
 
