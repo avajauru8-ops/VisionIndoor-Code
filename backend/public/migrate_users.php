@@ -1,43 +1,47 @@
 <?php
 // Script para rodar no servidor remoto
-define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR);
-require realpath(FCPATH . '../app/Config/Paths.php') ?: FCPATH . '../app/Config/Paths.php';
-$paths = new Config\Paths();
-require rtrim($paths->systemDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'bootstrap.php';
-// Or if CI 4.5+
-if (!class_exists('CodeIgniter\CodeIgniter')) {
-    require rtrim($paths->systemDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'Common.php';
-    require rtrim($paths->systemDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'Autoloader/Autoloader.php';
-}
-
-$db = \Config\Database::connect();
+echo "<h3>Migração de Usuários</h3>";
 
 try {
-    $builder = $db->table('usuarios');
-    $query = $db->query("SHOW COLUMNS FROM usuarios");
-    $columns = $query->getResultArray();
-    $existing = array_column($columns, 'Field');
+    $envPath = __DIR__ . '/../.env';
+    $envContent = @file_get_contents($envPath);
+    
+    $host = 'localhost';
+    $user = 'root';
+    $pass = '';
+    $dbname = 'visioindoor';
+    
+    if ($envContent) {
+        if (preg_match('/^database\.default\.hostname\s*=\s*(.*)$/m', $envContent, $m)) $host = trim($m[1], " \t\n\r\0\x0B\"'");
+        if (preg_match('/^database\.default\.username\s*=\s*(.*)$/m', $envContent, $m)) $user = trim($m[1], " \t\n\r\0\x0B\"'");
+        if (preg_match('/^database\.default\.password\s*=\s*(.*)$/m', $envContent, $m)) $pass = trim($m[1], " \t\n\r\0\x0B\"'");
+        if (preg_match('/^database\.default\.database\s*=\s*(.*)$/m', $envContent, $m)) $dbname = trim($m[1], " \t\n\r\0\x0B\"'");
+    }
+
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $query = $pdo->query("SHOW COLUMNS FROM usuarios");
+    $columns = $query->fetchAll(PDO::FETCH_COLUMN);
 
     $colsToAdd = [
         'cpf' => "VARCHAR(20) DEFAULT NULL",
-        'status_licenca' => "VARCHAR(50) DEFAULT 'ativa' NOT NULL",
-        'validade_licenca' => "DATETIME DEFAULT '2099-12-31 23:59:59' NOT NULL",
-        'plano' => "VARCHAR(50) DEFAULT 'gratis' NOT NULL",
-        'limite_tvs' => "INT DEFAULT 1 NOT NULL"
+        'status_licenca' => "VARCHAR(20) DEFAULT 'ativo'",
+        'validade_licenca' => "DATE DEFAULT NULL",
+        'plano' => "VARCHAR(50) DEFAULT 'Mensal'",
+        'limite_tvs' => "INT DEFAULT 5"
     ];
 
-    echo "Migrando tabela usuarios...<br>\n";
-
     foreach ($colsToAdd as $col => $def) {
-        if (!in_array($col, $existing)) {
-            $db->query("ALTER TABLE usuarios ADD COLUMN $col $def");
-            echo "Coluna '$col' adicionada com sucesso.<br>\n";
+        if (!in_array($col, $columns)) {
+            $pdo->exec("ALTER TABLE usuarios ADD COLUMN $col $def");
+            echo "- Coluna '$col' adicionada.<br>";
         } else {
-            echo "Coluna '$col' já existe.<br>\n";
+            echo "- Coluna '$col' já existe.<br>";
         }
     }
 
-    echo "<br>\nMigracao da tabela usuarios concluida.";
+    echo "<br><b style='color:green'>Migração concluída com sucesso!</b> Pode fechar esta tela.";
 } catch (Exception $e) {
-    echo "Erro: " . $e->getMessage();
+    echo "<br><b style='color:red'>Erro:</b> " . $e->getMessage();
 }

@@ -1,34 +1,40 @@
 <?php
 // Script de Migração Unificada (Totens + Widgets) para servidor remoto
-define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR);
-require realpath(FCPATH . '../app/Config/Paths.php') ?: FCPATH . '../app/Config/Paths.php';
-$paths = new Config\Paths();
-require rtrim($paths->systemDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'bootstrap.php';
-
-if (!class_exists('CodeIgniter\CodeIgniter')) {
-    require rtrim($paths->systemDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'Common.php';
-    require rtrim($paths->systemDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'Autoloader/Autoloader.php';
-}
-
-$db = \Config\Database::connect();
+echo "<h3>Migração de Banco de Dados</h3>";
 
 try {
-    echo "<h3>Migração de Banco de Dados</h3>";
+    $envPath = __DIR__ . '/../.env';
+    $envContent = @file_get_contents($envPath);
+    
+    $host = 'localhost';
+    $user = 'root';
+    $pass = '';
+    $dbname = 'visioindoor';
+    
+    if ($envContent) {
+        if (preg_match('/^database\.default\.hostname\s*=\s*(.*)$/m', $envContent, $m)) $host = trim($m[1], " \t\n\r\0\x0B\"'");
+        if (preg_match('/^database\.default\.username\s*=\s*(.*)$/m', $envContent, $m)) $user = trim($m[1], " \t\n\r\0\x0B\"'");
+        if (preg_match('/^database\.default\.password\s*=\s*(.*)$/m', $envContent, $m)) $pass = trim($m[1], " \t\n\r\0\x0B\"'");
+        if (preg_match('/^database\.default\.database\s*=\s*(.*)$/m', $envContent, $m)) $dbname = trim($m[1], " \t\n\r\0\x0B\"'");
+    }
+
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // 1. Totens: Adicionar data_cadastro
     echo "<b>1. Totens:</b><br>";
-    $query = $db->query("SHOW COLUMNS FROM totens");
-    $columns = array_column($query->getResultArray(), 'Field');
+    $query = $pdo->query("SHOW COLUMNS FROM totens");
+    $columns = $query->fetchAll(PDO::FETCH_COLUMN);
     
     if (!in_array('data_cadastro', $columns)) {
-        $db->query("ALTER TABLE totens ADD COLUMN data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP");
+        $pdo->exec("ALTER TABLE totens ADD COLUMN data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP");
         echo "- Coluna 'data_cadastro' adicionada em totens.<br>";
     } else {
         echo "- Coluna 'data_cadastro' já existe.<br>";
     }
     
     if (!in_array('ultima_sincronizacao', $columns)) {
-        $db->query("ALTER TABLE totens ADD COLUMN ultima_sincronizacao DATETIME DEFAULT NULL");
+        $pdo->exec("ALTER TABLE totens ADD COLUMN ultima_sincronizacao DATETIME DEFAULT NULL");
         echo "- Coluna 'ultima_sincronizacao' adicionada em totens.<br>";
     } else {
         echo "- Coluna 'ultima_sincronizacao' já existe.<br>";
@@ -36,11 +42,11 @@ try {
 
     // 2. Tabela Widgets
     echo "<br><b>2. Widgets:</b><br>";
-    $query = $db->query("SHOW TABLES LIKE 'widgets'");
-    $hasWidgets = $query->getRow();
+    $query = $pdo->query("SHOW TABLES LIKE 'widgets'");
+    $hasWidgets = $query->fetch();
     
     if (!$hasWidgets) {
-        $db->query("CREATE TABLE widgets (
+        $pdo->exec("CREATE TABLE widgets (
             id INT AUTO_INCREMENT PRIMARY KEY,
             nome VARCHAR(255) NOT NULL,
             identificador VARCHAR(100) NOT NULL UNIQUE,
@@ -54,32 +60,11 @@ try {
         echo "- Tabela 'widgets' criada com sucesso.<br>";
 
         // Inserir os defaults
-        $db->table('widgets')->insertBatch([
-            [
-                'nome' => 'Clima e Tempo',
-                'identificador' => 'clima',
-                'api_url' => 'https://api.openweathermap.org/data/2.5/weather',
-                'api_key' => '',
-                'ativo' => 1,
-                'em_manutencao' => 0
-            ],
-            [
-                'nome' => 'Loterias Caixa',
-                'identificador' => 'loteria',
-                'api_url' => 'https://servicebus2.caixa.gov.br/portaldeloterias/api',
-                'api_key' => '',
-                'ativo' => 1,
-                'em_manutencao' => 0
-            ],
-            [
-                'nome' => 'Notícias RSS',
-                'identificador' => 'noticias',
-                'api_url' => 'https://rss.uol.com.br/feed',
-                'api_key' => '',
-                'ativo' => 1,
-                'em_manutencao' => 0
-            ]
-        ]);
+        $pdo->exec("INSERT INTO widgets (nome, identificador, api_url, api_key, ativo, em_manutencao) VALUES 
+            ('Clima e Tempo', 'clima', 'https://api.openweathermap.org/data/2.5/weather', '', 1, 0),
+            ('Loterias Caixa', 'loteria', 'https://servicebus2.caixa.gov.br/portaldeloterias/api', '', 1, 0),
+            ('Notícias RSS', 'noticias', 'https://rss.uol.com.br/feed', '', 1, 0)
+        ");
         echo "- Widgets padrão inseridos.<br>";
     } else {
         echo "- Tabela 'widgets' já existe.<br>";
