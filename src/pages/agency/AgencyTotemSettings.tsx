@@ -30,6 +30,7 @@ interface Totem {
   limpeza_automatica?: number | boolean;
   tempo_exibicao_padrao?: number;
   id_monetizacao?: string;
+  ultima_captura_tela?: string;
 }
 
 export default function AgencyTotemSettings() {
@@ -523,6 +524,23 @@ export default function AgencyTotemSettings() {
                   <span className="text-[#104a9e]">{totem.ultima_sincronizacao ? format(new Date(totem.ultima_sincronizacao.replace(' ','T')), 'dd/MM/yyyy HH:mm') : 'N/A'}</span>
                 </div>
               </div>
+
+              {totem.ultima_captura_tela && (
+                <div className="mt-8 border-t border-zinc-100 pt-6">
+                  <h4 className="text-xs font-bold text-[#104a9e] uppercase mb-4 flex items-center justify-between">
+                    Última Captura de Tela
+                    <button onClick={() => window.open(`${import.meta.env.VITE_API_URL}/${totem.ultima_captura_tela}`, '_blank')} className="text-[10px] bg-zinc-100 px-2 py-1 rounded text-zinc-500 hover:text-[#104a9e]">Ampliar</button>
+                  </h4>
+                  <div className="bg-zinc-50 rounded border border-zinc-200 overflow-hidden relative shadow-sm" style={{aspectRatio: '16/9'}}>
+                    <img 
+                      src={`${import.meta.env.VITE_API_URL}/${totem.ultima_captura_tela}`} 
+                      alt="Última captura" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-400 mt-2">Dica: Atualize a página em alguns segundos após solicitar a captura.</p>
+                </div>
+              )}
             </div>
 
           </div>

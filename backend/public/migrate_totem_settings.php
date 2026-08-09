@@ -37,7 +37,8 @@ try {
         'tempo_exibicao_padrao' => "INT DEFAULT 15",
         'id_monetizacao' => "VARCHAR(255) DEFAULT NULL",
         'comando_acao' => "VARCHAR(100) DEFAULT NULL",
-        'comando_id' => "VARCHAR(100) DEFAULT NULL"
+        'comando_id' => "VARCHAR(100) DEFAULT NULL",
+        'ultima_captura_tela' => "VARCHAR(255) DEFAULT NULL"
     ];
 
     foreach ($colsToAdd as $col => $def) {

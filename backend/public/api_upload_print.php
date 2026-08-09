@@ -48,8 +48,26 @@ if (isset($data['device_id']) && isset($data['imagem_base64'])) {
     
     // Cria fisicamente a imagem no servidor
     if (file_put_contents($caminho, $imagem_decodificada) !== false) {
-        // Aqui você também pode fazer um UPDATE no seu banco de dados 
-        // para salvar a URL desse print ($caminho) no cadastro deste totem específico!
+        
+        // Update database
+        try {
+            $envPath = __DIR__ . '/../.env';
+            $envContent = @file_get_contents($envPath);
+            $host = 'localhost'; $user = 'root'; $pass = ''; $dbname = 'visioindoor';
+            if ($envContent) {
+                if (preg_match('/^database\.default\.hostname\s*=\s*(.*)$/m', $envContent, $m)) $host = trim($m[1], " \t\n\r\0\x0B\"'");
+                if (preg_match('/^database\.default\.username\s*=\s*(.*)$/m', $envContent, $m)) $user = trim($m[1], " \t\n\r\0\x0B\"'");
+                if (preg_match('/^database\.default\.password\s*=\s*(.*)$/m', $envContent, $m)) $pass = trim($m[1], " \t\n\r\0\x0B\"'");
+                if (preg_match('/^database\.default\.database\s*=\s*(.*)$/m', $envContent, $m)) $dbname = trim($m[1], " \t\n\r\0\x0B\"'");
+            }
+            $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            $stmt = $pdo->prepare("UPDATE totens SET ultima_captura_tela = :caminho WHERE device_id = :device_id");
+            $stmt->execute(['caminho' => $caminho, 'device_id' => $device_id]);
+        } catch (Exception $e) {
+            // Silently fail DB update if needed, but we save the file
+        }
         
         echo json_encode(["status" => "sucesso", "arquivo" => $caminho]);
     } else {
