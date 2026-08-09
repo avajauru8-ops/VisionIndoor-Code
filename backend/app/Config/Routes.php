@@ -38,6 +38,14 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
         $routes->post('', 'Settings::update', ['filter' => 'auth:admin']); // CodeIgniter prefers POST for file uploads
     });
 
+    // Admin Widgets
+    $routes->group('admin/widgets', ['filter' => 'auth:admin'], static function ($routes) {
+        $routes->get('/', 'Widgets::index');
+        $routes->get('', 'Widgets::index');
+        $routes->get('(:segment)', 'Widgets::show/$1');
+        $routes->put('(:segment)', 'Widgets::update/$1');
+    });
+
     // Totems
     $routes->group('totems', ['filter' => 'auth'], static function ($routes) {
         $routes->get('/', 'Totems::index');

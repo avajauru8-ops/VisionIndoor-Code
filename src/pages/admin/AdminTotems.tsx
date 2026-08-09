@@ -140,21 +140,26 @@ export default function AdminTotems() {
                       {totem.data_cadastro ? format(new Date(totem.data_cadastro), 'dd/MM/yyyy HH:mm') : 'N/A'}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        totem.status === 'online' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-zinc-100 text-zinc-400 border border-zinc-200'
-                      }`}>
-                        {totem.status === 'online' ? (
-                          <>
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Online
-                          </>
-                        ) : (
-                          <>
-                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-300"></span>
-                            Offline
-                          </>
-                        )}
-                      </span>
+                      {(() => {
+                        const isOnline = totem.ultima_sincronizacao && (new Date().getTime() - new Date(totem.ultima_sincronizacao).getTime() < 5 * 60000); // 5 minutes
+                        return (
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            isOnline ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-zinc-100 text-zinc-400 border border-zinc-200'
+                          }`}>
+                            {isOnline ? (
+                              <>
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Online
+                              </>
+                            ) : (
+                              <>
+                                <span className="w-1.5 h-1.5 rounded-full bg-zinc-300"></span>
+                                Offline
+                              </>
+                            )}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">

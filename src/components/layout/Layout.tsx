@@ -14,6 +14,7 @@ import {
   Newspaper, 
   Smartphone, 
   Search, 
+  LayoutTemplate,
   Mail, 
   Bell,
   Menu,
@@ -74,6 +75,7 @@ export default function Layout() {
     { name: 'Usuários & Licenças', path: '/admin/users', icon: Users, category: 'MENU' },
     { name: 'Totens Cadastrados', path: '/admin/totems', icon: Tv, category: 'MENU' },
     { name: 'Player Android', path: '/admin/integration', icon: Smartphone, category: 'MENU' },
+    { name: 'Gestão de Widgets', path: '/admin/widgets', icon: LayoutTemplate, category: 'MENU' },
     { name: 'Configurações', path: '/admin/settings', icon: Settings, category: 'GERAL' },
   ];
 

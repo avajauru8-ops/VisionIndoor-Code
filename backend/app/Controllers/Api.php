@@ -263,8 +263,33 @@ class Api extends ResourceController
         }
     }
 
+    private function checkWidgetStatus($identificador)
+    {
+        try {
+            $db = \Config\Database::connect();
+            $query = $db->query("SHOW TABLES LIKE 'widgets'");
+            if (!$query->getRow()) return null; // Tabelas de widget não existem, continua normal
+            
+            $widget = $db->table('widgets')->where('identificador', $identificador)->get()->getRowArray();
+            if ($widget) {
+                if (!$widget['ativo']) {
+                    return $this->fail('Widget desativado', 403);
+                }
+                if ($widget['em_manutencao']) {
+                    return $this->fail('Widget em manutenção', 503);
+                }
+            }
+            return $widget;
+        } catch (\Exception $e) {
+            return null; // Ignore DB errors during migration
+        }
+    }
+
     public function clima()
     {
+        $widgetCheck = $this->checkWidgetStatus('clima');
+        if ($widgetCheck instanceof \CodeIgniter\HTTP\ResponseInterface) return $widgetCheck;
+
         $cidade = $this->request->getGet('cidade');
         $estado = $this->request->getGet('estado');
         
@@ -276,13 +301,17 @@ class Api extends ResourceController
             $db = \Config\Database::connect();
             $config = $db->table('configuracoes_admin')->get()->getRowArray();
             $apiKey = $config ? $config['openweather_api_key'] : null;
+            if ($widgetCheck && !empty($widgetCheck['api_key'])) {
+                $apiKey = $widgetCheck['api_key'];
+            }
+            $apiUrl = ($widgetCheck && !empty($widgetCheck['api_url'])) ? $widgetCheck['api_url'] : "https://api.openweathermap.org/data/2.5/weather";
 
             if (empty($apiKey)) {
                 return $this->fail('Chave de API do OpenWeather não configurada no painel', 500);
             }
 
             // Step 1: OpenWeather 2.5 API
-            $weatherUrl = "https://api.openweathermap.org/data/2.5/weather?q=" . urlencode($cidade) . "," . urlencode($estado) . ",BR&units=metric&lang=pt_br&appid=" . $apiKey;
+            $weatherUrl = $apiUrl . "?q=" . urlencode($cidade) . "," . urlencode($estado) . ",BR&units=metric&lang=pt_br&appid=" . $apiKey;
             $weatherRes = @file_get_contents($weatherUrl);
             
             if (!$weatherRes) {
@@ -324,12 +353,17 @@ class Api extends ResourceController
 
     public function loteria()
     {
+        $widgetCheck = $this->checkWidgetStatus('loteria');
+        if ($widgetCheck instanceof \CodeIgniter\HTTP\ResponseInterface) return $widgetCheck;
+
         $tipo = $this->request->getGet('tipo') ?? 'megasena';
         
+        $baseUrl = ($widgetCheck && !empty($widgetCheck['api_url'])) ? $widgetCheck['api_url'] : 'https://servicebus2.caixa.gov.br/portaldeloterias/api';
+        
         $urls = [
-            'lotofacil' => 'https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil',
-            'megasena' => 'https://servicebus2.caixa.gov.br/portaldeloterias/api/megasena',
-            'quina' => 'https://servicebus2.caixa.gov.br/portaldeloterias/api/quina'
+            'lotofacil' => $baseUrl . '/lotofacil',
+            'megasena' => $baseUrl . '/megasena',
+            'quina' => $baseUrl . '/quina'
         ];
 
         if (!array_key_exists($tipo, $urls)) {
@@ -360,6 +394,9 @@ class Api extends ResourceController
 
     public function rssUol()
     {
+        $widgetCheck = $this->checkWidgetStatus('noticias');
+        if ($widgetCheck instanceof \CodeIgniter\HTTP\ResponseInterface) return $widgetCheck;
+
         $feed = $this->request->getGet('feed') ?: 'noticias';
         
         // Allowed feeds to prevent SSRF
@@ -368,7 +405,8 @@ class Api extends ResourceController
             $feed = 'noticias';
         }
 
-        $url = "https://rss.uol.com.br/feed/{$feed}.xml";
+        $baseUrl = ($widgetCheck && !empty($widgetCheck['api_url'])) ? $widgetCheck['api_url'] : 'https://rss.uol.com.br/feed';
+        $url = rtrim($baseUrl, '/') . "/{$feed}.xml";
         
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
