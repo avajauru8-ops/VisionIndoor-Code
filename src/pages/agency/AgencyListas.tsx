@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { List, Plus, Search, Tag, X } from 'lucide-react';
+import { List, Plus, Search, Tag, X, Edit2, Trash2 } from 'lucide-react';
 import { apiFetch } from '../../lib/api';
 
 interface Playlist {
@@ -52,6 +52,19 @@ export default function AgencyListas() {
       alert('Erro ao criar lista.');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleDelete = async (id: string, nome: string) => {
+    if (!window.confirm(`Tem certeza que deseja excluir a lista "${nome}"? Esta ação removerá a lista de todos os totens vinculados.`)) {
+      return;
+    }
+    try {
+      await apiFetch(`/api/listas/${id}`, { method: 'DELETE' });
+      setListas(listas.filter(l => l.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao excluir lista.');
     }
   };
 
@@ -139,6 +152,9 @@ export default function AgencyListas() {
                   <th className="px-4 py-3 font-semibold text-center w-40 border-l border-zinc-200">
                     Tempo de duração
                   </th>
+                  <th className="px-4 py-3 font-semibold text-right border-l border-zinc-200">
+                    Ações
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200 text-sm bg-white">
@@ -192,6 +208,24 @@ export default function AgencyListas() {
                         <span className="text-[#e67e22] text-xs font-mono font-bold px-2 py-1 border border-[#e67e22]/30 rounded">
                           {formatTime(item.tempo_total)}
                         </span>
+                      </td>
+                      <td className="px-4 py-4 text-right border-l border-zinc-200">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => navigate(`/agency/listas/${item.id}`)}
+                            className="p-1.5 text-zinc-400 hover:text-[#0066ff] hover:bg-blue-50 rounded transition-colors"
+                            title="Editar Lista"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id, item.nome)}
+                            className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                            title="Excluir Lista"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
