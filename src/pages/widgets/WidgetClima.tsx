@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Cloud, CloudLightning, CloudRain, CloudSnow, Sun, Wind } from 'lucide-react';
+import { Cloud, CloudLightning, CloudRain, CloudSnow, Sun, Wind, Droplets, Thermometer, Sunrise, Sunset, Moon, CloudSun, CloudMoon } from 'lucide-react';
 
 export default function WidgetClima() {
    const [searchParams] = useSearchParams();
@@ -10,8 +10,14 @@ export default function WidgetClima() {
    const [weather, setWeather] = useState({
       temp: 0,
       condition: '',
+      description: '',
       humidity: '0%',
       wind: '0 km/h',
+      feels_like: 0,
+      sunrise: '--:--',
+      sunset: '--:--',
+      clouds: '0%',
+      icon_id: '01d',
       isDay: 1
    });
    const [loading, setLoading] = useState(true);
@@ -19,7 +25,6 @@ export default function WidgetClima() {
    useEffect(() => {
       async function fetchWeather() {
          try {
-            // Fazer requisição para a nossa própria API que possui a chave do OpenWeather
             const res = await fetch(`/api/clima?cidade=${encodeURIComponent(cidade)}&estado=${encodeURIComponent(estado)}`);
             const data = await res.json();
 
@@ -30,63 +35,179 @@ export default function WidgetClima() {
             setWeather({
                temp: data.temp,
                condition: data.condition,
+               description: data.description || data.condition,
                humidity: data.humidity,
                wind: data.wind,
+               feels_like: data.feels_like || data.temp,
+               sunrise: data.sunrise || '--:--',
+               sunset: data.sunset || '--:--',
+               clouds: data.clouds || '0%',
+               icon_id: data.icon_id || (data.isDay ? '01d' : '01n'),
                isDay: data.isDay
             });
 
          } catch (err: any) {
             console.error(err);
-            setWeather({ temp: 25, condition: err.message || 'Erro na API', humidity: '--', wind: '--', isDay: 1 });
          } finally {
             setLoading(false);
          }
       }
       fetchWeather();
-
-      // Atualiza a cada 30 minutos
       const interval = setInterval(fetchWeather, 30 * 60 * 1000);
       return () => clearInterval(interval);
    }, [cidade, estado]);
 
-   const bgClass = weather.isDay ? 'bg-gradient-to-br from-sky-400 to-blue-600' : 'bg-gradient-to-br from-indigo-900 to-slate-900';
+   const renderMainIcon = () => {
+      const code = weather.icon_id.slice(0, 2);
+      const isDay = weather.icon_id.includes('d');
+      const props = { className: "w-[15vh] h-[15vh] text-white fill-white/20 shrink-0 drop-shadow-md" };
+      
+      switch(code) {
+         case '01': return isDay ? <Sun {...props} className="w-[15vh] h-[15vh] text-yellow-300 fill-yellow-300/50" /> : <Moon {...props} />;
+         case '02': 
+         case '03':
+         case '04': return isDay ? <CloudSun {...props} /> : <CloudMoon {...props} />;
+         case '09':
+         case '10': return <CloudRain {...props} />;
+         case '11': return <CloudLightning {...props} />;
+         case '13': return <CloudSnow {...props} />;
+         case '50': return <Cloud {...props} />;
+         default: return isDay ? <Sun {...props} className="w-[15vh] h-[15vh] text-yellow-300 fill-yellow-300/50" /> : <Moon {...props} />;
+      }
+   };
 
    if (loading) {
-      return <div className={`w-screen h-screen ${bgClass}`}></div>;
+      return <div className="w-screen h-screen bg-[#f3f4f6]"></div>;
    }
 
    return (
-      <div className={`w-screen h-screen ${bgClass} flex flex-col items-center justify-between text-white overflow-hidden p-[4vh] transition-opacity duration-1000`}>
+      <div className="w-screen h-screen bg-[#f3f4f6] flex flex-col font-sans overflow-hidden">
+         {/* Top Bar */}
+         <div className="relative w-full h-[15vh] bg-white flex shadow-md overflow-hidden shrink-0">
+           {/* Dark blue section */}
+           <div className="absolute top-0 left-0 h-full w-[80vw] bg-[#0f204b] z-10" style={{ clipPath: 'polygon(0 0, 100% 0, 93% 100%, 0 100%)' }}>
+             <div className="flex items-center h-full pl-[5vw]">
+                <h1 className="text-white text-[4.5vh] font-bold tracking-widest">PREVISÃO DO TEMPO</h1>
+             </div>
+           </div>
+           
+           {/* Faint pattern overlay on blue (optional) */}
+           <div className="absolute top-0 left-[40vw] h-full w-[40vw] opacity-10 z-10 pointer-events-none flex flex-wrap gap-[1vw] p-[2vh] items-center justify-center overflow-hidden">
+               {Array.from({length: 40}).map((_, i) => (
+                  <Cloud key={i} className="w-[2.5vh] h-[2.5vh] text-white" />
+               ))}
+           </div>
 
-         <h1 className="text-[6vh] font-bold mt-[2vh] drop-shadow-lg text-center leading-tight max-w-[90vw] shrink-0">{cidade} - {estado}</h1>
-
-         <div className="flex flex-col sm:flex-row items-center justify-center gap-[4vw] flex-1 min-h-0 py-[2vh] drop-shadow-lg w-full">
-            {weather.condition === 'Chuvoso' ? (
-               <CloudRain className="w-[25vh] h-[25vh] text-blue-200 shrink-0" />
-            ) : weather.isDay ? (
-               <Sun className="w-[25vh] h-[25vh] text-yellow-300 shrink-0" />
-            ) : (
-               <Cloud className="w-[25vh] h-[25vh] text-slate-300 shrink-0" />
-            )}
-            <div className="flex flex-col items-center">
-               <span className="text-[20vh] font-black leading-none">{weather.temp}°C</span>
-               <span className="text-[5vh] font-medium tracking-wide drop-shadow-md text-center mt-[1vh]">
-                  {weather.condition}
-               </span>
-            </div>
+           {/* Right section (OpenWeather logo) */}
+           <div className="absolute right-[5vw] top-0 h-full flex items-center justify-end z-0">
+              <div className="flex flex-col items-center mt-[2vh]">
+                 <Sun className="w-[5vh] h-[5vh] text-[#eb6e4b] fill-[#eb6e4b]" />
+                 <span className="text-zinc-800 font-bold text-[2vh] leading-none mt-1 tracking-tight">OpenWeather</span>
+              </div>
+           </div>
          </div>
 
-         <div className="flex flex-wrap justify-center items-center gap-[4vw] sm:gap-[8vw] mb-[2vh] text-[3.5vh] opacity-90 drop-shadow-md bg-black/20 px-[6vw] py-[2.5vh] rounded-[2.5vh] backdrop-blur-sm border border-white/10 max-w-[95vw] shrink-0">
-            <div className="flex items-center gap-[2vw]">
-               <CloudRain className="w-[5vh] h-[5vh] shrink-0" />
-               <span className="whitespace-nowrap">Umidade: {weather.humidity}</span>
+         {/* Content Area */}
+         <div className="flex-1 flex flex-col px-[5vw] pb-[5vh] relative z-20">
+            {/* City Title */}
+            <div className="flex items-center mt-[6vh] mb-[6vh]">
+               <div className="flex h-[8vh]">
+                  <div className="w-[2.5vw] bg-[#0f204b] skew-x-[-20deg]"></div>
+                  <div className="w-[2.5vw] bg-[#0052cc] skew-x-[-20deg] -ml-[1vw]"></div>
+               </div>
+               <h2 className="text-[7vh] font-black text-[#0f204b] ml-[2vw] uppercase tracking-wider">{cidade}</h2>
             </div>
-            <div className="flex items-center gap-[2vw]">
-               <Wind className="w-[5vh] h-[5vh] shrink-0" />
-               <span className="whitespace-nowrap">Vento: {weather.wind}</span>
+
+            {/* Main Cards */}
+            <div className="flex justify-center items-stretch flex-1 gap-[2vw]">
+               
+               {/* Left Card: Today */}
+               <div className="relative w-[30vw] bg-[#22272e] rounded-[40px] flex flex-col items-center justify-center shadow-2xl overflow-hidden shrink-0 py-[4vh]">
+                 {/* Yellow corner accent top left */}
+                 <div className="absolute top-0 left-0 w-[6vw] h-[6vw] bg-[#facc15]" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}></div>
+                 
+                 <h3 className="text-[#facc15] italic text-[4.5vh] font-bold mb-[3vh] z-10">Hoje</h3>
+                 
+                 <div className="mb-[3vh] z-10">
+                    {renderMainIcon()}
+                 </div>
+
+                 <div className="text-white text-[12vh] font-black leading-none mb-[2vh] z-10">{weather.temp}°</div>
+                 <div className="text-white text-[3vh] font-semibold text-center z-10 px-[2vw] leading-tight">{weather.description}</div>
+                 <div className="text-white/70 text-[2.5vh] mt-[1vh] z-10">{weather.clouds}</div>
+               </div>
+
+               {/* Chevron Separator */}
+               <div className="flex items-center justify-center shrink-0 w-[6vw]">
+                 <svg viewBox="0 0 24 24" className="w-[8vw] h-[12vh] text-[#facc15] fill-[#facc15] drop-shadow-md">
+                    <path d="M5 3l14 9-14 9v-5l6.2-4L5 8V3z"/>
+                 </svg>
+               </div>
+
+               {/* Right Card: Details Grid */}
+               <div className="relative flex-1 bg-[#15234b] rounded-[40px] p-[6vh] shadow-2xl overflow-hidden flex flex-col justify-center">
+                 {/* Yellow corner accent bottom right */}
+                 <div className="absolute bottom-0 right-0 w-[6vw] h-[6vw] bg-[#facc15]" style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 100%)' }}></div>
+
+                 <div className="grid grid-cols-3 gap-y-[8vh] gap-x-[4vw] z-10 relative">
+                    {/* Vento */}
+                    <div className="flex items-center gap-[1.5vw]">
+                       <Wind className="w-[6vh] h-[6vh] text-white shrink-0 drop-shadow" />
+                       <div className="flex flex-col justify-center">
+                          <span className="text-white/80 text-[2.2vh] font-medium leading-tight mb-1">Vento</span>
+                          <span className="text-white text-[4vh] font-bold leading-none">{weather.wind}</span>
+                       </div>
+                    </div>
+                    
+                    {/* Umidade */}
+                    <div className="flex items-center gap-[1.5vw]">
+                       <Droplets className="w-[6vh] h-[6vh] text-[#e879f9] fill-[#e879f9]/20 shrink-0 drop-shadow" />
+                       <div className="flex flex-col justify-center">
+                          <span className="text-white/80 text-[2.2vh] font-medium leading-tight mb-1">Umidade</span>
+                          <span className="text-white text-[4vh] font-bold leading-none">{weather.humidity}</span>
+                       </div>
+                    </div>
+
+                    {/* Chuva */}
+                    <div className="flex items-center gap-[1.5vw]">
+                       <CloudRain className="w-[6vh] h-[6vh] text-[#93c5fd] fill-[#93c5fd]/20 shrink-0 drop-shadow" />
+                       <div className="flex flex-col justify-center">
+                          <span className="text-white/80 text-[2.2vh] font-medium leading-tight mb-1">Chuva</span>
+                          <span className="text-white text-[4vh] font-bold leading-none">0%</span>
+                       </div>
+                    </div>
+
+                    {/* Sensação Térmica */}
+                    <div className="flex items-center gap-[1.5vw]">
+                       <Thermometer className="w-[6vh] h-[6vh] text-[#f87171] shrink-0 drop-shadow" />
+                       <div className="flex flex-col justify-center">
+                          <span className="text-white/80 text-[2.2vh] font-medium leading-tight mb-1">Sensação<br/>Térmica</span>
+                          <span className="text-white text-[4vh] font-bold leading-none">{weather.feels_like}°</span>
+                       </div>
+                    </div>
+
+                    {/* Amanhecer */}
+                    <div className="flex items-center gap-[1.5vw]">
+                       <Sunrise className="w-[6vh] h-[6vh] text-[#facc15] shrink-0 drop-shadow" />
+                       <div className="flex flex-col justify-center">
+                          <span className="text-white/80 text-[2.2vh] font-medium leading-tight mb-1">Amanhecer</span>
+                          <span className="text-white text-[4vh] font-bold leading-none">{weather.sunrise}</span>
+                       </div>
+                    </div>
+
+                    {/* Pôr do Sol */}
+                    <div className="flex items-center gap-[1.5vw]">
+                       <Sunset className="w-[6vh] h-[6vh] text-[#2dd4bf] shrink-0 drop-shadow" />
+                       <div className="flex flex-col justify-center">
+                          <span className="text-white/80 text-[2.2vh] font-medium leading-tight mb-1">Pôr do Sol</span>
+                          <span className="text-white text-[4vh] font-bold leading-none">{weather.sunset}</span>
+                       </div>
+                    </div>
+                 </div>
+               </div>
+
             </div>
          </div>
-
       </div>
    );
 }

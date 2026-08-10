@@ -337,12 +337,28 @@ class Api extends ResourceController
                 $condition = 'Nublado';
             }
 
+            $description = ucfirst($weatherData['weather'][0]['description'] ?? '');
+            $feels_like = round($weatherData['main']['feels_like'] ?? $weatherData['main']['temp']);
+            
+            $timezone_offset = $weatherData['timezone'] ?? -10800; // default to GMT-3 se nao existir
+            $sunrise_ts = ($weatherData['sys']['sunrise'] ?? time()) + $timezone_offset;
+            $sunset_ts = ($weatherData['sys']['sunset'] ?? time()) + $timezone_offset;
+            $sunrise = gmdate('H:i', $sunrise_ts);
+            $sunset = gmdate('H:i', $sunset_ts);
+            $clouds = ($weatherData['clouds']['all'] ?? 0) . '%';
+
             return $this->respond([
                 'temp' => round($weatherData['main']['temp']),
                 'condition' => $condition,
+                'description' => $description,
                 'humidity' => $weatherData['main']['humidity'] . '%',
                 'wind' => round($weatherData['wind']['speed'] * 3.6) . ' km/h', // m/s to km/h
-                'isDay' => $isDay
+                'isDay' => $isDay,
+                'feels_like' => $feels_like,
+                'sunrise' => $sunrise,
+                'sunset' => $sunset,
+                'clouds' => $clouds,
+                'icon_id' => $icon
             ]);
 
         } catch (\Exception $e) {
