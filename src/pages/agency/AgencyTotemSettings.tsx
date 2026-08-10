@@ -185,8 +185,8 @@ export default function AgencyTotemSettings() {
           id_monetizacao: idMonetizacao
         }),
       });
-      loadTotem();
       alert('Configurações salvas com sucesso!');
+      navigate('/agency/totems');
     } catch (err: any) {
       alert(err.message);
     }
