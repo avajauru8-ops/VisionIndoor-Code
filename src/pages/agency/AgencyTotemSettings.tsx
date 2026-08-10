@@ -365,9 +365,12 @@ export default function AgencyTotemSettings() {
                   ))}
                 </select>
               ) : (
-                <div className="flex-1 text-sm text-[#104a9e] border-b border-dashed border-zinc-200 pb-1 flex items-center gap-1">
+                <div 
+                  className="flex-1 text-sm text-[#104a9e] border-b border-dashed border-zinc-200 pb-1 flex items-center gap-1 cursor-pointer hover:text-[#0052cc] group"
+                  onClick={() => listaReproducao ? navigate(`/agency/listas/${listaReproducao}`) : null}
+                >
                   {listaReproducao ? listas.find(l => l.id === listaReproducao)?.nome : 'Nenhuma'}
-                  {listaReproducao && <ExternalLink className="w-3 h-3 cursor-pointer hover:text-[#0052cc]" onClick={() => navigate('/agency/playlists')} />}
+                  {listaReproducao && <ExternalLink className="w-3 h-3 text-[#104a9e] group-hover:text-[#0052cc]" />}
                 </div>
               )}
             </div>
