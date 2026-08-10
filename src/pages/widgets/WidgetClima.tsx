@@ -24,6 +24,7 @@ export default function WidgetClima() {
 
    useEffect(() => {
       async function fetchWeather() {
+         const cacheKey = `weather_${cidade}_${estado}`;
          try {
             const res = await fetch(`/api/clima?cidade=${encodeURIComponent(cidade)}&estado=${encodeURIComponent(estado)}`);
             const data = await res.json();
@@ -32,7 +33,7 @@ export default function WidgetClima() {
                throw new Error(data.messages?.error || data.erro || 'Erro ao carregar clima');
             }
 
-            setWeather({
+            const weatherData = {
                temp: data.temp,
                condition: data.condition,
                description: data.description || data.condition,
@@ -44,10 +45,22 @@ export default function WidgetClima() {
                clouds: data.clouds || '0%',
                icon_id: data.icon_id || (data.isDay ? '01d' : '01n'),
                isDay: data.isDay
-            });
+            };
+
+            setWeather(weatherData);
+            localStorage.setItem(cacheKey, JSON.stringify(weatherData));
 
          } catch (err: any) {
             console.error(err);
+            // Fallback for offline mode
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+               try {
+                  setWeather(JSON.parse(cached));
+               } catch (e) {
+                  console.error("Erro ao fazer parse do cache de clima");
+               }
+            }
          } finally {
             setLoading(false);
          }

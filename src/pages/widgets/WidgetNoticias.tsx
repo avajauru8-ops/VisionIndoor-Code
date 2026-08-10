@@ -79,13 +79,21 @@ export default function WidgetNoticias() {
         }
 
         setNoticia({ title, image, category: itemCategory });
+        localStorage.setItem(`noticias_${feed}_${mode}`, JSON.stringify({ title, image, category: itemCategory }));
       } catch (err) {
         console.error('Error parsing RSS:', err);
-        setNoticia({
-          title: 'Notícias Indisponíveis no momento',
-          image: null,
-          category: 'Aviso'
-        });
+        const cached = localStorage.getItem(`noticias_${feed}_${mode}`);
+        if (cached) {
+          try {
+            setNoticia(JSON.parse(cached));
+          } catch(e) {}
+        } else {
+          setNoticia({
+            title: 'Notícias Indisponíveis no momento',
+            image: null,
+            category: 'Aviso'
+          });
+        }
       } finally {
         setLoading(false);
       }

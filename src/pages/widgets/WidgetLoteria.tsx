@@ -46,9 +46,29 @@ export default function WidgetLoteria() {
               const valorFormatado = (data.valorEstimadoProximoConcurso / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
               setPremio(`R$ ${valorFormatado} Milhões`);
            }
+           
+           localStorage.setItem(`loteria_${tipo}`, JSON.stringify(data));
         } catch (error) {
            console.error('Erro ao carregar loteria:', error);
-           // Fallback para valores simulados em caso de erro da API
+           
+           const cached = localStorage.getItem(`loteria_${tipo}`);
+           if (cached) {
+              try {
+                 const data = JSON.parse(cached);
+                 if (data.listaDezenas) setNumbers(data.listaDezenas);
+                 if (data.dataApuracao) setDataSorteio(data.dataApuracao);
+                 if (data.numero) setConcurso(data.numero.toString());
+                 if (data.valorEstimadoProximoConcurso) {
+                    const valorFormatado = (data.valorEstimadoProximoConcurso / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+                    setPremio(`R$ ${valorFormatado} Milhões`);
+                 }
+                 return;
+              } catch (e) {
+                 console.error('Erro parse cache loteria', e);
+              }
+           }
+           
+           // Fallback para valores simulados em caso de erro da API e sem cache
            const today = new Date();
            const seed = today.getFullYear() * 1000 + today.getMonth() * 100 + today.getDate() + (tipo === 'megasena' ? 1 : 2);
            setNumbers(generateNumbers(tipo === 'lotofacil' ? 15 : tipo === 'quina' ? 5 : 6, seed));
