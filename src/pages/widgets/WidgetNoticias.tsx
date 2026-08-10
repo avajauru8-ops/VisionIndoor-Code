@@ -106,45 +106,45 @@ export default function WidgetNoticias() {
       
       {/* Top Left: NOTÍCIA */}
       <div 
-        className="absolute top-0 left-0 h-[12vh] w-[35vw] bg-[#8B0021] z-10 flex items-center justify-center shadow-2xl" 
+        className="absolute top-0 left-0 h-[12vh] portrait:h-[7vh] w-[35vw] portrait:w-[60vw] bg-[#8B0021] z-10 flex items-center justify-center shadow-2xl" 
         style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 0 100%)' }}
       >
-         <span className="text-white font-bold text-[5.5vh] tracking-widest ml-[-2vw]">NOTÍCIA</span>
+         <span className="text-white font-bold text-[5.5vh] portrait:text-[3vh] tracking-widest ml-[-2vw]">NOTÍCIA</span>
       </div>
 
       {/* Top Right: UOL Logo */}
       <div 
-        className="absolute top-0 right-0 h-[10vh] w-[25vw] bg-white z-10 flex items-center justify-center shadow-2xl" 
+        className="absolute top-0 right-0 h-[10vh] portrait:h-[6vh] w-[25vw] portrait:w-[45vw] bg-white z-10 flex items-center justify-center shadow-2xl" 
         style={{ clipPath: 'polygon(15% 0, 100% 0, 100% 100%, 0 100%)' }}
       >
-         <div className="flex items-center gap-[1.5vw] ml-[3vw]">
-            <div className="w-[6vh] h-[6vh] rounded-full bg-gradient-to-tr from-[#FF6600] to-[#FFCC00] shadow-inner relative flex items-center justify-center">
-              <div className="w-[3.5vh] h-[3.5vh] rounded-full bg-gradient-to-tr from-[#990000] to-[#FF6600]"></div>
+         <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw] ml-[3vw]">
+            <div className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] rounded-full bg-gradient-to-tr from-[#FF6600] to-[#FFCC00] shadow-inner relative flex items-center justify-center">
+              <div className="w-[3.5vh] h-[3.5vh] portrait:w-[2vh] portrait:h-[2vh] rounded-full bg-gradient-to-tr from-[#990000] to-[#FF6600]"></div>
             </div>
-            <span className="text-black font-black text-[6vh] tracking-tighter">UOL</span>
+            <span className="text-black font-black text-[6vh] portrait:text-[3.5vh] tracking-tighter">UOL</span>
          </div>
       </div>
 
       {/* Bottom Area Overlay for readability */}
-      <div className="absolute bottom-0 left-0 w-full h-[40vh] bg-gradient-to-t from-black/95 via-black/60 to-transparent z-10"></div>
+      <div className="absolute bottom-0 left-0 w-full h-[40vh] portrait:h-[25vh] bg-gradient-to-t from-black/95 via-black/60 to-transparent z-10"></div>
       
       {/* Divider lines across the screen */}
-      <div className="absolute bottom-[30vh] left-0 w-full z-20 flex flex-col">
+      <div className="absolute bottom-[30vh] portrait:bottom-[18vh] left-0 w-full z-20 flex flex-col">
          <div className="h-[0.3vh] w-full bg-[#8B0021]"></div>
          <div className="h-[0.3vh] w-full bg-white opacity-90"></div>
       </div>
 
       {/* Category Box */}
       <div 
-        className="absolute bottom-[30.6vh] left-[6vw] h-[6vh] w-[22vw] bg-[#ad0029] z-30 flex items-center justify-center" 
+        className="absolute bottom-[30.6vh] portrait:bottom-[18.3vh] left-[6vw] portrait:left-[4vw] h-[6vh] portrait:h-[4vh] w-[22vw] portrait:w-[45vw] bg-[#ad0029] z-30 flex items-center justify-center" 
         style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 0 100%)' }}
       >
-         <span className="text-white font-bold text-[3vh] tracking-widest italic ml-[-2vw]">{categoryName.toUpperCase()}</span>
+         <span className="text-white font-bold text-[3vh] portrait:text-[2vh] tracking-widest italic ml-[-2vw] portrait:ml-[-4vw]">{categoryName.toUpperCase()}</span>
       </div>
 
       {/* Title Text */}
-      <div className="absolute bottom-[8vh] left-[6vw] right-[6vw] z-40">
-         <h1 className="text-white font-bold text-[7vh] leading-[1.1] italic drop-shadow-2xl line-clamp-3">
+      <div className="absolute bottom-[8vh] portrait:bottom-[4vh] left-[6vw] portrait:left-[4vw] right-[6vw] portrait:right-[4vw] z-40">
+         <h1 className="text-white font-bold text-[7vh] portrait:text-[4vh] leading-[1.1] portrait:leading-[1.2] italic drop-shadow-2xl line-clamp-3 portrait:line-clamp-4">
              {noticia?.title || 'CARREGANDO NOTÍCIA...'}
          </h1>
       </div>
