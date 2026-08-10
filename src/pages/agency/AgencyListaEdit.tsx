@@ -4,7 +4,7 @@ import { apiFetch } from '../../lib/api';
 import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors, useDraggable, useDroppable } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { List, Settings, Save, X, Search, FileText, Play, DownloadCloud, GripVertical, Plus, Copy, MinusCircle } from 'lucide-react';
+import { List, Settings, Save, X, Search, FileText, Play, DownloadCloud, GripVertical, Plus, Copy, MinusCircle, Pencil } from 'lucide-react';
 
 interface Media {
   id: string;
@@ -326,6 +326,7 @@ export default function AgencyListaEdit() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -385,7 +386,9 @@ export default function AgencyListaEdit() {
           }))
         })
       });
-      navigate('/agency/listas');
+      alert('Lista salva com sucesso!');
+      setIsEditing(false);
+      loadData();
     } catch (err) {
       console.error(err);
       alert('Erro ao salvar.');
@@ -497,21 +500,33 @@ export default function AgencyListaEdit() {
         </div>
         
         <div className="flex items-center gap-2">
-          <button 
-            onClick={() => navigate('/agency/listas')}
-            className="bg-zinc-200 hover:bg-zinc-300 text-zinc-700 text-[10px] font-bold px-4 py-2 rounded transition-colors uppercase flex items-center gap-1.5 shadow-sm"
-          >
-            <X className="w-3.5 h-3.5" />
-            CANCELAR EDIÇÃO
-          </button>
-          <button 
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-[#0066ff] hover:bg-[#0052cc] text-white text-[10px] font-bold px-6 py-2 rounded transition-colors uppercase flex items-center gap-1.5 shadow-sm disabled:opacity-50"
-          >
-            <Save className="w-3.5 h-3.5" />
-            {saving ? 'SALVANDO...' : 'SALVAR'}
-          </button>
+          {isEditing ? (
+            <>
+              <button 
+                onClick={() => { setIsEditing(false); loadData(); }}
+                className="bg-zinc-200 hover:bg-zinc-300 text-zinc-700 text-[10px] font-bold px-4 py-2 rounded transition-colors uppercase flex items-center gap-1.5 shadow-sm"
+              >
+                <X className="w-3.5 h-3.5" />
+                CANCELAR EDIÇÃO
+              </button>
+              <button 
+                onClick={handleSave}
+                disabled={saving}
+                className="bg-[#0066ff] hover:bg-[#0052cc] text-white text-[10px] font-bold px-6 py-2 rounded transition-colors uppercase flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+              >
+                <Save className="w-3.5 h-3.5" />
+                {saving ? 'SALVANDO...' : 'SALVAR'}
+              </button>
+            </>
+          ) : (
+            <button 
+              onClick={() => setIsEditing(true)}
+              className="bg-[#20b2aa] hover:bg-[#1da19a] text-white text-[10px] font-bold px-5 py-2.5 rounded transition-colors flex items-center gap-2 uppercase shadow-sm"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              HABILITAR EDIÇÃO
+            </button>
+          )}
         </div>
       </div>
 
@@ -530,12 +545,18 @@ export default function AgencyListaEdit() {
           </h3>
           <div className="flex items-center gap-4 pl-6">
             <label className="text-xs font-bold text-[#e74c3c] w-32 text-right">Nome da Lista: *</label>
-            <input 
-              type="text" 
-              value={lista.nome}
-              onChange={e => setLista({...lista, nome: e.target.value})}
-              className="flex-1 max-w-lg border border-dashed border-[#0066ff] rounded px-3 py-2 text-sm text-[#0066ff] font-bold focus:outline-none focus:ring-1 focus:ring-[#0066ff]"
-            />
+            {isEditing ? (
+              <input 
+                type="text" 
+                value={lista.nome}
+                onChange={e => setLista({...lista, nome: e.target.value})}
+                className="flex-1 max-w-lg border border-dashed border-[#0066ff] rounded px-3 py-2 text-sm text-[#0066ff] font-bold focus:outline-none focus:ring-1 focus:ring-[#0066ff]"
+              />
+            ) : (
+              <div className="flex-1 max-w-lg text-sm text-[#0066ff] font-bold border-b border-dashed border-[#0066ff] pb-1">
+                {lista.nome}
+              </div>
+            )}
           </div>
         </div>
 
@@ -556,7 +577,7 @@ export default function AgencyListaEdit() {
           </div>
 
           <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${!isEditing ? 'opacity-70 pointer-events-none' : ''}`}>
               
               {/* Library Panel (Left) */}
               <div className="border border-zinc-200 rounded flex flex-col h-[500px]">
