@@ -30,6 +30,7 @@ const WIDGETS_BASE: Media[] = [
   { id: 'w-loteria', titulo: 'Widget de Loteria', tipo_midia: 'widget', arquivo_url: 'loteria?tipo=megasena' },
   { id: 'w-noticias', titulo: 'Widget de Notícias (RSS)', tipo_midia: 'widget', arquivo_url: 'noticias?feed=noticias' },
   { id: 'w-youtube', titulo: 'Widget do YouTube', tipo_midia: 'widget', arquivo_url: 'youtube?url=&loop=1&mute=1' },
+  { id: 'w-frases', titulo: 'Widget de Frases e Pensamentos', tipo_midia: 'widget', arquivo_url: 'frases' },
 ];
 
 const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key: string, value: string) => void }) => {
