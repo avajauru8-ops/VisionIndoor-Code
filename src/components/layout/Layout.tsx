@@ -42,7 +42,7 @@ export default function Layout() {
     logo_url: '',
     show_apk_banner: true,
     apk_banner_title: 'Player Android',
-    apk_banner_desc: 'Baixe o APK para rodar suas playlists em TVs ou Totens.',
+    apk_banner_desc: 'Baixe o APK para rodar suas playlists em Telas ou Totens.',
     apk_banner_btn_text: 'Instalar Player',
     apk_file_url: ''
   });
@@ -80,7 +80,7 @@ export default function Layout() {
   ];
 
   const agencyLinks: MenuItem[] = [
-    { name: 'TVs', path: '/agency/totems', icon: Tv, category: 'MENU' },
+    { name: 'Telas', path: '/agency/totems', icon: Tv, category: 'MENU' },
     { name: 'Arquivos', path: '/agency/arquivos', icon: ImageIcon, category: 'MENU' },
     { name: 'Lista de Reprodução', path: '/agency/listas', icon: List, category: 'MENU' },
   ];
@@ -283,7 +283,7 @@ export default function Layout() {
               </div>
               <p className="font-bold text-white text-xs leading-tight">{sysSettings.apk_banner_title || 'Player Android'}</p>
               <p className="text-[10px] text-emerald-200/80 leading-normal">
-                {sysSettings.apk_banner_desc || 'Baixe o APK para rodar suas playlists em TVs ou Totens.'}
+                {sysSettings.apk_banner_desc || 'Baixe o APK para rodar suas playlists em Telas ou Totens.'}
               </p>
               {sysSettings.apk_file_url ? (
                 <a 

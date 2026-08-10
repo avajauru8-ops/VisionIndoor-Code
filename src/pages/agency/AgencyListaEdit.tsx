@@ -600,7 +600,7 @@ export default function AgencyListaEdit() {
               {/* Playlist Panel (Right) */}
               <div className="border-2 border-dashed border-[#2ecc71] bg-emerald-50/10 rounded flex flex-col h-[500px]">
                 <div className="py-2 text-center text-xs font-bold text-[#2ecc71] border-b-2 border-dashed border-[#2ecc71]">
-                  Lista Final que será exibida na TVs
+                  Lista Final que será exibida nas Telas
                 </div>
                 <div className="p-3 border-b border-dashed border-[#2ecc71] bg-emerald-50/20">
                    <div className="relative flex items-center gap-2">

@@ -12,7 +12,7 @@ export default function AdminIntegration() {
     logo_url: '',
     show_apk_banner: true,
     apk_banner_title: 'Player Android',
-    apk_banner_desc: 'Baixe o APK para rodar suas playlists em TVs ou Totens.',
+    apk_banner_desc: 'Baixe o APK para rodar suas playlists em Telas ou Totens.',
     apk_banner_btn_text: 'Instalar Player',
     apk_file_url: ''
   });
@@ -53,7 +53,7 @@ export default function AdminIntegration() {
       formData.append('nome_painel', settings.nome_painel || 'GrandMídia');
       formData.append('show_apk_banner', String(settings.show_apk_banner));
       formData.append('apk_banner_title', settings.apk_banner_title || 'Player Android');
-      formData.append('apk_banner_desc', settings.apk_banner_desc || 'Baixe o APK para rodar suas playlists em TVs ou Totens.');
+      formData.append('apk_banner_desc', settings.apk_banner_desc || 'Baixe o APK para rodar suas playlists em Telas ou Totens.');
       formData.append('apk_banner_btn_text', settings.apk_banner_btn_text || 'Instalar Player');
       
       if (settings.logo_url) {

@@ -53,7 +53,7 @@ export default function AgencyTotems() {
       setShowForm(false);
       loadTotems();
     } catch (err: any) {
-      if (err.message === 'Limite de TVs atingindo' || err.code === 'LIMIT_REACHED') {
+      if (err.message === 'Limite de Telas atingido' || err.code === 'LIMIT_REACHED') {
         setShowForm(false);
         setShowLimitModal(true);
       } else {
@@ -63,7 +63,7 @@ export default function AgencyTotems() {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm('Deseja realmente excluir esta TV?')) {
+    if (confirm('Deseja realmente desvincular esta Tela?')) {
       try {
         await apiFetch(`/api/totems/${id}`, { method: 'DELETE' });
         loadTotems();
@@ -122,14 +122,14 @@ export default function AgencyTotems() {
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <h2 className="text-xl font-bold text-[#104a9e] flex items-center gap-2 uppercase tracking-wide">
           <Tv className="w-6 h-6" />
-          TVS
+          TELAS
         </h2>
         <button 
           onClick={() => { setShowForm(true); setError(''); }}
           className="bg-[#0066ff] hover:bg-[#0052cc] text-white text-[11px] font-bold px-4 py-2.5 rounded transition-colors flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          VINCULAR TV
+          VINCULAR TELA
         </button>
       </div>
 
@@ -161,7 +161,7 @@ export default function AgencyTotems() {
           </button>
         </div>
         <div className="flex items-center gap-2">
-          TVS POR PÁGINA
+          TELAS POR PÁGINA
           <button className="flex items-center gap-1 text-zinc-600 border border-zinc-300 rounded px-2 py-0.5">
             15 <ChevronDown className="w-3 h-3" />
           </button>
@@ -183,7 +183,7 @@ export default function AgencyTotems() {
             <tbody>
               {totems.length === 0 && !loading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-zinc-400">Nenhuma TV cadastrada.</td>
+                  <td colSpan={4} className="px-6 py-12 text-center text-zinc-400">Nenhuma Tela cadastrada.</td>
                 </tr>
               ) : (
                 totems.map(totem => (
@@ -201,10 +201,8 @@ export default function AgencyTotems() {
                         </Link>
                         
                         {/* New Icon Button here */}
-                        <a 
-                          href="https://meu.adeuspendrive.com/hc/autostartdisabled/e9c2da4f9400f13c866475aaf11c90f2" 
-                          target="_blank" 
-                          rel="noreferrer"
+                        <Link 
+                          to="/agency/help/autostart"
                           className="w-7 h-7 rounded border border-orange-200 bg-orange-50 text-orange-400 flex items-center justify-center hover:bg-orange-100 transition-colors relative group shrink-0"
                         >
                           <SkipForward className="w-3.5 h-3.5" />
@@ -214,7 +212,7 @@ export default function AgencyTotems() {
                             O app não iniciará automaticamente até que seja liberado a permissão de "sobreposição sobre outros apps" no Android.
                             <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#2d2d2d]"></div>
                           </div>
-                        </a>
+                        </Link>
 
                         <Link to={`/agency/totems/${totem.id}`} className="font-semibold text-zinc-700 hover:text-[#104a9e] hover:underline whitespace-nowrap">
                           {totem.nome}
@@ -224,7 +222,7 @@ export default function AgencyTotems() {
                     <td className="px-4 py-4">
                       {/* Link to Settings page */}
                       <Link to={`/agency/totems/${totem.id}`} className="inline-block bg-[#e74c3c] hover:bg-[#c0392b] text-white text-[10px] font-bold px-3 py-1.5 rounded transition-colors uppercase">
-                        Selecione uma lista de reprodução para essa TV!
+                        Selecione uma lista de reprodução para essa Tela!
                       </Link>
                     </td>
                     <td className="px-4 py-4 text-center relative">
@@ -234,7 +232,7 @@ export default function AgencyTotems() {
                       <button 
                         onClick={() => handleDelete(totem.id)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-2 text-zinc-400 hover:text-red-500 transition-all"
-                        title="Excluir TV"
+                        title="Desvincular Tela"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -249,7 +247,7 @@ export default function AgencyTotems() {
 
       {/* Pagination Footer */}
       <div className="text-[10px] text-zinc-500 uppercase tracking-wide">
-        Mostrando de 1 a {totems.length} de {totems.length} TV{totems.length !== 1 ? 'S' : ''}
+        Mostrando de 1 a {totems.length} de {totems.length} TELA{totems.length !== 1 ? 'S' : ''}
       </div>
 
       {/* Legends */}
@@ -272,12 +270,12 @@ export default function AgencyTotems() {
         </div>
       </div>
 
-      {/* Modal Vincular TV */}
+      {/* Modal Vincular Tela */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
-              <h3 className="text-sm font-bold text-zinc-800">Vincular TV</h3>
+              <h3 className="text-sm font-bold text-zinc-800">Vincular Tela</h3>
               <button onClick={() => setShowForm(false)} className="text-zinc-400 hover:text-zinc-600">
                 <X className="w-5 h-5" />
               </button>
@@ -286,16 +284,16 @@ export default function AgencyTotems() {
               {error && <div className="mb-4 text-xs text-red-600 bg-red-50 p-3 rounded">{error}</div>}
               
               <div className="mb-6">
-                <label className="block text-xs font-bold text-zinc-600 mb-2">Código da TV</label>
+                <label className="block text-xs font-bold text-zinc-600 mb-2">Código da Tela</label>
                 <input
                   type="text"
                   required
                   className="w-full border border-zinc-300 rounded px-4 py-2.5 text-sm focus:border-[#104a9e] focus:outline-none transition-colors uppercase"
                   value={deviceId}
                   onChange={e => setDeviceId(e.target.value.toUpperCase())}
-                  placeholder="Informe o código exibido na TV"
+                  placeholder="Informe o código exibido na Tela"
                 />
-                <p className="text-[10px] text-zinc-400 mt-2">O nome da TV será gerado automaticamente.</p>
+                <p className="text-[10px] text-zinc-400 mt-2">O nome da Tela será gerado automaticamente.</p>
               </div>
               
               <div className="flex justify-end gap-3">
@@ -318,19 +316,22 @@ export default function AgencyTotems() {
         </div>
       )}
 
-      {/* Modal Limite de TVs Atingido */}
+      {/* Modal Limite de Telas Atingido */}
       {showLimitModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
-              <h3 className="text-sm font-bold text-zinc-800">Limite de TVs atingindo</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded p-6 max-w-sm w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-5 h-5 text-orange-500" />
+              </div>
+              <h3 className="text-sm font-bold text-zinc-800">Limite de Telas atingido</h3>
               <button onClick={() => setShowLimitModal(false)} className="text-zinc-400 hover:text-zinc-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="p-8 text-center">
               <p className="text-sm text-zinc-600 mb-2">
-                Você poderá vincular mais TVs ao realizar o upgrade de seu <a href="#" className="text-[#104a9e] hover:underline">plano</a>.
+                Você poderá vincular mais Telas ao realizar o upgrade de seu <a href="#" className="text-[#104a9e] hover:underline">plano</a>.
               </p>
               <p className="text-sm text-zinc-600 mb-8">
                 <a href="#" className="text-[#104a9e] hover:underline">Contate o Suporte</a> caso tenha qualquer dúvida.

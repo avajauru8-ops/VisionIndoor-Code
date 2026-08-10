@@ -137,13 +137,13 @@ export default function AdminUsers() {
              <div>
                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Plano</label>
                <select value={plano} onChange={e=>setPlano(e.target.value as any)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 outline-none">
-                 <option value="gratis">Grátis (1 TV)</option>
+                 <option value="gratis">Grátis (1 Tela)</option>
                  <option value="pago">Pago</option>
                </select>
              </div>
              {plano === 'pago' && (
                <div>
-                 <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Limite de TVs</label>
+                 <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Limite de Telas</label>
                  <input type="number" min="1" required value={limiteTvs} onChange={e=>setLimiteTvs(Number(e.target.value))} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm font-mono focus:border-emerald-500 outline-none transition-all" />
                </div>
              )}
@@ -232,13 +232,13 @@ export default function AdminUsers() {
                        onChange={e => setEditingUser({...editingUser, plano: e.target.value as any})} 
                        className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 outline-none"
                      >
-                       <option value="gratis">Grátis (1 TV)</option>
+                       <option value="gratis">Grátis (1 Tela)</option>
                        <option value="pago">Pago</option>
                      </select>
                    </div>
                    {editingUser.plano === 'pago' && (
                      <div>
-                       <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Limite de TVs</label>
+                       <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Limite de Telas</label>
                        <input 
                          type="number" 
                          min="1"

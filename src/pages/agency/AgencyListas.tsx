@@ -147,7 +147,7 @@ export default function AgencyListas() {
                   </th>
                   <th className="px-4 py-3 font-semibold">Nome</th>
                   <th className="px-4 py-3 font-semibold text-center border-l border-zinc-200">
-                    TVs que veiculam esta lista de reprodução
+                    Telas que veiculam esta lista de reprodução
                   </th>
                   <th className="px-4 py-3 font-semibold text-center w-40 border-l border-zinc-200">
                     Tempo de duração

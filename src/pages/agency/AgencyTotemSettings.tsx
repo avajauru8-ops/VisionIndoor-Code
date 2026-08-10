@@ -63,6 +63,10 @@ export default function AgencyTotemSettings() {
   const [limpezaAutomatica, setLimpezaAutomatica] = useState(true);
   const [tempoExibicao, setTempoExibicao] = useState(10);
   const [idMonetizacao, setIdMonetizacao] = useState('');
+  
+  // Replace Screen State
+  const [showReplaceModal, setShowReplaceModal] = useState(false);
+  const [replaceCode, setReplaceCode] = useState('');
 
   useEffect(() => {
     loadTotem();
@@ -189,13 +193,33 @@ export default function AgencyTotemSettings() {
   };
 
   const handleDelete = async () => {
-    if (confirm('Deseja realmente desvincular esta TV?')) {
+    if (confirm('Deseja realmente desvincular esta Tela?')) {
       try {
         await apiFetch(`/api/totems/${id}`, { method: 'DELETE' });
-        navigate('/agency/tvs'); // Redirecting back to TV lists
+        navigate('/agency/totems'); // Redirecting back to TV lists
       } catch (err: any) {
         alert(err.message);
       }
+    }
+  };
+
+  const handleReplace = async () => {
+    if (!replaceCode.trim()) {
+      alert('Por favor, informe o código da nova Tela.');
+      return;
+    }
+    
+    try {
+      await apiFetch(`/api/totems/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ device_id: replaceCode.trim() })
+      });
+      alert('Tela substituída com sucesso!');
+      setShowReplaceModal(false);
+      setReplaceCode('');
+      loadTotem();
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
@@ -220,7 +244,7 @@ export default function AgencyTotemSettings() {
   }
 
   if (!totem) {
-    return <div className="p-8 text-center text-red-500">TV não encontrada. {error}</div>;
+    return <div className="p-8 text-center text-red-500">Tela não encontrada. {error}</div>;
   }
 
   return (
@@ -230,7 +254,7 @@ export default function AgencyTotemSettings() {
         <div className="flex items-center gap-2">
           <Monitor className="w-6 h-6 text-[#104a9e]" />
           <h2 className="text-sm font-bold text-[#104a9e] uppercase tracking-wide flex items-center">
-            <button onClick={() => navigate('/agency/tvs')} className="hover:underline">TVS</button>
+            <button onClick={() => navigate('/agency/totems')} className="hover:underline">TELAS</button>
             <span className="mx-2 text-zinc-300">/</span> 
             <span className="text-zinc-400">{totem.nome}</span>
           </h2>
@@ -256,7 +280,7 @@ export default function AgencyTotemSettings() {
       {/* Red Alert Banner */}
       {!listaReproducao && (
         <div className="bg-[#e74c3c] text-white text-xs font-bold text-center py-3 px-4 rounded flex items-center justify-center relative">
-          <span>Escolha uma Lista de Reprodução para essa TV!<br/>Senão, nenhum conteúdo será exibido.</span>
+          <span>Escolha uma Lista de Reprodução para essa Tela!<br/>Senão, nenhum conteúdo será exibido.</span>
           <button className="absolute right-4 hover:opacity-75">
             <X className="w-4 h-4" />
           </button>
@@ -336,7 +360,7 @@ export default function AgencyTotemSettings() {
             <div className="flex md:pl-44">
               <p className="text-[10px] text-zinc-400 bg-zinc-50 p-2 rounded flex gap-2 items-start border border-zinc-100">
                 <ShieldAlert className="w-3 h-3 text-[#104a9e] shrink-0 mt-0.5" />
-                Pode levar alguns minutos para as alterações acima terem efeito. As alterações somente terão efeito se/ou quando a TV estiver Online / Funcionando corretamente.
+                As alterações acima agora são aplicadas quase em tempo real (aprox. 3 segundos) na Tela. As alterações somente terão efeito se/ou quando a Tela estiver Online / Funcionando corretamente.
               </p>
             </div>
           </div>
@@ -365,7 +389,7 @@ export default function AgencyTotemSettings() {
                   </select>
                 </div>
                 <div className="flex flex-col md:flex-row md:items-center gap-4">
-                  <label className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">Iniciar TV ao Ligar na Energia:</label>
+                  <label className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">Iniciar Tela ao Ligar na Energia:</label>
                   <select 
                     value={iniciarTvEnergia ? 'sim' : 'nao'}
                     onChange={e => setIniciarTvEnergia(e.target.value === 'sim')}
@@ -499,7 +523,7 @@ export default function AgencyTotemSettings() {
                 </button>
                 <button onClick={() => handleCommand('reiniciar_tv')} className="bg-[#7f8c8d] hover:bg-[#6c7a7d] text-white text-[10px] font-bold px-4 py-2.5 rounded uppercase flex items-center gap-2 transition-colors">
                   <Monitor className="w-3.5 h-3.5" />
-                  REINICIAR TV
+                  REINICIAR TELA
                 </button>
               </div>
             </section>
@@ -590,7 +614,7 @@ export default function AgencyTotemSettings() {
                   <span className="text-[#104a9e]">{totem.espaco_livre || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Data/Hora da TV:</span>
+                  <span>Data/Hora da Tela:</span>
                   <span className="text-[#104a9e]">{totem.ultima_sincronizacao ? format(new Date(totem.ultima_sincronizacao.replace(' ','T')), 'dd/MM/yyyy HH:mm') : 'N/A'}</span>
                 </div>
               </div>
@@ -649,13 +673,69 @@ export default function AgencyTotemSettings() {
           className="bg-[#e74c3c] hover:bg-[#c0392b] text-white text-[10px] font-bold px-4 py-2.5 rounded transition-colors flex items-center gap-2 uppercase"
         >
           <Trash2 className="w-3.5 h-3.5" />
-          DESVINCULAR TV
+          DESVINCULAR TELA
         </button>
-        <button className="bg-[#9b59b6] hover:bg-[#8e44ad] text-white text-[10px] font-bold px-4 py-2.5 rounded transition-colors flex items-center gap-2 uppercase">
+        <button 
+          onClick={() => setShowReplaceModal(true)}
+          className="bg-[#9b59b6] hover:bg-[#8e44ad] text-white text-[10px] font-bold px-4 py-2.5 rounded transition-colors flex items-center gap-2 uppercase"
+        >
           <RotateCcw className="w-3.5 h-3.5" />
-          SUBSTITUIR TV
+          SUBSTITUIR TELA
         </button>
       </div>
+
+    </div>
+
+      {/* Modal Substituir Tela */}
+      {showReplaceModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="bg-[#104a9e] p-4 flex items-center justify-between">
+              <h3 className="text-white font-bold">Substituir Tela</h3>
+              <button 
+                onClick={() => setShowReplaceModal(false)}
+                className="text-white/80 hover:text-white"
+              >
+                &times;
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-sm text-zinc-600 mb-6">
+                Informe o código da nova Tela para transferir todas as configurações e listas de reprodução. A tela atual será desvinculada automaticamente.
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-zinc-600 mb-2">Código da Nova Tela</label>
+                  <input 
+                    type="text" 
+                    value={replaceCode}
+                    onChange={e => setReplaceCode(e.target.value)}
+                    placeholder="Informe o código exibido na TV"
+                    className="w-full border-2 border-zinc-200 rounded p-3 uppercase font-mono text-center text-lg focus:border-[#104a9e] focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-zinc-50 p-4 flex justify-end gap-3 border-t border-zinc-100">
+              <button 
+                onClick={() => setShowReplaceModal(false)}
+                className="px-6 py-2 text-sm font-bold text-zinc-500 hover:text-zinc-700 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleReplace}
+                className="bg-[#9b59b6] hover:bg-[#8e44ad] text-white px-6 py-2 rounded text-sm font-bold transition-colors shadow-sm"
+              >
+                Substituir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
