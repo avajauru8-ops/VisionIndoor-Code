@@ -59,9 +59,9 @@ export default function WidgetNoticias() {
         const title = selectedItem.querySelector('title')?.textContent || '';
         
         let itemCategory = getCategoryName(feed);
-        const categoryNode = selectedItem.querySelector('category');
-        if (categoryNode && categoryNode.textContent) {
-           itemCategory = categoryNode.textContent.trim();
+        const categoryNodes = selectedItem.querySelectorAll('category');
+        if (categoryNodes.length > 0 && categoryNodes[0].textContent) {
+           itemCategory = categoryNodes[0].textContent.trim();
         }
 
         let image = null;
@@ -113,47 +113,49 @@ export default function WidgetNoticias() {
       
       {/* Top Left: NOTÍCIA */}
       <div 
-        className="absolute top-0 left-0 h-[12vh] portrait:h-[9vh] w-[35vw] portrait:w-[65vw] bg-[#8B0021] z-10 flex items-center justify-center shadow-2xl" 
+        className="absolute top-0 left-0 h-[12vh] portrait:h-[9vh] w-[35vw] portrait:w-[50vw] bg-[#8B0021] z-10 flex items-center justify-center shadow-2xl" 
         style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 0 100%)' }}
       >
-         <span className="text-white font-bold text-[5.5vh] portrait:text-[4vh] tracking-widest ml-[-2vw] portrait:ml-[-5vw]">NOTÍCIA</span>
+         <span className="text-white font-bold text-[5.5vh] portrait:text-[4.5vh] tracking-widest ml-[-2vw] portrait:ml-[-4vw]">NOTÍCIA</span>
       </div>
 
       {/* Top Right: UOL Logo */}
       <div 
-        className="absolute top-0 right-0 h-[10vh] portrait:h-[7.5vh] w-[25vw] portrait:w-[50vw] bg-white z-10 flex items-center justify-center shadow-2xl" 
+        className="absolute top-0 right-0 h-[10vh] portrait:h-[7vh] w-[25vw] portrait:w-[40vw] bg-white z-10 flex items-center justify-center shadow-2xl" 
         style={{ clipPath: 'polygon(15% 0, 100% 0, 100% 100%, 0 100%)' }}
       >
-         <div className="flex items-center gap-[1.5vw] portrait:gap-[2.5vw] ml-[3vw]">
-            <div className="w-[6vh] h-[6vh] portrait:w-[4.5vh] portrait:h-[4.5vh] rounded-full bg-gradient-to-tr from-[#FF6600] to-[#FFCC00] shadow-inner relative flex items-center justify-center">
-              <div className="w-[3.5vh] h-[3.5vh] portrait:w-[2.5vh] portrait:h-[2.5vh] rounded-full bg-gradient-to-tr from-[#990000] to-[#FF6600]"></div>
+         <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw] ml-[3vw]">
+            <div className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] rounded-full bg-gradient-to-tr from-[#FF6600] to-[#FFCC00] shadow-inner relative flex items-center justify-center">
+              <div className="w-[3.5vh] h-[3.5vh] portrait:w-[2.2vh] portrait:h-[2.2vh] rounded-full bg-gradient-to-tr from-[#990000] to-[#FF6600]"></div>
             </div>
-            <span className="text-black font-black text-[6vh] portrait:text-[4.5vh] tracking-tighter">UOL</span>
+            <span className="text-black font-black text-[6vh] portrait:text-[4vh] tracking-tighter">UOL</span>
          </div>
       </div>
 
       {/* Bottom Area Overlay for readability */}
-      <div className="absolute bottom-0 left-0 w-full h-[40vh] portrait:h-[40vh] bg-gradient-to-t from-black/95 via-black/80 to-transparent z-10"></div>
+      <div className="absolute bottom-0 left-0 w-full h-[50vh] portrait:h-[40vh] bg-gradient-to-t from-black/95 via-black/80 to-transparent z-10"></div>
       
-      {/* Divider lines across the screen */}
-      <div className="absolute bottom-[30vh] portrait:bottom-[28vh] left-0 w-full z-20 flex flex-col">
-         <div className="h-[0.3vh] w-full bg-[#8B0021]"></div>
-         <div className="h-[0.3vh] w-full bg-white opacity-90"></div>
-      </div>
+      {/* Bottom Flex Container for Category, Lines, and Title */}
+      <div className="absolute bottom-0 left-0 w-full z-40 flex flex-col justify-end pb-[8vh] portrait:pb-[6vh]">
+          {/* Category Box */}
+          <div className="flex w-full px-[6vw] portrait:px-[5vw]">
+             <div className="inline-flex items-center justify-center bg-[#ad0029] h-[6vh] portrait:h-[5vh] px-[3vw] portrait:px-[5vw] pr-[5vw] portrait:pr-[8vw]" style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 0 100%)' }}>
+                 <span className="text-white font-bold text-[3vh] portrait:text-[2.5vh] tracking-widest italic">{noticia?.category.toUpperCase()}</span>
+             </div>
+          </div>
+          
+          {/* Divider lines directly below Category Box */}
+          <div className="w-full flex flex-col">
+               <div className="h-[0.3vh] w-full bg-[#8B0021]"></div>
+               <div className="h-[0.3vh] w-full bg-white opacity-90"></div>
+          </div>
 
-      {/* Category Box (Dynamic Width) */}
-      <div 
-        className="absolute bottom-[30.6vh] portrait:bottom-[28.3vh] left-[6vw] portrait:left-[5vw] h-[6vh] portrait:h-[5vh] inline-flex items-center justify-center bg-[#ad0029] z-30 px-[3vw] portrait:px-[5vw] pr-[5vw] portrait:pr-[8vw]" 
-        style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 0 100%)' }}
-      >
-         <span className="text-white font-bold text-[3vh] portrait:text-[2.2vh] tracking-widest italic">{noticia?.category.toUpperCase()}</span>
-      </div>
-
-      {/* Title Text */}
-      <div className="absolute bottom-[8vh] portrait:bottom-[8vh] left-[6vw] portrait:left-[5vw] right-[6vw] portrait:right-[5vw] z-40">
-         <h1 className="text-white font-bold text-[7vh] portrait:text-[4.2vh] leading-[1.1] portrait:leading-[1.3] italic drop-shadow-2xl line-clamp-3 portrait:line-clamp-5 whitespace-normal break-words">
-             {noticia?.title || 'CARREGANDO NOTÍCIA...'}
-         </h1>
+          {/* Title Text */}
+          <div className="px-[6vw] portrait:px-[5vw] mt-[3vh] portrait:mt-[2vh]">
+               <h1 className="text-white font-bold text-[7vh] portrait:text-[5vh] leading-[1.1] portrait:leading-[1.2] italic drop-shadow-2xl line-clamp-3 portrait:line-clamp-5 whitespace-normal break-words">
+                   {noticia?.title || 'CARREGANDO NOTÍCIA...'}
+               </h1>
+          </div>
       </div>
 
     </div>

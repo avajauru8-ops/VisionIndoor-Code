@@ -87,7 +87,7 @@ export default function WidgetClima() {
            {/* Dark blue section */}
            <div className="absolute top-0 left-0 h-full w-[80vw] portrait:w-[85vw] bg-[#0f204b] z-10" style={{ clipPath: 'polygon(0 0, 100% 0, 93% 100%, 0 100%)' }}>
              <div className="flex items-center h-full pl-[5vw]">
-                <h1 className="text-white text-[4.5vh] portrait:text-[2.5vh] font-bold tracking-widest portrait:tracking-wide">PREVISÃO DO TEMPO</h1>
+               <span className="text-white font-bold tracking-widest text-[3.5vh] portrait:text-[3.5vh]">PREVISÃO DO TEMPO</span>
              </div>
            </div>
            
@@ -100,10 +100,10 @@ export default function WidgetClima() {
 
            {/* Right section (OpenWeather logo) */}
            <div className="absolute right-[5vw] top-0 h-full flex items-center justify-end z-0">
-              <div className="flex flex-col items-center mt-[2vh] portrait:mt-[1vh]">
-                 <Sun className="w-[5vh] h-[5vh] portrait:w-[3vh] portrait:h-[3vh] text-[#eb6e4b] fill-[#eb6e4b]" />
-                 <span className="text-zinc-800 font-bold text-[2vh] portrait:text-[1.2vh] leading-none mt-1 tracking-tight">OpenWeather</span>
-              </div>
+               <div className="flex flex-col items-center">
+                 <Sun className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#ff6600]" />
+                 <span className="text-[#0f204b] font-bold text-[1.8vh] portrait:text-[1.5vh] mt-[0.5vh]">OpenWeather</span>
+               </div>
            </div>
          </div>
 
@@ -111,28 +111,30 @@ export default function WidgetClima() {
          <div className="flex-1 flex flex-col px-[5vw] pb-[5vh] portrait:pb-[2vh] relative z-20">
             {/* City Title */}
             <div className="flex items-center mt-[6vh] mb-[6vh] portrait:mt-[2vh] portrait:mb-[2vh]">
-               <div className="flex h-[8vh] portrait:h-[5vh]">
-                  <div className="w-[2.5vw] portrait:w-[3vw] bg-[#0f204b] skew-x-[-20deg]"></div>
-                  <div className="w-[2.5vw] portrait:w-[3vw] bg-[#0052cc] skew-x-[-20deg] -ml-[1vw]"></div>
+               <div className="flex h-[8vh] portrait:h-[6vh]">
+                  <div className="w-[2.5vw] portrait:w-[4vw] bg-[#0f204b] skew-x-[-20deg]"></div>
+                  <div className="w-[2.5vw] portrait:w-[4vw] bg-[#0052cc] skew-x-[-20deg] -ml-[1vw]"></div>
                </div>
-               <h2 className="text-[7vh] portrait:text-[4vh] font-black text-[#0f204b] ml-[2vw] uppercase tracking-wider">{cidade}</h2>
+               <h1 className="text-[#0f204b] font-black text-[8vh] portrait:text-[6vh] ml-[2vw] tracking-tighter uppercase">{cidade}</h1>
             </div>
 
             {/* Main Cards */}
             <div className="flex justify-center items-stretch flex-1 gap-[2vw] portrait:flex-col portrait:items-center portrait:gap-[2vh] portrait:justify-evenly">
                
                {/* Left Card: Today */}
-               <div className="relative w-[30vw] portrait:w-[90vw] bg-[#22272e] rounded-[40px] portrait:rounded-[30px] flex flex-col items-center justify-center shadow-2xl overflow-hidden shrink-0 py-[4vh] portrait:py-[3vh]">
+               <div className="relative w-[30vw] portrait:w-[94vw] bg-[#22272e] rounded-[40px] portrait:rounded-[30px] flex flex-col items-center justify-center shadow-2xl overflow-hidden shrink-0 py-[4vh] portrait:py-[4vh]">
                  {/* Yellow corner accent top left */}
                  <div className="absolute top-0 left-0 w-[6vw] h-[6vw] portrait:w-[12vw] portrait:h-[12vw] bg-[#facc15]" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}></div>
                  
-                 <h3 className="text-[#facc15] italic text-[4.5vh] portrait:text-[3.5vh] font-bold mb-[3vh] portrait:mb-[2vh] z-10">Hoje</h3>
+                 <h2 className="text-[#facc15] text-[4vh] portrait:text-[4vh] font-bold italic z-10">Hoje</h2>
                  
-                 <div className="mb-[3vh] portrait:mb-[2vh] z-10">
+                 <div className="my-[2vh] z-10 drop-shadow-2xl">
                     {renderMainIcon()}
                  </div>
 
-                 <div className="text-white text-[12vh] portrait:text-[10vh] font-black leading-none mb-[2vh] portrait:mb-[1vh] z-10">{weather.temp}°</div>
+                 <div className="text-white text-[12vh] portrait:text-[14vh] font-black leading-none tracking-tighter z-10">
+                    {weather.temp}°
+                 </div>
                  <div className="text-white text-[3vh] portrait:text-[2.5vh] font-semibold text-center z-10 px-[2vw] leading-tight">{weather.description}</div>
                  <div className="text-white/70 text-[2.5vh] portrait:text-[2vh] mt-[1vh] z-10">{weather.clouds}</div>
                </div>
@@ -145,44 +147,44 @@ export default function WidgetClima() {
                </div>
 
                {/* Right Card: Details Grid */}
-               <div className="relative flex-1 portrait:flex-none portrait:w-[90vw] portrait:py-[3vh] bg-[#15234b] rounded-[40px] portrait:rounded-[30px] p-[6vh] shadow-2xl overflow-hidden flex flex-col justify-center">
+               <div className="relative flex-1 portrait:flex-none portrait:w-[94vw] portrait:py-[4vh] bg-[#15234b] rounded-[40px] portrait:rounded-[30px] p-[6vh] portrait:p-[5vh] shadow-2xl overflow-hidden flex flex-col justify-center">
                  {/* Yellow corner accent bottom right */}
                  <div className="absolute bottom-0 right-0 w-[6vw] h-[6vw] portrait:w-[12vw] portrait:h-[12vw] bg-[#facc15]" style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 100%)' }}></div>
 
-                 <div className="grid grid-cols-3 portrait:grid-cols-2 gap-y-[8vh] portrait:gap-y-[2.5vh] gap-x-[4vw] portrait:gap-x-[2vw] z-10 relative">
+                 <div className="grid grid-cols-3 portrait:grid-cols-2 gap-y-[8vh] portrait:gap-y-[3.5vh] gap-x-[4vw] portrait:gap-x-[2vw] z-10 relative">
                     {/* Vento */}
                     <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
                        <Wind className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-white shrink-0 drop-shadow" />
                        <div className="flex flex-col justify-center">
-                          <span className="text-white/80 text-[2.2vh] portrait:text-[1.8vh] font-medium leading-tight mb-1">Vento</span>
-                          <span className="text-white text-[4vh] portrait:text-[2.8vh] font-bold leading-none">{weather.wind}</span>
+                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2.2vh] font-medium leading-tight mb-1">Vento</span>
+                          <span className="text-white text-[3vh] portrait:text-[3.2vh] font-bold leading-tight">{weather.wind}</span>
                        </div>
                     </div>
                     
                     {/* Umidade */}
                     <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <Droplets className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#e879f9] fill-[#e879f9]/20 shrink-0 drop-shadow" />
+                       <Droplets className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#00aaff] shrink-0 drop-shadow" />
                        <div className="flex flex-col justify-center">
-                          <span className="text-white/80 text-[2.2vh] portrait:text-[1.8vh] font-medium leading-tight mb-1">Umidade</span>
-                          <span className="text-white text-[4vh] portrait:text-[2.8vh] font-bold leading-none">{weather.humidity}</span>
+                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2.2vh] font-medium leading-tight mb-1">Umidade</span>
+                          <span className="text-white text-[3vh] portrait:text-[3.2vh] font-bold leading-tight">{weather.humidity}</span>
                        </div>
                     </div>
 
                     {/* Chuva */}
                     <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <CloudRain className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#93c5fd] fill-[#93c5fd]/20 shrink-0 drop-shadow" />
+                       <CloudRain className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#00aaff] shrink-0 drop-shadow" />
                        <div className="flex flex-col justify-center">
-                          <span className="text-white/80 text-[2.2vh] portrait:text-[1.8vh] font-medium leading-tight mb-1">Chuva</span>
-                          <span className="text-white text-[4vh] portrait:text-[2.8vh] font-bold leading-none">0%</span>
+                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2.2vh] font-medium leading-tight mb-1">Chuva</span>
+                          <span className="text-white text-[3vh] portrait:text-[3.2vh] font-bold leading-tight">0%</span>
                        </div>
                     </div>
 
                     {/* Sensação Térmica */}
                     <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <Thermometer className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#f87171] shrink-0 drop-shadow" />
+                       <Thermometer className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#ff6600] shrink-0 drop-shadow" />
                        <div className="flex flex-col justify-center">
-                          <span className="text-white/80 text-[2.2vh] portrait:text-[1.8vh] font-medium leading-tight mb-1">Sensação<br/>Térmica</span>
-                          <span className="text-white text-[4vh] portrait:text-[2.8vh] font-bold leading-none">{weather.feels_like}°</span>
+                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2.2vh] font-medium leading-tight mb-1">Sensação<br/>Térmica</span>
+                          <span className="text-white text-[3vh] portrait:text-[3.2vh] font-bold leading-tight">{weather.feels_like}°</span>
                        </div>
                     </div>
 
@@ -190,17 +192,17 @@ export default function WidgetClima() {
                     <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
                        <Sunrise className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#facc15] shrink-0 drop-shadow" />
                        <div className="flex flex-col justify-center">
-                          <span className="text-white/80 text-[2.2vh] portrait:text-[1.8vh] font-medium leading-tight mb-1">Amanhecer</span>
-                          <span className="text-white text-[4vh] portrait:text-[2.8vh] font-bold leading-none">{weather.sunrise}</span>
+                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2.2vh] font-medium leading-tight mb-1">Amanhecer</span>
+                          <span className="text-white text-[3vh] portrait:text-[3.2vh] font-bold leading-tight">{weather.sunrise}</span>
                        </div>
                     </div>
 
                     {/* Pôr do Sol */}
                     <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <Sunset className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#2dd4bf] shrink-0 drop-shadow" />
+                       <Sunset className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#00aaff] shrink-0 drop-shadow" />
                        <div className="flex flex-col justify-center">
-                          <span className="text-white/80 text-[2.2vh] portrait:text-[1.8vh] font-medium leading-tight mb-1">Pôr do Sol</span>
-                          <span className="text-white text-[4vh] portrait:text-[2.8vh] font-bold leading-none">{weather.sunset}</span>
+                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2.2vh] font-medium leading-tight mb-1">Pôr do Sol</span>
+                          <span className="text-white text-[3vh] portrait:text-[3.2vh] font-bold leading-tight">{weather.sunset}</span>
                        </div>
                     </div>
                  </div>
