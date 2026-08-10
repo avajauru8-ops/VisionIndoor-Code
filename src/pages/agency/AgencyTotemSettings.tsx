@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { 
   Monitor, Settings, Puzzle, Calendar, Bell, Activity, 
-  Camera, RotateCcw, Trash2, ShieldAlert, X, Save
+  Camera, RotateCcw, Trash2, ShieldAlert, X, Save, Pencil
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -45,6 +45,7 @@ export default function AgencyTotemSettings() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('configuracoes');
   const [error, setError] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   // Form State
   const [nome, setNome] = useState('');
@@ -186,7 +187,8 @@ export default function AgencyTotemSettings() {
         }),
       });
       alert('Configurações salvas com sucesso!');
-      navigate('/agency/totems');
+      setIsEditing(false);
+      loadTotem();
     } catch (err: any) {
       alert(err.message);
     }
@@ -260,20 +262,32 @@ export default function AgencyTotemSettings() {
           </h2>
         </div>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => navigate('/agency/tvs')} 
-            className="bg-zinc-100 hover:bg-zinc-200 text-zinc-600 text-[10px] font-bold px-4 py-2.5 rounded transition-colors flex items-center gap-2 uppercase"
-          >
-            <X className="w-3.5 h-3.5" />
-            CANCELAR EDIÇÃO
-          </button>
-          <button 
-            onClick={handleSave}
-            className="bg-[#0066ff] hover:bg-[#0052cc] text-white text-[10px] font-bold px-5 py-2.5 rounded transition-colors flex items-center gap-2 uppercase"
-          >
-            <Save className="w-3.5 h-3.5" />
-            SALVAR
-          </button>
+          {isEditing ? (
+            <>
+              <button 
+                onClick={() => { setIsEditing(false); loadTotem(); }} 
+                className="bg-zinc-100 hover:bg-zinc-200 text-zinc-600 text-[10px] font-bold px-4 py-2.5 rounded transition-colors flex items-center gap-2 uppercase"
+              >
+                <X className="w-3.5 h-3.5" />
+                CANCELAR EDIÇÃO
+              </button>
+              <button 
+                onClick={handleSave}
+                className="bg-[#0066ff] hover:bg-[#0052cc] text-white text-[10px] font-bold px-5 py-2.5 rounded transition-colors flex items-center gap-2 uppercase"
+              >
+                <Save className="w-3.5 h-3.5" />
+                SALVAR
+              </button>
+            </>
+          ) : (
+            <button 
+              onClick={() => setIsEditing(true)}
+              className="bg-[#20b2aa] hover:bg-[#1da19a] text-white text-[10px] font-bold px-5 py-2.5 rounded transition-colors flex items-center gap-2 uppercase"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              HABILITAR EDIÇÃO
+            </button>
+          )}
         </div>
       </div>
 
@@ -317,6 +331,7 @@ export default function AgencyTotemSettings() {
         {/* Configurações básicas (Only on Configurações tab) */}
         {activeTab === 'configuracoes' && (
         <section>
+          <fieldset disabled={!isEditing} className="contents">
           <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
             <Settings className="w-4 h-4" />
             Configurações básicas
@@ -364,6 +379,7 @@ export default function AgencyTotemSettings() {
               </p>
             </div>
           </div>
+          </fieldset>
         </section>
         )}
 
@@ -372,6 +388,7 @@ export default function AgencyTotemSettings() {
           <div className="space-y-10">
             {/* Painel de Controle */}
             <section className="border-b border-zinc-100 pb-8">
+              <fieldset disabled={!isEditing} className="contents">
               <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
                 <Settings className="w-4 h-4" />
                 Painel de controle
@@ -400,10 +417,12 @@ export default function AgencyTotemSettings() {
                   </select>
                 </div>
               </div>
+              </fieldset>
             </section>
 
             {/* Idioma e Fuso */}
             <section className="border-b border-zinc-100 pb-8">
+              <fieldset disabled={!isEditing} className="contents">
               <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
                 <Calendar className="w-4 h-4" />
                 Idioma de Exibição
@@ -423,10 +442,12 @@ export default function AgencyTotemSettings() {
                   <option value="America/Recife">America/Recife (UTC-03:00)</option>
                 </select>
               </div>
+              </fieldset>
             </section>
 
             {/* App Settings */}
             <section className="border-b border-zinc-100 pb-8">
+              <fieldset disabled={!isEditing} className="contents">
               <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
                 <Monitor className="w-4 h-4" />
                 Configurações do App
@@ -500,6 +521,7 @@ export default function AgencyTotemSettings() {
                   />
                 </div>
               </div>
+              </fieldset>
             </section>
 
             {/* Comandos / Ações */}
@@ -530,6 +552,7 @@ export default function AgencyTotemSettings() {
 
             {/* Monetização */}
             <section>
+              <fieldset disabled={!isEditing} className="contents">
               <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
                 <Puzzle className="w-4 h-4" />
                 Monetização
@@ -544,6 +567,7 @@ export default function AgencyTotemSettings() {
                   className="flex-1 max-w-sm border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none border-dashed"
                 />
               </div>
+              </fieldset>
             </section>
           </div>
         )}
