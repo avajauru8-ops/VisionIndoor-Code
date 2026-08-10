@@ -217,7 +217,7 @@ export default function AgencyTotemSettings() {
       alert('Tela substituída com sucesso!');
       setShowReplaceModal(false);
       setReplaceCode('');
-      loadTotem();
+      navigate('/agency/totems');
     } catch (err: any) {
       alert(err.message);
     }
