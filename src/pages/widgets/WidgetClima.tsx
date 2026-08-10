@@ -83,7 +83,7 @@ export default function WidgetClima() {
    return (
       <div className="w-screen h-screen bg-[#f3f4f6] flex flex-col font-sans overflow-hidden">
          {/* Top Bar */}
-         <div className="relative w-full h-[15vh] portrait:h-[8vh] bg-white flex shadow-md overflow-hidden shrink-0">
+         <div className="relative w-full h-[15vh] portrait:h-[7vh] bg-white flex shadow-md overflow-hidden shrink-0">
            {/* Dark blue section */}
            <div className="absolute top-0 left-0 h-full w-[80vw] portrait:w-[85vw] bg-[#0f204b] z-10" style={{ clipPath: 'polygon(0 0, 100% 0, 93% 100%, 0 100%)' }}>
              <div className="flex items-center h-full pl-[5vw]">
@@ -108,9 +108,9 @@ export default function WidgetClima() {
          </div>
 
          {/* Content Area */}
-         <div className="flex-1 flex flex-col px-[5vw] pb-[5vh] portrait:pb-[3vh] relative z-20">
+         <div className="flex-1 flex flex-col px-[5vw] pb-[5vh] portrait:pb-[2vh] relative z-20">
             {/* City Title */}
-            <div className="flex items-center mt-[6vh] mb-[6vh] portrait:mt-[3vh] portrait:mb-[3vh]">
+            <div className="flex items-center mt-[6vh] mb-[6vh] portrait:mt-[2vh] portrait:mb-[2vh]">
                <div className="flex h-[8vh] portrait:h-[5vh]">
                   <div className="w-[2.5vw] portrait:w-[3vw] bg-[#0f204b] skew-x-[-20deg]"></div>
                   <div className="w-[2.5vw] portrait:w-[3vw] bg-[#0052cc] skew-x-[-20deg] -ml-[1vw]"></div>
@@ -119,10 +119,10 @@ export default function WidgetClima() {
             </div>
 
             {/* Main Cards */}
-            <div className="flex justify-center items-stretch flex-1 gap-[2vw] portrait:flex-col portrait:items-center portrait:gap-[3vh] portrait:justify-start">
+            <div className="flex justify-center items-stretch flex-1 gap-[2vw] portrait:flex-col portrait:items-center portrait:gap-[2vh] portrait:justify-evenly">
                
                {/* Left Card: Today */}
-               <div className="relative w-[30vw] portrait:w-[90vw] bg-[#22272e] rounded-[40px] portrait:rounded-[30px] flex flex-col items-center justify-center shadow-2xl overflow-hidden shrink-0 py-[4vh]">
+               <div className="relative w-[30vw] portrait:w-[90vw] bg-[#22272e] rounded-[40px] portrait:rounded-[30px] flex flex-col items-center justify-center shadow-2xl overflow-hidden shrink-0 py-[4vh] portrait:py-[3vh]">
                  {/* Yellow corner accent top left */}
                  <div className="absolute top-0 left-0 w-[6vw] h-[6vw] portrait:w-[12vw] portrait:h-[12vw] bg-[#facc15]" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}></div>
                  
@@ -138,18 +138,18 @@ export default function WidgetClima() {
                </div>
 
                {/* Chevron Separator */}
-               <div className="flex items-center justify-center shrink-0 w-[6vw] portrait:w-full portrait:h-[6vh]">
-                 <svg viewBox="0 0 24 24" className="w-[8vw] h-[12vh] portrait:w-[8vh] portrait:h-[8vh] text-[#facc15] fill-[#facc15] drop-shadow-md portrait:rotate-90">
+               <div className="flex items-center justify-center shrink-0 w-[6vw] portrait:w-full portrait:h-[4vh]">
+                 <svg viewBox="0 0 24 24" className="w-[8vw] h-[12vh] portrait:w-[6vh] portrait:h-[6vh] text-[#facc15] fill-[#facc15] drop-shadow-md portrait:rotate-90">
                     <path d="M5 3l14 9-14 9v-5l6.2-4L5 8V3z"/>
                  </svg>
                </div>
 
                {/* Right Card: Details Grid */}
-               <div className="relative flex-1 portrait:flex-none portrait:w-[90vw] portrait:py-[4vh] bg-[#15234b] rounded-[40px] portrait:rounded-[30px] p-[6vh] shadow-2xl overflow-hidden flex flex-col justify-center">
+               <div className="relative flex-1 portrait:flex-none portrait:w-[90vw] portrait:py-[3vh] bg-[#15234b] rounded-[40px] portrait:rounded-[30px] p-[6vh] shadow-2xl overflow-hidden flex flex-col justify-center">
                  {/* Yellow corner accent bottom right */}
                  <div className="absolute bottom-0 right-0 w-[6vw] h-[6vw] portrait:w-[12vw] portrait:h-[12vw] bg-[#facc15]" style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 100%)' }}></div>
 
-                 <div className="grid grid-cols-3 portrait:grid-cols-2 gap-y-[8vh] portrait:gap-y-[4vh] gap-x-[4vw] portrait:gap-x-[2vw] z-10 relative">
+                 <div className="grid grid-cols-3 portrait:grid-cols-2 gap-y-[8vh] portrait:gap-y-[2.5vh] gap-x-[4vw] portrait:gap-x-[2vw] z-10 relative">
                     {/* Vento */}
                     <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
                        <Wind className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-white shrink-0 drop-shadow" />

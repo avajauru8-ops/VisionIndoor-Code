@@ -9,9 +9,29 @@ export default function WidgetNoticias() {
   const [noticia, setNoticia] = useState<{
     title: string;
     image: string | null;
+    category: string;
   } | null>(null);
 
   const [loading, setLoading] = useState(true);
+
+  const getCategoryName = (f: string) => {
+    const map: Record<string, string> = {
+      noticias: 'Notícias',
+      esporte: 'Esportes',
+      economia: 'Economia',
+      entretenimento: 'Entretenimento',
+      tecnologia: 'Tecnologia',
+      jogos: 'Jogos',
+      carros: 'Carros',
+      educacao: 'Educação',
+      universa: 'Universa',
+      tilt: 'Tilt',
+      vivabem: 'Saúde',
+      ecoa: 'Sustentabilidade',
+      nossauol: 'Nossa'
+    };
+    return map[f] || 'Cotidiano';
+  };
 
   useEffect(() => {
     async function fetchRSS() {
@@ -38,6 +58,12 @@ export default function WidgetNoticias() {
 
         const title = selectedItem.querySelector('title')?.textContent || '';
         
+        let itemCategory = getCategoryName(feed);
+        const categoryNode = selectedItem.querySelector('category');
+        if (categoryNode && categoryNode.textContent) {
+           itemCategory = categoryNode.textContent.trim();
+        }
+
         let image = null;
         const enclosure = selectedItem.querySelector('enclosure');
         if (enclosure && enclosure.getAttribute('type')?.startsWith('image/')) {
@@ -52,12 +78,13 @@ export default function WidgetNoticias() {
           }
         }
 
-        setNoticia({ title, image });
+        setNoticia({ title, image, category: itemCategory });
       } catch (err) {
         console.error('Error parsing RSS:', err);
         setNoticia({
           title: 'Notícias Indisponíveis no momento',
-          image: null
+          image: null,
+          category: 'Aviso'
         });
       } finally {
         setLoading(false);
@@ -75,76 +102,56 @@ export default function WidgetNoticias() {
 
   const bgImage = noticia?.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80';
 
-  const getCategoryName = (f: string) => {
-    const map: Record<string, string> = {
-      noticias: 'Notícias',
-      esporte: 'Esportes',
-      economia: 'Economia',
-      entretenimento: 'Entretenimento',
-      tecnologia: 'Tecnologia',
-      jogos: 'Jogos',
-      carros: 'Carros',
-      educacao: 'Educação',
-      universa: 'Universa',
-      tilt: 'Tilt',
-      vivabem: 'Saúde',
-      ecoa: 'Sustentabilidade',
-      nossauol: 'Nossa'
-    };
-    return map[f] || 'Cotidiano';
-  };
-  const categoryName = getCategoryName(feed);
-
   return (
     <div className="w-screen h-screen overflow-hidden relative bg-black font-sans">
       
       {/* Background Image filling the screen */}
       <div 
-        className="absolute inset-0 w-full h-full object-cover z-0 bg-center bg-no-repeat bg-cover"
+        className="absolute inset-0 w-full h-full object-cover portrait:object-center z-0 bg-center bg-no-repeat bg-cover"
         style={{ backgroundImage: `url('${bgImage}')` }}
       />
       
       {/* Top Left: NOTÍCIA */}
       <div 
-        className="absolute top-0 left-0 h-[12vh] portrait:h-[7vh] w-[35vw] portrait:w-[60vw] bg-[#8B0021] z-10 flex items-center justify-center shadow-2xl" 
+        className="absolute top-0 left-0 h-[12vh] portrait:h-[9vh] w-[35vw] portrait:w-[65vw] bg-[#8B0021] z-10 flex items-center justify-center shadow-2xl" 
         style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 0 100%)' }}
       >
-         <span className="text-white font-bold text-[5.5vh] portrait:text-[3vh] tracking-widest ml-[-2vw]">NOTÍCIA</span>
+         <span className="text-white font-bold text-[5.5vh] portrait:text-[4vh] tracking-widest ml-[-2vw] portrait:ml-[-5vw]">NOTÍCIA</span>
       </div>
 
       {/* Top Right: UOL Logo */}
       <div 
-        className="absolute top-0 right-0 h-[10vh] portrait:h-[6vh] w-[25vw] portrait:w-[45vw] bg-white z-10 flex items-center justify-center shadow-2xl" 
+        className="absolute top-0 right-0 h-[10vh] portrait:h-[7.5vh] w-[25vw] portrait:w-[50vw] bg-white z-10 flex items-center justify-center shadow-2xl" 
         style={{ clipPath: 'polygon(15% 0, 100% 0, 100% 100%, 0 100%)' }}
       >
-         <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw] ml-[3vw]">
-            <div className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] rounded-full bg-gradient-to-tr from-[#FF6600] to-[#FFCC00] shadow-inner relative flex items-center justify-center">
-              <div className="w-[3.5vh] h-[3.5vh] portrait:w-[2vh] portrait:h-[2vh] rounded-full bg-gradient-to-tr from-[#990000] to-[#FF6600]"></div>
+         <div className="flex items-center gap-[1.5vw] portrait:gap-[2.5vw] ml-[3vw]">
+            <div className="w-[6vh] h-[6vh] portrait:w-[4.5vh] portrait:h-[4.5vh] rounded-full bg-gradient-to-tr from-[#FF6600] to-[#FFCC00] shadow-inner relative flex items-center justify-center">
+              <div className="w-[3.5vh] h-[3.5vh] portrait:w-[2.5vh] portrait:h-[2.5vh] rounded-full bg-gradient-to-tr from-[#990000] to-[#FF6600]"></div>
             </div>
-            <span className="text-black font-black text-[6vh] portrait:text-[3.5vh] tracking-tighter">UOL</span>
+            <span className="text-black font-black text-[6vh] portrait:text-[4.5vh] tracking-tighter">UOL</span>
          </div>
       </div>
 
       {/* Bottom Area Overlay for readability */}
-      <div className="absolute bottom-0 left-0 w-full h-[40vh] portrait:h-[25vh] bg-gradient-to-t from-black/95 via-black/60 to-transparent z-10"></div>
+      <div className="absolute bottom-0 left-0 w-full h-[40vh] portrait:h-[40vh] bg-gradient-to-t from-black/95 via-black/80 to-transparent z-10"></div>
       
       {/* Divider lines across the screen */}
-      <div className="absolute bottom-[30vh] portrait:bottom-[18vh] left-0 w-full z-20 flex flex-col">
+      <div className="absolute bottom-[30vh] portrait:bottom-[28vh] left-0 w-full z-20 flex flex-col">
          <div className="h-[0.3vh] w-full bg-[#8B0021]"></div>
          <div className="h-[0.3vh] w-full bg-white opacity-90"></div>
       </div>
 
-      {/* Category Box */}
+      {/* Category Box (Dynamic Width) */}
       <div 
-        className="absolute bottom-[30.6vh] portrait:bottom-[18.3vh] left-[6vw] portrait:left-[4vw] h-[6vh] portrait:h-[4vh] w-[22vw] portrait:w-[45vw] bg-[#ad0029] z-30 flex items-center justify-center" 
+        className="absolute bottom-[30.6vh] portrait:bottom-[28.3vh] left-[6vw] portrait:left-[5vw] h-[6vh] portrait:h-[5vh] inline-flex items-center justify-center bg-[#ad0029] z-30 px-[3vw] portrait:px-[5vw] pr-[5vw] portrait:pr-[8vw]" 
         style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 0 100%)' }}
       >
-         <span className="text-white font-bold text-[3vh] portrait:text-[2vh] tracking-widest italic ml-[-2vw] portrait:ml-[-4vw]">{categoryName.toUpperCase()}</span>
+         <span className="text-white font-bold text-[3vh] portrait:text-[2.2vh] tracking-widest italic">{noticia?.category.toUpperCase()}</span>
       </div>
 
       {/* Title Text */}
-      <div className="absolute bottom-[8vh] portrait:bottom-[4vh] left-[6vw] portrait:left-[4vw] right-[6vw] portrait:right-[4vw] z-40">
-         <h1 className="text-white font-bold text-[7vh] portrait:text-[4vh] leading-[1.1] portrait:leading-[1.2] italic drop-shadow-2xl line-clamp-3 portrait:line-clamp-4">
+      <div className="absolute bottom-[8vh] portrait:bottom-[8vh] left-[6vw] portrait:left-[5vw] right-[6vw] portrait:right-[5vw] z-40">
+         <h1 className="text-white font-bold text-[7vh] portrait:text-[4.2vh] leading-[1.1] portrait:leading-[1.3] italic drop-shadow-2xl line-clamp-3 portrait:line-clamp-5 whitespace-normal break-words">
              {noticia?.title || 'CARREGANDO NOTÍCIA...'}
          </h1>
       </div>
