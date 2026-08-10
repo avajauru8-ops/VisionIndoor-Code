@@ -9,11 +9,12 @@ export default function WidgetClima() {
 
    const [weather, setWeather] = useState({
       temp: 0,
-      condition: 'Carregando...',
+      condition: '',
       humidity: '0%',
       wind: '0 km/h',
       isDay: 1
    });
+   const [loading, setLoading] = useState(true);
 
    useEffect(() => {
       async function fetchWeather() {
@@ -37,6 +38,8 @@ export default function WidgetClima() {
          } catch (err: any) {
             console.error(err);
             setWeather({ temp: 25, condition: err.message || 'Erro na API', humidity: '--', wind: '--', isDay: 1 });
+         } finally {
+            setLoading(false);
          }
       }
       fetchWeather();
@@ -46,8 +49,14 @@ export default function WidgetClima() {
       return () => clearInterval(interval);
    }, [cidade, estado]);
 
+   const bgClass = weather.isDay ? 'bg-gradient-to-br from-sky-400 to-blue-600' : 'bg-gradient-to-br from-indigo-900 to-slate-900';
+
+   if (loading) {
+      return <div className={`w-screen h-screen ${bgClass}`}></div>;
+   }
+
    return (
-      <div className={`w-screen h-screen ${weather.isDay ? 'bg-gradient-to-br from-sky-400 to-blue-600' : 'bg-gradient-to-br from-indigo-900 to-slate-900'} flex flex-col items-center justify-between text-white overflow-hidden p-[4vh]`}>
+      <div className={`w-screen h-screen ${bgClass} flex flex-col items-center justify-between text-white overflow-hidden p-[4vh] transition-opacity duration-1000`}>
 
          <h1 className="text-[6vh] font-bold mt-[2vh] drop-shadow-lg text-center leading-tight max-w-[90vw] shrink-0">{cidade} - {estado}</h1>
 

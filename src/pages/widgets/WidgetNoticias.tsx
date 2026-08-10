@@ -82,9 +82,7 @@ export default function WidgetNoticias() {
 
   if (loading) {
     return (
-      <div className="w-screen h-screen flex items-center justify-center bg-slate-900 text-white">
-         <div className="w-16 h-16 border-4 border-slate-700 border-t-red-600 rounded-full animate-spin"></div>
-      </div>
+      <div className="w-screen h-screen bg-zinc-900 font-sans"></div>
     );
   }
 
