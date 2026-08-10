@@ -32,6 +32,10 @@ interface Totem {
   tempo_exibicao_padrao?: number;
   id_monetizacao?: string;
   ultima_captura_tela?: string;
+  horario_liga?: string;
+  horario_desliga?: string;
+  horario_inicio?: string;
+  horario_fim?: string;
 }
 
 export default function AgencyTotemSettings() {
@@ -73,6 +77,58 @@ export default function AgencyTotemSettings() {
     } catch (err) {
       console.error('Failed to poll totem status', err);
     }
+  };
+
+  const getCalculatedStatusInfo = () => {
+    if (!totem) return { status: 'Desconhecido', color: 'text-orange-500', info: 'Aguardando Conteúdo para Veiculação' };
+    
+    if (!totem.ultima_sincronizacao) {
+      return { 
+        status: totem.status || 'Desconhecido', 
+        color: totem.status === 'FUNCIONANDO CORRETAMENTE' || totem.status === 'online' ? 'text-green-600' : 'text-orange-500',
+        info: totem.ultima_informacao || 'Aguardando Conteúdo para Veiculação'
+      };
+    }
+
+    const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T') + 'Z');
+    const now = new Date();
+    const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
+
+    if (diffMinutes > 15 || diffMinutes < -15) {
+      // Check if out of operating hours
+      const hInicio = totem.horario_liga || totem.horario_inicio;
+      const hFim = totem.horario_desliga || totem.horario_fim;
+      
+      let isOut = false;
+      if (hInicio && hFim) {
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const [startH, startM] = hInicio.split(':').map(Number);
+        const [endH, endM] = hFim.split(':').map(Number);
+        
+        const startMinutes = startH * 60 + (startM || 0);
+        const endMinutes = endH * 60 + (endM || 0);
+        
+        if (startMinutes <= endMinutes) {
+          isOut = currentMinutes < startMinutes || currentMinutes > endMinutes;
+        } else {
+          isOut = currentMinutes < startMinutes && currentMinutes > endMinutes;
+        }
+      }
+
+      if (isOut) {
+        return { status: 'SEM COMUNICAÇÃO (FORA DE HORÁRIO)', color: 'text-gray-400', info: 'Dispositivo Offline (Fora do Horário)' };
+      }
+      return { status: 'SEM COMUNICAÇÃO', color: 'text-red-500', info: 'Dispositivo Offline' };
+    } else if (diffMinutes > 5) {
+      return { status: 'EM VERIFICAÇÃO', color: 'text-yellow-500', info: totem.ultima_informacao || 'Aguardando Conteúdo para Veiculação' };
+    }
+    
+    // Online
+    return { 
+      status: totem.status || 'FUNCIONANDO CORRETAMENTE', 
+      color: totem.status === 'FUNCIONANDO CORRETAMENTE' || totem.status === 'online' ? 'text-green-600' : 'text-yellow-500',
+      info: totem.ultima_informacao || 'Aguardando Conteúdo para Veiculação'
+    };
   };
 
   const loadTotem = async () => {
@@ -483,8 +539,8 @@ export default function AgencyTotemSettings() {
               <div className="space-y-3 text-[11px] font-bold text-zinc-500 border-l-2 border-[#104a9e] pl-4">
                 <div className="flex justify-between">
                   <span>App:</span>
-                  <span className={`font-bold ${totem.status === 'FUNCIONANDO CORRETAMENTE' ? 'text-green-600' : (totem.status === 'online' ? 'text-green-600' : 'text-orange-500')}`}>
-                    {totem.status || 'Desconhecido'}
+                  <span className={`font-bold ${getCalculatedStatusInfo().color}`}>
+                    {getCalculatedStatusInfo().status}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -502,7 +558,7 @@ export default function AgencyTotemSettings() {
                 <div className="flex justify-between">
                   <span>Última informação:</span>
                 </div>
-                <div className="text-zinc-800">{totem.ultima_informacao || 'Aguardando Conteúdo para Veiculação'}</div>
+                <div className="text-zinc-800">{getCalculatedStatusInfo().info}</div>
               </div>
             </div>
 
