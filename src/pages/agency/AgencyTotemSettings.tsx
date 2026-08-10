@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { 
   Monitor, Settings, Puzzle, Calendar, Bell, Activity, 
-  Camera, RotateCcw, Trash2, ShieldAlert, X, Save, Pencil
+  Camera, RotateCcw, Trash2, ShieldAlert, X, Save, Pencil, ExternalLink
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -331,7 +331,6 @@ export default function AgencyTotemSettings() {
         {/* Configurações básicas (Only on Configurações tab) */}
         {activeTab === 'configuracoes' && (
         <section>
-          <fieldset disabled={!isEditing} className="contents">
           <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
             <Settings className="w-4 h-4" />
             Configurações básicas
@@ -339,38 +338,57 @@ export default function AgencyTotemSettings() {
           <div className="max-w-3xl space-y-4">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               <label className="text-xs font-bold text-zinc-500 w-40 md:text-right">Nome: <span className="text-red-500">*</span></label>
-              <input 
-                type="text" 
-                value={nome}
-                onChange={e => setNome(e.target.value)}
-                className="flex-1 border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none border-dashed"
-              />
+              {isEditing ? (
+                <input 
+                  type="text" 
+                  value={nome}
+                  onChange={e => setNome(e.target.value)}
+                  className="flex-1 border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none border-dashed"
+                />
+              ) : (
+                <div className="flex-1 text-sm text-[#104a9e] border-b border-dashed border-zinc-200 pb-1">
+                  {nome}
+                </div>
+              )}
             </div>
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               <label className="text-xs font-bold text-zinc-500 w-40 md:text-right">Lista de Reprodução:</label>
-              <select 
-                value={listaReproducao}
-                onChange={e => setListaReproducao(e.target.value)}
-                className={`flex-1 border-2 rounded px-3 py-2 text-sm text-zinc-700 focus:outline-none ${!listaReproducao ? 'border-[#e74c3c] border-dashed' : 'border-zinc-300'}`}
-              >
-                <option value="">Selecione uma Lista de Reprodução</option>
-                {listas.map(l => (
-                  <option key={l.id} value={l.id}>{l.nome}</option>
-                ))}
-              </select>
+              {isEditing ? (
+                <select 
+                  value={listaReproducao}
+                  onChange={e => setListaReproducao(e.target.value)}
+                  className={`flex-1 border-2 rounded px-3 py-2 text-sm text-zinc-700 focus:outline-none ${!listaReproducao ? 'border-[#e74c3c] border-dashed' : 'border-zinc-300'}`}
+                >
+                  <option value="">Selecione uma Lista de Reprodução</option>
+                  {listas.map(l => (
+                    <option key={l.id} value={l.id}>{l.nome}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="flex-1 text-sm text-[#104a9e] border-b border-dashed border-zinc-200 pb-1 flex items-center gap-1">
+                  {listaReproducao ? listas.find(l => l.id === listaReproducao)?.nome : 'Nenhuma'}
+                  {listaReproducao && <ExternalLink className="w-3 h-3 cursor-pointer hover:text-[#0052cc]" onClick={() => navigate('/agency/playlists')} />}
+                </div>
+              )}
             </div>
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               <label className="text-xs font-bold text-zinc-500 w-40 md:text-right">Rotação:</label>
-              <select 
-                value={rotacao}
-                onChange={e => setRotacao(e.target.value)}
-                className="flex-1 border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none border-dashed"
-              >
-                <option value="padrao">Padrão</option>
-                <option value="90">90 Graus</option>
-                <option value="180">180 Graus</option>
-                <option value="270">270 Graus</option>
-              </select>
+              {isEditing ? (
+                <select 
+                  value={rotacao}
+                  onChange={e => setRotacao(e.target.value)}
+                  className="flex-1 border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none border-dashed"
+                >
+                  <option value="padrao">Padrão</option>
+                  <option value="90">90 Graus</option>
+                  <option value="180">180 Graus</option>
+                  <option value="270">270 Graus</option>
+                </select>
+              ) : (
+                <div className="flex-1 text-sm text-[#104a9e] border-b border-dashed border-zinc-200 pb-1">
+                  {rotacao === '90' ? '90 Graus' : rotacao === '180' ? '180 Graus' : rotacao === '270' ? '270 Graus' : 'Padrão'}
+                </div>
+              )}
             </div>
             <div className="flex md:pl-44">
               <p className="text-[10px] text-zinc-400 bg-zinc-50 p-2 rounded flex gap-2 items-start border border-zinc-100">
@@ -379,7 +397,6 @@ export default function AgencyTotemSettings() {
               </p>
             </div>
           </div>
-          </fieldset>
         </section>
         )}
 
@@ -647,11 +664,11 @@ export default function AgencyTotemSettings() {
                 <div className="mt-8 border-t border-zinc-100 pt-6">
                   <h4 className="text-xs font-bold text-[#104a9e] uppercase mb-4 flex items-center justify-between">
                     Última Captura de Tela
-                    <button onClick={() => window.open(`${import.meta.env.VITE_API_URL}/${totem.ultima_captura_tela}`, '_blank')} className="text-[10px] bg-zinc-100 px-2 py-1 rounded text-zinc-500 hover:text-[#104a9e]">Ampliar</button>
+                    <button onClick={() => window.open(`${(import.meta as any).env.VITE_API_URL}/${totem.ultima_captura_tela}`, '_blank')} className="text-[10px] bg-zinc-100 px-2 py-1 rounded text-zinc-500 hover:text-[#104a9e]">Ampliar</button>
                   </h4>
                   <div className="bg-zinc-50 rounded border border-zinc-200 overflow-hidden relative shadow-sm" style={{aspectRatio: '16/9'}}>
                     <img 
-                      src={`${import.meta.env.VITE_API_URL}/${totem.ultima_captura_tela}`} 
+                      src={`${(import.meta as any).env.VITE_API_URL}/${totem.ultima_captura_tela}`} 
                       alt="Última captura" 
                       className="w-full h-full object-cover"
                     />
