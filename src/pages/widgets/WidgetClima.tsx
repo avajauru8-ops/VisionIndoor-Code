@@ -153,21 +153,21 @@ export default function WidgetClima() {
             <div className="flex justify-center items-stretch flex-1 gap-[2vw] portrait:flex-col portrait:items-center portrait:gap-[2vh] portrait:justify-evenly">
                
                {/* Left Card: Today */}
-               <div className="relative w-[30vw] portrait:w-[94vw] bg-[#22272e] rounded-[40px] portrait:rounded-[30px] flex flex-col items-center justify-center shadow-2xl overflow-hidden shrink-0 py-[4vh] portrait:py-[4vh]">
+               <div className="relative w-[30vw] portrait:w-[94vw] bg-[#22272e] rounded-[40px] portrait:rounded-[30px] flex flex-col items-center justify-center shadow-2xl overflow-hidden shrink-0 py-[4vh] portrait:py-[2.5vh]">
                  {/* Yellow corner accent top left */}
-                 <div className="absolute top-0 left-0 w-[6vw] h-[6vw] portrait:w-[12vw] portrait:h-[12vw] bg-[#facc15]" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}></div>
+                 <div className="absolute top-0 left-0 w-[6vw] h-[6vw] portrait:w-[10vw] portrait:h-[10vw] bg-[#facc15]" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}></div>
                  
-                 <h2 className="text-[#facc15] text-[4vh] portrait:text-[4vh] font-bold italic z-10">Hoje</h2>
+                 <h2 className="text-[#facc15] text-[4vh] portrait:text-[3.5vh] font-bold italic z-10">Hoje</h2>
                  
-                 <div className="my-[2vh] z-10 drop-shadow-2xl">
+                 <div className="my-[2vh] portrait:my-[1vh] z-10 drop-shadow-2xl">
                     {renderMainIcon()}
                  </div>
 
-                 <div className="text-white text-[12vh] portrait:text-[14vh] font-black leading-none tracking-tighter z-10">
+                 <div className="text-white text-[12vh] portrait:text-[10vh] font-black leading-none tracking-tighter z-10">
                     {weather.temp}°
                  </div>
-                 <div className="text-white text-[3vh] portrait:text-[2.5vh] font-semibold text-center z-10 px-[2vw] leading-tight">{weather.description}</div>
-                 <div className="text-white/70 text-[2.5vh] portrait:text-[2vh] mt-[1vh] z-10">{weather.clouds}</div>
+                 <div className="text-white text-[3vh] portrait:text-[2.5vh] font-semibold text-center z-10 px-[2vw] leading-tight mt-[1vh]">{weather.description}</div>
+                 <div className="text-white/70 text-[2.5vh] portrait:text-[2vh] mt-[0.5vh] z-10">{weather.clouds}</div>
                </div>
 
                {/* Chevron Separator */}
@@ -178,62 +178,62 @@ export default function WidgetClima() {
                </div>
 
                {/* Right Card: Details Grid */}
-               <div className="relative flex-1 portrait:flex-none portrait:w-[94vw] portrait:py-[4vh] bg-[#15234b] rounded-[40px] portrait:rounded-[30px] p-[6vh] portrait:p-[5vh] shadow-2xl overflow-hidden flex flex-col justify-center">
+               <div className="relative flex-1 portrait:flex-none portrait:w-[94vw] portrait:py-[2.5vh] bg-[#15234b] rounded-[40px] portrait:rounded-[30px] p-[6vh] portrait:p-[4vh] shadow-2xl overflow-hidden flex flex-col justify-center">
                  {/* Yellow corner accent bottom right */}
-                 <div className="absolute bottom-0 right-0 w-[6vw] h-[6vw] portrait:w-[12vw] portrait:h-[12vw] bg-[#facc15]" style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 100%)' }}></div>
+                 <div className="absolute bottom-0 right-0 w-[6vw] h-[6vw] portrait:w-[10vw] portrait:h-[10vw] bg-[#facc15]" style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 100%)' }}></div>
 
-                 <div className="grid grid-cols-3 portrait:grid-cols-2 gap-y-[8vh] portrait:gap-y-[3.5vh] gap-x-[4vw] portrait:gap-x-[2vw] z-10 relative">
+                 <div className="grid grid-cols-3 portrait:grid-cols-2 gap-y-[8vh] portrait:gap-y-[2.5vh] gap-x-[4vw] portrait:gap-x-[2vw] z-10 relative">
                     {/* Vento */}
                     <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <Wind className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-white shrink-0 drop-shadow" />
+                       <Wind className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] text-white shrink-0 drop-shadow" />
                        <div className="flex flex-col justify-center">
-                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2.2vh] font-medium leading-tight mb-1">Vento</span>
-                          <span className="text-white text-[3vh] portrait:text-[3.2vh] font-bold leading-tight">{weather.wind}</span>
+                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2vh] font-medium leading-tight mb-1">Vento</span>
+                          <span className="text-white text-[3vh] portrait:text-[2.8vh] font-bold leading-tight">{weather.wind}</span>
                        </div>
                     </div>
                     
                     {/* Umidade */}
                     <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <Droplets className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#00aaff] shrink-0 drop-shadow" />
+                       <Droplets className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] text-[#00aaff] shrink-0 drop-shadow" />
                        <div className="flex flex-col justify-center">
-                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2.2vh] font-medium leading-tight mb-1">Umidade</span>
-                          <span className="text-white text-[3vh] portrait:text-[3.2vh] font-bold leading-tight">{weather.humidity}</span>
+                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2vh] font-medium leading-tight mb-1">Umidade</span>
+                          <span className="text-white text-[3vh] portrait:text-[2.8vh] font-bold leading-tight">{weather.humidity}</span>
                        </div>
                     </div>
 
                     {/* Chuva */}
                     <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <CloudRain className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#00aaff] shrink-0 drop-shadow" />
+                       <CloudRain className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] text-[#00aaff] shrink-0 drop-shadow" />
                        <div className="flex flex-col justify-center">
-                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2.2vh] font-medium leading-tight mb-1">Chuva</span>
-                          <span className="text-white text-[3vh] portrait:text-[3.2vh] font-bold leading-tight">0%</span>
+                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2vh] font-medium leading-tight mb-1">Chuva</span>
+                          <span className="text-white text-[3vh] portrait:text-[2.8vh] font-bold leading-tight">0%</span>
                        </div>
                     </div>
 
                     {/* Sensação Térmica */}
                     <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <Thermometer className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#ff6600] shrink-0 drop-shadow" />
+                       <Thermometer className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] text-[#ff6600] shrink-0 drop-shadow" />
                        <div className="flex flex-col justify-center">
-                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2.2vh] font-medium leading-tight mb-1">Sensação<br/>Térmica</span>
-                          <span className="text-white text-[3vh] portrait:text-[3.2vh] font-bold leading-tight">{weather.feels_like}°</span>
+                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2vh] font-medium leading-tight mb-1">Sensação<br/>Térmica</span>
+                          <span className="text-white text-[3vh] portrait:text-[2.8vh] font-bold leading-tight">{weather.feels_like}°</span>
                        </div>
                     </div>
 
                     {/* Amanhecer */}
                     <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <Sunrise className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#facc15] shrink-0 drop-shadow" />
+                       <Sunrise className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] text-[#facc15] shrink-0 drop-shadow" />
                        <div className="flex flex-col justify-center">
-                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2.2vh] font-medium leading-tight mb-1">Amanhecer</span>
-                          <span className="text-white text-[3vh] portrait:text-[3.2vh] font-bold leading-tight">{weather.sunrise}</span>
+                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2vh] font-medium leading-tight mb-1">Amanhecer</span>
+                          <span className="text-white text-[3vh] portrait:text-[2.8vh] font-bold leading-tight">{weather.sunrise}</span>
                        </div>
                     </div>
 
                     {/* Pôr do Sol */}
                     <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <Sunset className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#00aaff] shrink-0 drop-shadow" />
+                       <Sunset className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] text-[#00aaff] shrink-0 drop-shadow" />
                        <div className="flex flex-col justify-center">
-                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2.2vh] font-medium leading-tight mb-1">Pôr do Sol</span>
-                          <span className="text-white text-[3vh] portrait:text-[3.2vh] font-bold leading-tight">{weather.sunset}</span>
+                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2vh] font-medium leading-tight mb-1">Pôr do Sol</span>
+                          <span className="text-white text-[3vh] portrait:text-[2.8vh] font-bold leading-tight">{weather.sunset}</span>
                        </div>
                     </div>
                  </div>
