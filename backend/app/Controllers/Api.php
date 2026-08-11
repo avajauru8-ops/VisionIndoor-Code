@@ -94,6 +94,12 @@ class Api extends ResourceController
                 // Removi a tag "status => online" bruta daqui para usar a inteligente abaixo
             ];
             
+            if (isset($jsonRecebido['widget_status'])) {
+                $updateData['ultima_informacao'] = $jsonRecebido['widget_status'];
+                $db->table('totens')->where('id', $totem['id'])->update($updateData);
+                return $this->respond(['success' => true]);
+            }
+            
             if (isset($jsonRecebido['info'])) {
                 // Pega a cor principal enviada pelo app (Verde ou Amarelo)
                 $updateData['status'] = $jsonRecebido['status_operacional'] ?? 'FUNCIONANDO CORRETAMENTE';
@@ -219,7 +225,8 @@ class Api extends ResourceController
                 
                 if ($url && !preg_match('/^https?:\/\//', $url)) {
                     if (strpos($url, '/widget/') === 0) {
-                        $url = rtrim(base_url(), '/') . $url; // Rota do React Frontend
+                        $separator = (strpos($url, '?') !== false) ? '&' : '?';
+                        $url = rtrim(base_url(), '/') . $url . $separator . 'device_id=' . urlencode($device_id); // Rota do React Frontend com ID
                     } else {
                         $url = base_url('uploads/' . ltrim($url, '/')); // Imagem/Vídeo
                     }

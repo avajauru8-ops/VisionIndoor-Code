@@ -67,8 +67,22 @@ export default function WidgetClima() {
       }
       fetchWeather();
       const interval = setInterval(fetchWeather, 30 * 60 * 1000);
+
+      // Envia o status para o painel com a cidade e estado
+      const deviceId = searchParams.get('device_id');
+      if (deviceId) {
+         fetch('/api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+               device_id: deviceId,
+               widget_status: `Reproduzindo Widget: Clima (${cidade} - ${estado})`
+            })
+         }).catch(err => console.error('Erro ao atualizar status do widget:', err));
+      }
+
       return () => clearInterval(interval);
-   }, [cidade, estado]);
+   }, [cidade, estado, searchParams]);
 
    const renderMainIcon = () => {
       const code = weather.icon_id.slice(0, 2);

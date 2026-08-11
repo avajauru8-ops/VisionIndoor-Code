@@ -17,7 +17,22 @@ export default function WidgetFrases() {
   useEffect(() => {
     // Escolhe uma frase aleatória no carregamento da tela
     const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
-    setQuote(fallbackQuotes[randomIndex]);
+    const selected = fallbackQuotes[randomIndex];
+    setQuote(selected);
+
+    // Envia a frase exata para o backend se o device_id estiver presente
+    const params = new URLSearchParams(window.location.search);
+    const deviceId = params.get('device_id');
+    if (deviceId) {
+      fetch('/api.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          device_id: deviceId,
+          widget_status: `Reproduzindo Widget: Frases - "${selected.text}" - ${selected.author}`
+        })
+      }).catch(err => console.error('Erro ao atualizar status do widget:', err));
+    }
   }, []);
 
   return (
