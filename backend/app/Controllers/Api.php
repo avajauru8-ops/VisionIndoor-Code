@@ -439,37 +439,4 @@ class Api extends ResourceController
         
         return $this->response->setContentType('text/xml')->setBody($xml);
     }
-
-    public function migrateNow()
-    {
-        try {
-            $db = \Config\Database::connect();
-            
-            $cols = [
-                'auto_iniciar' => 'TINYINT(1) DEFAULT 1',
-                'iniciar_tv_energia' => 'TINYINT(1) DEFAULT 0',
-                'fuso_horario' => "VARCHAR(100) DEFAULT 'America/Sao_Paulo'",
-                'exibir_barra_tarefas' => 'TINYINT(1) DEFAULT 1',
-                'audio_ligado' => 'TINYINT(1) DEFAULT 1',
-                'auto_reiniciar_horas' => 'INT DEFAULT 0',
-                'exibir_notificacoes' => 'TINYINT(1) DEFAULT 0',
-                'limpeza_automatica' => 'TINYINT(1) DEFAULT 1',
-                'tempo_exibicao_padrao' => 'INT DEFAULT 15'
-            ];
-
-            $output = [];
-            foreach ($cols as $col => $def) {
-                try {
-                    $db->query("ALTER TABLE totens ADD COLUMN $col $def");
-                    $output[] = "Coluna '$col' adicionada com sucesso.";
-                } catch (\Exception $e) { 
-                    $output[] = "Coluna '$col' já existe ou erro: " . $e->getMessage(); 
-                }
-            }
-
-            return $this->response->setJSON(['status' => 'Concluído', 'logs' => $output]);
-        } catch (\Exception $e) {
-            return $this->fail('Erro fatal na migração: ' . $e->getMessage(), 500);
-        }
-    }
 }
