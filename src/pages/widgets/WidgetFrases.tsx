@@ -69,7 +69,12 @@ export default function WidgetFrases() {
 
             <div className="flex flex-col items-center justify-center flex-1 w-full z-10 mt-[6vh] portrait:mt-[4vh]">
                {/* Texto da Frase */}
-               <h1 className="text-zinc-800 font-serif text-[6.5vh] portrait:text-[5vh] leading-[1.3] portrait:leading-[1.4] text-center font-medium drop-shadow-sm mb-[6vh] portrait:mb-[4vh]">
+               <h1 className={`text-zinc-800 font-serif leading-[1.3] portrait:leading-[1.4] text-center font-medium drop-shadow-sm mb-[6vh] portrait:mb-[4vh] ${
+                  quote.text.length > 200 ? 'text-[3.5vh] portrait:text-[2.5vh]' :
+                  quote.text.length > 120 ? 'text-[4.5vh] portrait:text-[3.5vh]' :
+                  quote.text.length > 70 ? 'text-[5.5vh] portrait:text-[4vh]' :
+                  'text-[6.5vh] portrait:text-[5vh]'
+               }`}>
                   {quote.text}
                </h1>
 

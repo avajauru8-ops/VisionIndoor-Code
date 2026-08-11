@@ -160,7 +160,11 @@ export default function WidgetNoticias() {
 
           {/* Title Text */}
           <div className="px-[6vw] portrait:px-[5vw] mt-[3vh] portrait:mt-[2vh]">
-               <h1 className="text-white font-bold text-[7vh] portrait:text-[5vh] leading-[1.1] portrait:leading-[1.2] italic drop-shadow-2xl line-clamp-3 portrait:line-clamp-5 whitespace-normal break-words">
+               <h1 className={`text-white font-bold leading-[1.1] portrait:leading-[1.2] italic drop-shadow-2xl whitespace-normal break-words ${
+                   (noticia?.title || '').length > 150 ? 'text-[4.5vh] portrait:text-[3vh]' :
+                   (noticia?.title || '').length > 90 ? 'text-[5.5vh] portrait:text-[4vh]' :
+                   'text-[7vh] portrait:text-[5.5vh]'
+               }`}>
                    {noticia?.title || 'CARREGANDO NOTÍCIA...'}
                </h1>
           </div>

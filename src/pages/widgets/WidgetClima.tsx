@@ -142,7 +142,11 @@ export default function WidgetClima() {
                   <div className="w-[2.5vw] portrait:w-[4vw] bg-[#0f204b] skew-x-[-20deg]"></div>
                   <div className="w-[2.5vw] portrait:w-[4vw] bg-[#0052cc] skew-x-[-20deg] -ml-[1vw]"></div>
                </div>
-               <h1 className="text-[#0f204b] font-black text-[8vh] portrait:text-[6vh] ml-[2vw] tracking-tighter uppercase">{cidade}</h1>
+               <h1 className={`text-[#0f204b] font-black ml-[2vw] tracking-tighter uppercase ${
+                   cidade.length > 20 ? 'text-[4.5vh] portrait:text-[3.5vh]' :
+                   cidade.length > 12 ? 'text-[6vh] portrait:text-[4.5vh]' :
+                   'text-[8vh] portrait:text-[6vh]'
+               }`}>{cidade}</h1>
             </div>
 
             {/* Main Cards */}
