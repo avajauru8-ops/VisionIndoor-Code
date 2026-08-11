@@ -1,8 +1,15 @@
 {
-  "name": "visioindoor",
   "buildCommand": "npm run build",
-  "outputDirectory": "backend/public",
+  "outputDirectory": "dist",
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/api.php(.*)",
+      "destination": "/api/index.ts"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
