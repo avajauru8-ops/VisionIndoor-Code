@@ -7,3 +7,5 @@ dist/
 uploads/
 *.db
 tsc_output.txt
+
+.vercel
