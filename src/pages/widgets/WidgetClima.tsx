@@ -363,7 +363,9 @@ export default function WidgetClima() {
             .wc-grid-item {
                display: flex;
                align-items: center;
+               justify-content: center;
                gap: 1.5vw;
+               width: 100%;
             }
             .wc-grid-icon {
                width: 6vh; height: 6vh;
