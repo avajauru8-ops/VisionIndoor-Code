@@ -28,7 +28,7 @@ class Api extends ResourceController
             $db->query("ALTER TABLE totens MODIFY COLUMN sistema_operacional VARCHAR(100) DEFAULT NULL");
             $db->query("ALTER TABLE totens MODIFY COLUMN resolucao VARCHAR(50) DEFAULT NULL");
             
-            // New columns for "Extras" tab
+            // New columns for "Extras" tab and Commands
             $columns = [
                 'iniciar_tv_energia' => "BOOLEAN DEFAULT FALSE",
                 'fuso_horario' => "VARCHAR(100) DEFAULT 'America/Sao_Paulo'",
@@ -38,7 +38,10 @@ class Api extends ResourceController
                 'exibir_notificacoes' => "BOOLEAN DEFAULT FALSE",
                 'limpeza_automatica' => "BOOLEAN DEFAULT TRUE",
                 'tempo_exibicao_padrao' => "INT DEFAULT 10",
-                'id_monetizacao' => "VARCHAR(150) DEFAULT NULL"
+                'id_monetizacao' => "VARCHAR(150) DEFAULT NULL",
+                'comando_acao' => "VARCHAR(100) DEFAULT NULL",
+                'comando_id' => "VARCHAR(100) DEFAULT NULL",
+                'data_hora_tv' => "VARCHAR(100) DEFAULT NULL"
             ];
             
             foreach ($columns as $col => $def) {
