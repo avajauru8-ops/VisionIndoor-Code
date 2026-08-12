@@ -105,71 +105,218 @@ export default function WidgetNoticias() {
   }, [feed, mode]);
 
   if (loading) {
-    return <div className="w-screen h-screen bg-black font-sans"></div>;
+    return <div style={{ width: '100vw', height: '100vh', backgroundColor: 'black', fontFamily: 'sans-serif' }}></div>;
   }
 
   const bgImage = noticia?.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80';
 
+  let titleFontSize = '7vh';
+  let titleFontSizePortrait = '5.5vh';
+  if ((noticia?.title || '').length > 150) {
+    titleFontSize = '4.5vh';
+    titleFontSizePortrait = '3vh';
+  } else if ((noticia?.title || '').length > 90) {
+    titleFontSize = '5.5vh';
+    titleFontSizePortrait = '4vh';
+  }
+
   return (
-    <div className="w-screen h-screen overflow-hidden relative bg-black font-sans">
+    <div className="widget-noticias">
+      <style dangerouslySetInnerHTML={{__html: `
+        .widget-noticias {
+          width: 100vw;
+          height: 100vh;
+          overflow: hidden;
+          position: relative;
+          background-color: black;
+          font-family: sans-serif;
+        }
+        .wn-bg {
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          width: 100%; height: 100%;
+          object-fit: cover;
+          z-index: 0;
+          background-position: center;
+          background-repeat: no-repeat;
+          background-size: cover;
+        }
+        .wn-tag-top {
+          position: absolute;
+          top: 0; left: 0;
+          height: 12vh; width: 35vw;
+          background-color: #8B0021;
+          z-index: 10;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          -webkit-clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+          clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .wn-tag-top-text {
+          color: white;
+          font-weight: bold;
+          font-size: 5.5vh;
+          letter-spacing: 0.1em;
+          margin-left: -2vw;
+        }
+        .wn-logo-top {
+          position: absolute;
+          top: 0; right: 0;
+          height: 10vh; width: 25vw;
+          background-color: white;
+          z-index: 10;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          -webkit-clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
+          clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
+        }
+        .wn-logo-container {
+          display: flex;
+          align-items: center;
+          margin-left: 3vw;
+        }
+        .wn-logo-circle {
+          width: 6vh; height: 6vh;
+          border-radius: 50%;
+          background: linear-gradient(to top right, #FF6600, #FFCC00);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 1.5vw;
+        }
+        .wn-logo-inner {
+          width: 3.5vh; height: 3.5vh;
+          border-radius: 50%;
+          background: linear-gradient(to top right, #990000, #FF6600);
+        }
+        .wn-logo-text {
+          color: black;
+          font-weight: 900;
+          font-size: 6vh;
+          letter-spacing: -0.05em;
+        }
+        .wn-overlay {
+          position: absolute;
+          bottom: 0; left: 0;
+          width: 100%; height: 50vh;
+          background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.8), transparent);
+          z-index: 10;
+        }
+        .wn-content {
+          position: absolute;
+          bottom: 0; left: 0;
+          width: 100%;
+          z-index: 40;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          padding-bottom: 8vh;
+        }
+        .wn-category-wrapper {
+          display: flex;
+          width: 100%;
+          padding-left: 6vw;
+          padding-right: 6vw;
+        }
+        .wn-category {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background-color: #ad0029;
+          height: 6vh;
+          padding-left: 3vw;
+          padding-right: 5vw;
+          -webkit-clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+          clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+        }
+        .wn-category-text {
+          color: white;
+          font-weight: bold;
+          font-size: 3vh;
+          letter-spacing: 0.1em;
+          font-style: italic;
+        }
+        .wn-lines {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+        .wn-line-1 { height: 0.3vh; width: 100%; background-color: #8B0021; }
+        .wn-line-2 { height: 0.3vh; width: 100%; background-color: rgba(255,255,255,0.9); }
+        .wn-title-wrapper {
+          padding-left: 6vw;
+          padding-right: 6vw;
+          margin-top: 3vh;
+        }
+        .wn-title {
+          color: white;
+          font-weight: bold;
+          line-height: 1.1;
+          font-style: italic;
+          text-shadow: 0 25px 50px rgba(0,0,0,0.5);
+          white-space: normal;
+          word-break: break-word;
+          font-size: ${titleFontSize};
+          margin: 0;
+        }
+
+        /* Portrait overrides */
+        @media (orientation: portrait) {
+          .wn-bg { background-position: center; }
+          .wn-tag-top { height: 9vh; width: 50vw; }
+          .wn-tag-top-text { font-size: 4.5vh; margin-left: -4vw; }
+          .wn-logo-top { height: 7vh; width: 40vw; }
+          .wn-logo-circle { width: 4vh; height: 4vh; margin-right: 2vw; }
+          .wn-logo-inner { width: 2.2vh; height: 2.2vh; }
+          .wn-logo-text { font-size: 4vh; }
+          .wn-overlay { height: 40vh; }
+          .wn-content { padding-bottom: 6vh; }
+          .wn-category-wrapper { padding-left: 5vw; padding-right: 5vw; }
+          .wn-category { height: 5vh; padding-left: 5vw; padding-right: 8vw; }
+          .wn-category-text { font-size: 2.5vh; }
+          .wn-title-wrapper { padding-left: 5vw; padding-right: 5vw; margin-top: 2vh; }
+          .wn-title { line-height: 1.2; font-size: ${titleFontSizePortrait}; }
+        }
+      `}} />
+
+      <div className="wn-bg" style={{ backgroundImage: `url('${bgImage}')` }}></div>
       
-      {/* Background Image filling the screen */}
-      <div 
-        className="absolute inset-0 w-full h-full object-cover portrait:object-center z-0 bg-center bg-no-repeat bg-cover"
-        style={{ backgroundImage: `url('${bgImage}')` }}
-      />
-      
-      {/* Top Left: NOTÍCIA */}
-      <div 
-        className="absolute top-0 left-0 h-[12vh] portrait:h-[9vh] w-[35vw] portrait:w-[50vw] bg-[#8B0021] z-10 flex items-center justify-center shadow-2xl" 
-        style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 0 100%)' }}
-      >
-         <span className="text-white font-bold text-[5.5vh] portrait:text-[4.5vh] tracking-widest ml-[-2vw] portrait:ml-[-4vw]">NOTÍCIA</span>
+      <div className="wn-tag-top">
+         <span className="wn-tag-top-text">NOTÍCIA</span>
       </div>
 
-      {/* Top Right: UOL Logo */}
-      <div 
-        className="absolute top-0 right-0 h-[10vh] portrait:h-[7vh] w-[25vw] portrait:w-[40vw] bg-white z-10 flex items-center justify-center shadow-2xl" 
-        style={{ clipPath: 'polygon(15% 0, 100% 0, 100% 100%, 0 100%)' }}
-      >
-         <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw] ml-[3vw]">
-            <div className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] rounded-full bg-gradient-to-tr from-[#FF6600] to-[#FFCC00] shadow-inner relative flex items-center justify-center">
-              <div className="w-[3.5vh] h-[3.5vh] portrait:w-[2.2vh] portrait:h-[2.2vh] rounded-full bg-gradient-to-tr from-[#990000] to-[#FF6600]"></div>
+      <div className="wn-logo-top">
+         <div className="wn-logo-container">
+            <div className="wn-logo-circle">
+              <div className="wn-logo-inner"></div>
             </div>
-            <span className="text-black font-black text-[6vh] portrait:text-[4vh] tracking-tighter">UOL</span>
+            <span className="wn-logo-text">UOL</span>
          </div>
       </div>
 
-      {/* Bottom Area Overlay for readability */}
-      <div className="absolute bottom-0 left-0 w-full h-[50vh] portrait:h-[40vh] bg-gradient-to-t from-black/95 via-black/80 to-transparent z-10"></div>
+      <div className="wn-overlay"></div>
       
-      {/* Bottom Flex Container for Category, Lines, and Title */}
-      <div className="absolute bottom-0 left-0 w-full z-40 flex flex-col justify-end pb-[8vh] portrait:pb-[6vh]">
-          {/* Category Box */}
-          <div className="flex w-full px-[6vw] portrait:px-[5vw]">
-             <div className="inline-flex items-center justify-center bg-[#ad0029] h-[6vh] portrait:h-[5vh] px-[3vw] portrait:px-[5vw] pr-[5vw] portrait:pr-[8vw]" style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 0 100%)' }}>
-                 <span className="text-white font-bold text-[3vh] portrait:text-[2.5vh] tracking-widest italic">{noticia?.category.toUpperCase()}</span>
+      <div className="wn-content">
+          <div className="wn-category-wrapper">
+             <div className="wn-category">
+                 <span className="wn-category-text">{noticia?.category.toUpperCase()}</span>
              </div>
           </div>
           
-          {/* Divider lines directly below Category Box */}
-          <div className="w-full flex flex-col">
-               <div className="h-[0.3vh] w-full bg-[#8B0021]"></div>
-               <div className="h-[0.3vh] w-full bg-white opacity-90"></div>
+          <div className="wn-lines">
+               <div className="wn-line-1"></div>
+               <div className="wn-line-2"></div>
           </div>
 
-          {/* Title Text */}
-          <div className="px-[6vw] portrait:px-[5vw] mt-[3vh] portrait:mt-[2vh]">
-               <h1 className={`text-white font-bold leading-[1.1] portrait:leading-[1.2] italic drop-shadow-2xl whitespace-normal break-words ${
-                   (noticia?.title || '').length > 150 ? 'text-[4.5vh] portrait:text-[3vh]' :
-                   (noticia?.title || '').length > 90 ? 'text-[5.5vh] portrait:text-[4vh]' :
-                   'text-[7vh] portrait:text-[5.5vh]'
-               }`}>
+          <div className="wn-title-wrapper">
+               <h1 className="wn-title">
                    {noticia?.title || 'CARREGANDO NOTÍCIA...'}
                </h1>
           </div>
       </div>
-
     </div>
   );
 }

@@ -35,60 +35,214 @@ export default function WidgetFrases() {
     }
   }, []);
 
+  let titleFontSize = '6.5vh';
+  let titleFontSizePortrait = '5vh';
+  if (quote.text.length > 200) {
+    titleFontSize = '3.5vh';
+    titleFontSizePortrait = '2.5vh';
+  } else if (quote.text.length > 120) {
+    titleFontSize = '4.5vh';
+    titleFontSizePortrait = '3.5vh';
+  } else if (quote.text.length > 70) {
+    titleFontSize = '5.5vh';
+    titleFontSizePortrait = '4vh';
+  }
+
   return (
-    <div className="w-screen h-screen bg-[#10131c] flex flex-col font-sans overflow-hidden">
-      
-      {/* Top Bar */}
-      <div className="relative w-full h-[15vh] portrait:h-[9vh] bg-white flex shadow-md overflow-hidden shrink-0">
-         {/* Dark section left */}
-         <div className="absolute top-0 left-0 h-full w-[70vw] portrait:w-[75vw] bg-[#0c1017] z-10" style={{ clipPath: 'polygon(0 0, 100% 0, 93% 100%, 0 100%)' }}>
-           <div className="flex flex-col h-full pl-[5vw] justify-center pt-[2vh] portrait:pt-[1vh]">
-             <span className="text-white font-bold tracking-widest text-[4.5vh] portrait:text-[3.5vh]">FRASES E PENSAMENTOS</span>
-             <div className="h-[0.2vh] w-[80%] bg-white/30 mt-[1vh] portrait:mt-[0.5vh]"></div>
+    <div className="widget-frases">
+      <style dangerouslySetInnerHTML={{__html: `
+        .widget-frases {
+          width: 100vw;
+          height: 100vh;
+          background-color: #10131c;
+          display: flex;
+          flex-direction: column;
+          font-family: sans-serif;
+          overflow: hidden;
+        }
+        .wf-topbar {
+          position: relative;
+          width: 100%;
+          height: 15vh;
+          background-color: white;
+          display: flex;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+          flex-shrink: 0;
+        }
+        .wf-topbar-dark {
+          position: absolute;
+          top: 0; left: 0;
+          height: 100%;
+          width: 70vw;
+          background-color: #0c1017;
+          z-index: 10;
+          -webkit-clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
+          clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
+        }
+        .wf-topbar-inner {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          padding-left: 5vw;
+          justify-content: center;
+          padding-top: 2vh;
+        }
+        .wf-topbar-title {
+          color: white;
+          font-weight: bold;
+          letter-spacing: 0.1em;
+          font-size: 4.5vh;
+        }
+        .wf-topbar-line {
+          height: 0.2vh;
+          width: 80%;
+          background-color: rgba(255,255,255,0.3);
+          margin-top: 1vh;
+        }
+        .wf-topbar-right {
+          position: absolute;
+          right: 5vw; top: 0;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          z-index: 0;
+        }
+        .wf-cc-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 1vw;
+        }
+        .wf-cc-icon {
+          color: #27272a;
+          font-weight: bold;
+          font-size: 3vh;
+          letter-spacing: -0.05em;
+        }
+        .wf-cc-text {
+          color: #27272a;
+          font-weight: bold;
+          font-size: 2.5vh;
+          line-height: 1;
+        }
+        
+        .wf-content {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 8vw;
+        }
+        .wf-card {
+          position: relative;
+          width: 100%;
+          max-width: 85vw;
+          background-color: #f8fafc;
+          border-radius: 1rem;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          display: flex;
+          flex-direction: column;
+          padding: 6vw;
+        }
+        .wf-quote-mark {
+          color: #38bdf8;
+          font-size: 15vh;
+          font-family: serif;
+          line-height: 1;
+          opacity: 0.6;
+          position: absolute;
+          top: 4vh; left: 4vw;
+        }
+        .wf-card-inner {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          flex: 1;
+          width: 100%;
+          z-index: 10;
+          margin-top: 6vh;
+        }
+        .wf-quote-text {
+          color: #27272a;
+          font-family: serif;
+          line-height: 1.3;
+          text-align: center;
+          font-weight: 500;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+          margin-bottom: 6vh;
+          font-size: ${titleFontSize};
+          margin-top: 0;
+        }
+        .wf-card-line {
+          width: 100%;
+          height: 0.2vh;
+          background-color: #d4d4d8;
+          margin-bottom: 4vh;
+        }
+        .wf-author {
+          color: #71717a;
+          font-family: serif;
+          font-size: 4.5vh;
+          text-align: center;
+          margin: 0;
+        }
+
+        /* Portrait overrides */
+        @media (orientation: portrait) {
+          .wf-topbar { height: 9vh; }
+          .wf-topbar-dark { width: 75vw; }
+          .wf-topbar-inner { padding-top: 1vh; }
+          .wf-topbar-title { font-size: 3.5vh; }
+          .wf-topbar-line { margin-top: 0.5vh; }
+          .wf-cc-icon { font-size: 2vh; }
+          .wf-cc-text { font-size: 1.5vh; }
+          
+          .wf-content { padding: 5vw; }
+          .wf-card { max-width: 95vw; border-radius: 1.5rem; padding: 8vw; }
+          .wf-quote-mark { font-size: 10vh; top: 2vh; left: 5vw; }
+          .wf-card-inner { margin-top: 4vh; }
+          .wf-quote-text { line-height: 1.4; margin-bottom: 4vh; font-size: ${titleFontSizePortrait}; }
+          .wf-card-line { margin-bottom: 3vh; }
+          .wf-author { font-size: 3.5vh; }
+        }
+      `}} />
+
+      <div className="wf-topbar">
+         <div className="wf-topbar-dark">
+           <div className="wf-topbar-inner">
+             <span className="wf-topbar-title">FRASES E PENSAMENTOS</span>
+             <div className="wf-topbar-line"></div>
            </div>
          </div>
          
-         {/* Right section */}
-         <div className="absolute right-[5vw] top-0 h-full flex items-center justify-end z-0">
-             <div className="flex items-center gap-[1vw]">
-                {/* Creative Commons text mock */}
-                <span className="text-zinc-800 font-bold text-[3vh] portrait:text-[2vh] tracking-tighter">cc</span>
-                <span className="text-zinc-800 font-bold text-[2.5vh] portrait:text-[1.5vh] leading-none">creative<br/>commons</span>
+         <div className="wf-topbar-right">
+             <div className="wf-cc-wrapper">
+                <span className="wf-cc-icon">cc</span>
+                <span className="wf-cc-text">creative<br/>commons</span>
              </div>
          </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex-1 flex items-center justify-center p-[8vw] portrait:p-[5vw]">
-         <div className="relative w-full max-w-[85vw] portrait:max-w-[95vw] bg-[#f8fafc] rounded-2xl portrait:rounded-3xl shadow-2xl flex flex-col p-[6vw] portrait:p-[8vw]">
+      <div className="wf-content">
+         <div className="wf-card">
             
-            {/* Aspas decorativas */}
-            <div className="text-[#38bdf8] text-[15vh] portrait:text-[10vh] font-serif leading-none opacity-60 absolute top-[4vh] portrait:top-[2vh] left-[4vw] portrait:left-[5vw]">
-               “
-            </div>
+            <div className="wf-quote-mark">“</div>
 
-            <div className="flex flex-col items-center justify-center flex-1 w-full z-10 mt-[6vh] portrait:mt-[4vh]">
-               {/* Texto da Frase */}
-               <h1 className={`text-zinc-800 font-serif leading-[1.3] portrait:leading-[1.4] text-center font-medium drop-shadow-sm mb-[6vh] portrait:mb-[4vh] ${
-                  quote.text.length > 200 ? 'text-[3.5vh] portrait:text-[2.5vh]' :
-                  quote.text.length > 120 ? 'text-[4.5vh] portrait:text-[3.5vh]' :
-                  quote.text.length > 70 ? 'text-[5.5vh] portrait:text-[4vh]' :
-                  'text-[6.5vh] portrait:text-[5vh]'
-               }`}>
+            <div className="wf-card-inner">
+               <h1 className="wf-quote-text">
                   {quote.text}
                </h1>
 
-               {/* Linha Divisória */}
-               <div className="w-full h-[0.2vh] bg-zinc-300 mb-[4vh] portrait:mb-[3vh]"></div>
+               <div className="wf-card-line"></div>
 
-               {/* Autor */}
-               <h2 className="text-zinc-500 font-serif text-[4.5vh] portrait:text-[3.5vh] text-center">
+               <h2 className="wf-author">
                   {quote.author}
                </h2>
             </div>
          </div>
       </div>
-
     </div>
   );
 }

@@ -84,13 +84,25 @@ export default function WidgetClima() {
       return () => clearInterval(interval);
    }, [cidade, estado, searchParams]);
 
+   let titleFontSize = '8vh';
+   let titleFontSizePortrait = '6vh';
+   if (cidade.length > 20) {
+      titleFontSize = '4.5vh';
+      titleFontSizePortrait = '3.5vh';
+   } else if (cidade.length > 12) {
+      titleFontSize = '6vh';
+      titleFontSizePortrait = '4.5vh';
+   }
+
    const renderMainIcon = () => {
       const code = weather.icon_id.slice(0, 2);
       const isDay = weather.icon_id.includes('d');
-      const props = { className: "w-[15vh] h-[15vh] portrait:w-[12vh] portrait:h-[12vh] text-white fill-white/20 shrink-0 drop-shadow-md" };
+      // For inline styles we just use an inline style object here
+      const props = { style: { width: '15vh', height: '15vh', color: 'white', fill: 'rgba(255,255,255,0.2)', filter: 'drop-shadow(0 4px 3px rgba(0,0,0,0.07))', flexShrink: 0 }, className: 'wc-main-icon' };
+      const propsSun = { style: { width: '15vh', height: '15vh', color: '#fde047', fill: 'rgba(253, 224, 71, 0.5)', filter: 'drop-shadow(0 4px 3px rgba(0,0,0,0.07))', flexShrink: 0 }, className: 'wc-main-icon' };
       
       switch(code) {
-         case '01': return isDay ? <Sun {...props} className="w-[15vh] h-[15vh] portrait:w-[12vh] portrait:h-[12vh] text-yellow-300 fill-yellow-300/50" /> : <Moon {...props} />;
+         case '01': return isDay ? <Sun {...propsSun} /> : <Moon {...props} />;
          case '02': 
          case '03':
          case '04': return isDay ? <CloudSun {...props} /> : <CloudMoon {...props} />;
@@ -99,141 +111,408 @@ export default function WidgetClima() {
          case '11': return <CloudLightning {...props} />;
          case '13': return <CloudSnow {...props} />;
          case '50': return <Cloud {...props} />;
-         default: return isDay ? <Sun {...props} className="w-[15vh] h-[15vh] portrait:w-[12vh] portrait:h-[12vh] text-yellow-300 fill-yellow-300/50" /> : <Moon {...props} />;
+         default: return isDay ? <Sun {...propsSun} /> : <Moon {...props} />;
       }
    };
 
    if (loading) {
-      return <div className="w-screen h-screen bg-[#f3f4f6]"></div>;
+      return <div style={{ width: '100vw', height: '100vh', backgroundColor: '#f3f4f6' }}></div>;
    }
 
    return (
-      <div className="w-screen h-screen bg-[#f3f4f6] flex flex-col font-sans overflow-hidden">
-         {/* Top Bar */}
-         <div className="relative w-full h-[15vh] portrait:h-[7vh] bg-white flex shadow-md overflow-hidden shrink-0">
-           {/* Dark blue section */}
-           <div className="absolute top-0 left-0 h-full w-[80vw] portrait:w-[85vw] bg-[#0f204b] z-10" style={{ clipPath: 'polygon(0 0, 100% 0, 93% 100%, 0 100%)' }}>
-             <div className="flex items-center h-full pl-[5vw]">
-               <span className="text-white font-bold tracking-widest text-[3.5vh] portrait:text-[3.5vh]">PREVISÃO DO TEMPO</span>
+      <div className="widget-clima">
+         <style dangerouslySetInnerHTML={{__html: `
+            .widget-clima {
+               width: 100vw;
+               height: 100vh;
+               background-color: #f3f4f6;
+               display: flex;
+               flex-direction: column;
+               font-family: sans-serif;
+               overflow: hidden;
+            }
+            .wc-topbar {
+               position: relative;
+               width: 100%;
+               height: 15vh;
+               background-color: white;
+               display: flex;
+               box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+               overflow: hidden;
+               flex-shrink: 0;
+            }
+            .wc-topbar-blue {
+               position: absolute;
+               top: 0; left: 0;
+               height: 100%;
+               width: 80vw;
+               background-color: #0f204b;
+               z-index: 10;
+               -webkit-clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
+               clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
+            }
+            .wc-topbar-blue-inner {
+               display: flex;
+               align-items: center;
+               height: 100%;
+               padding-left: 5vw;
+            }
+            .wc-topbar-title {
+               color: white;
+               font-weight: bold;
+               letter-spacing: 0.1em;
+               font-size: 3.5vh;
+            }
+            .wc-topbar-pattern {
+               position: absolute;
+               top: 0; left: 40vw;
+               height: 100%; width: 40vw;
+               opacity: 0.1;
+               z-index: 10;
+               pointer-events: none;
+               display: flex;
+               flex-wrap: wrap;
+               gap: 1vw;
+               padding: 2vh;
+               align-items: center;
+               justify-content: center;
+               overflow: hidden;
+            }
+            .wc-topbar-right {
+               position: absolute;
+               right: 5vw; top: 0;
+               height: 100%;
+               display: flex;
+               align-items: center;
+               justify-content: flex-end;
+               z-index: 0;
+            }
+            .wc-topbar-right-inner {
+               display: flex;
+               flex-direction: column;
+               align-items: center;
+            }
+            .wc-sun-icon { width: 6vh; height: 6vh; color: #ff6600; }
+            .wc-ow-text {
+               color: #0f204b;
+               font-weight: bold;
+               font-size: 1.8vh;
+               margin-top: 0.5vh;
+            }
+            
+            .wc-content {
+               flex: 1;
+               display: flex;
+               flex-direction: column;
+               padding-left: 5vw;
+               padding-right: 5vw;
+               padding-bottom: 5vh;
+               position: relative;
+               z-index: 20;
+            }
+            .wc-city-box {
+               display: flex;
+               align-items: center;
+               margin-top: 6vh;
+               margin-bottom: 6vh;
+            }
+            .wc-city-lines {
+               display: flex;
+               height: 8vh;
+            }
+            .wc-city-line-1 {
+               width: 2.5vw;
+               background-color: #0f204b;
+               transform: skewX(-20deg);
+            }
+            .wc-city-line-2 {
+               width: 2.5vw;
+               background-color: #0052cc;
+               transform: skewX(-20deg);
+               margin-left: -1vw;
+            }
+            .wc-city-name {
+               color: #0f204b;
+               font-weight: 900;
+               margin-left: 2vw;
+               letter-spacing: -0.05em;
+               text-transform: uppercase;
+               font-size: ${titleFontSize};
+               margin-top: 0; margin-bottom: 0;
+            }
+            .wc-cards {
+               display: flex;
+               justify-content: center;
+               align-items: stretch;
+               flex: 1;
+               gap: 2vw;
+            }
+            .wc-card-left {
+               position: relative;
+               width: 30vw;
+               background-color: #22272e;
+               border-radius: 40px;
+               display: flex;
+               flex-direction: column;
+               align-items: center;
+               justify-content: center;
+               box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+               overflow: hidden;
+               flex-shrink: 0;
+               padding-top: 4vh;
+               padding-bottom: 4vh;
+            }
+            .wc-corner-left {
+               position: absolute;
+               top: 0; left: 0;
+               width: 6vw; height: 6vw;
+               background-color: #facc15;
+               -webkit-clip-path: polygon(0 0, 100% 0, 0 100%);
+               clip-path: polygon(0 0, 100% 0, 0 100%);
+            }
+            .wc-hoje {
+               color: #facc15;
+               font-size: 4vh;
+               font-weight: bold;
+               font-style: italic;
+               z-index: 10;
+               margin: 0;
+            }
+            .wc-main-icon-wrapper {
+               margin-top: 2vh;
+               margin-bottom: 2vh;
+               z-index: 10;
+               filter: drop-shadow(0 25px 25px rgba(0,0,0,0.5));
+            }
+            .wc-temp {
+               color: white;
+               font-size: 12vh;
+               font-weight: 900;
+               line-height: 1;
+               letter-spacing: -0.05em;
+               z-index: 10;
+            }
+            .wc-desc {
+               color: white;
+               font-size: 3vh;
+               font-weight: 600;
+               text-align: center;
+               z-index: 10;
+               padding-left: 2vw;
+               padding-right: 2vw;
+               line-height: 1.25;
+               margin-top: 1vh;
+            }
+            .wc-clouds {
+               color: rgba(255,255,255,0.7);
+               font-size: 2.5vh;
+               margin-top: 0.5vh;
+               z-index: 10;
+            }
+            
+            .wc-separator {
+               display: flex;
+               align-items: center;
+               justify-content: center;
+               flex-shrink: 0;
+               width: 6vw;
+            }
+            .wc-sep-svg {
+               width: 8vw; height: 12vh;
+               color: #facc15;
+               fill: #facc15;
+               filter: drop-shadow(0 4px 3px rgba(0,0,0,0.07));
+            }
+
+            .wc-card-right {
+               position: relative;
+               flex: 1;
+               background-color: #15234b;
+               border-radius: 40px;
+               padding: 6vh;
+               box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+               overflow: hidden;
+               display: flex;
+               flex-direction: column;
+               justify-content: center;
+            }
+            .wc-corner-right {
+               position: absolute;
+               bottom: 0; right: 0;
+               width: 6vw; height: 6vw;
+               background-color: #facc15;
+               -webkit-clip-path: polygon(100% 0, 100% 100%, 0 100%);
+               clip-path: polygon(100% 0, 100% 100%, 0 100%);
+            }
+            .wc-grid {
+               display: grid;
+               grid-template-columns: repeat(3, minmax(0, 1fr));
+               row-gap: 8vh;
+               column-gap: 4vw;
+               z-index: 10;
+               position: relative;
+            }
+            .wc-grid-item {
+               display: flex;
+               align-items: center;
+               gap: 1.5vw;
+            }
+            .wc-grid-icon {
+               width: 6vh; height: 6vh;
+               flex-shrink: 0;
+               filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+            }
+            .wc-grid-text {
+               display: flex;
+               flex-direction: column;
+               justify-content: center;
+            }
+            .wc-grid-label {
+               color: #a0b0d0;
+               font-size: 2vh;
+               font-weight: 500;
+               line-height: 1.25;
+               margin-bottom: 0.25rem;
+            }
+            .wc-grid-val {
+               color: white;
+               font-size: 3vh;
+               font-weight: bold;
+               line-height: 1.25;
+            }
+
+            /* Portrait overrides */
+            @media (orientation: portrait) {
+               .wc-topbar { height: 7vh; }
+               .wc-topbar-blue { width: 85vw; }
+               .wc-topbar-title { font-size: 3.5vh; }
+               .wc-sun-icon { width: 4vh; height: 4vh; }
+               .wc-ow-text { font-size: 1.5vh; }
+               
+               .wc-content { padding-bottom: 2vh; }
+               .wc-city-box { margin-top: 2vh; margin-bottom: 2vh; }
+               .wc-city-lines { height: 6vh; }
+               .wc-city-line-1, .wc-city-line-2 { width: 4vw; }
+               .wc-city-name { font-size: ${titleFontSizePortrait}; }
+               
+               .wc-cards { flex-direction: column; align-items: center; gap: 2vh; justify-content: space-evenly; }
+               .wc-card-left { width: 94vw; border-radius: 30px; padding-top: 2.5vh; padding-bottom: 2.5vh; }
+               .wc-corner-left { width: 10vw; height: 10vw; }
+               .wc-hoje { font-size: 3.5vh; }
+               .wc-main-icon-wrapper { margin-top: 1vh; margin-bottom: 1vh; }
+               .wc-temp { font-size: 10vh; }
+               .wc-desc { font-size: 2.5vh; }
+               .wc-clouds { font-size: 2vh; }
+               
+               .wc-separator { width: 100%; height: 4vh; }
+               .wc-sep-svg { width: 6vh; height: 6vh; transform: rotate(90deg); }
+               
+               .wc-card-right { flex: none; width: 94vw; padding: 4vh; padding-top: 2.5vh; padding-bottom: 2.5vh; border-radius: 30px; }
+               .wc-corner-right { width: 10vw; height: 10vw; }
+               
+               .wc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 2.5vh; column-gap: 2vw; }
+               .wc-grid-item { gap: 2vw; }
+               .wc-grid-icon { width: 3.5vh; height: 3.5vh; }
+               
+               .wc-main-icon { width: 12vh !important; height: 12vh !important; }
+            }
+         `}} />
+
+         <div className="wc-topbar">
+           <div className="wc-topbar-blue">
+             <div className="wc-topbar-blue-inner">
+               <span className="wc-topbar-title">PREVISÃO DO TEMPO</span>
              </div>
            </div>
-           
-           {/* Faint pattern overlay on blue (optional) */}
-           <div className="absolute top-0 left-[40vw] h-full w-[40vw] opacity-10 z-10 pointer-events-none flex flex-wrap gap-[1vw] p-[2vh] items-center justify-center overflow-hidden">
+           <div className="wc-topbar-pattern">
                {Array.from({length: 40}).map((_, i) => (
-                  <Cloud key={i} className="w-[2.5vh] h-[2.5vh] text-white" />
+                  <Cloud key={i} style={{ width: '2.5vh', height: '2.5vh', color: 'white' }} />
                ))}
            </div>
-
-           {/* Right section (OpenWeather logo) */}
-           <div className="absolute right-[5vw] top-0 h-full flex items-center justify-end z-0">
-               <div className="flex flex-col items-center">
-                 <Sun className="w-[6vh] h-[6vh] portrait:w-[4vh] portrait:h-[4vh] text-[#ff6600]" />
-                 <span className="text-[#0f204b] font-bold text-[1.8vh] portrait:text-[1.5vh] mt-[0.5vh]">OpenWeather</span>
+           <div className="wc-topbar-right">
+               <div className="wc-topbar-right-inner">
+                 <Sun className="wc-sun-icon" />
+                 <span className="wc-ow-text">OpenWeather</span>
                </div>
            </div>
          </div>
 
-         {/* Content Area */}
-         <div className="flex-1 flex flex-col px-[5vw] pb-[5vh] portrait:pb-[2vh] relative z-20">
-            {/* City Title */}
-            <div className="flex items-center mt-[6vh] mb-[6vh] portrait:mt-[2vh] portrait:mb-[2vh]">
-               <div className="flex h-[8vh] portrait:h-[6vh]">
-                  <div className="w-[2.5vw] portrait:w-[4vw] bg-[#0f204b] skew-x-[-20deg]"></div>
-                  <div className="w-[2.5vw] portrait:w-[4vw] bg-[#0052cc] skew-x-[-20deg] -ml-[1vw]"></div>
+         <div className="wc-content">
+            <div className="wc-city-box">
+               <div className="wc-city-lines">
+                  <div className="wc-city-line-1"></div>
+                  <div className="wc-city-line-2"></div>
                </div>
-               <h1 className={`text-[#0f204b] font-black ml-[2vw] tracking-tighter uppercase ${
-                   cidade.length > 20 ? 'text-[4.5vh] portrait:text-[3.5vh]' :
-                   cidade.length > 12 ? 'text-[6vh] portrait:text-[4.5vh]' :
-                   'text-[8vh] portrait:text-[6vh]'
-               }`}>{cidade}</h1>
+               <h1 className="wc-city-name">{cidade}</h1>
             </div>
 
-            {/* Main Cards */}
-            <div className="flex justify-center items-stretch flex-1 gap-[2vw] portrait:flex-col portrait:items-center portrait:gap-[2vh] portrait:justify-evenly">
+            <div className="wc-cards">
                
-               {/* Left Card: Today */}
-               <div className="relative w-[30vw] portrait:w-[94vw] bg-[#22272e] rounded-[40px] portrait:rounded-[30px] flex flex-col items-center justify-center shadow-2xl overflow-hidden shrink-0 py-[4vh] portrait:py-[2.5vh]">
-                 {/* Yellow corner accent top left */}
-                 <div className="absolute top-0 left-0 w-[6vw] h-[6vw] portrait:w-[10vw] portrait:h-[10vw] bg-[#facc15]" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}></div>
-                 
-                 <h2 className="text-[#facc15] text-[4vh] portrait:text-[3.5vh] font-bold italic z-10">Hoje</h2>
-                 
-                 <div className="my-[2vh] portrait:my-[1vh] z-10 drop-shadow-2xl">
+               <div className="wc-card-left">
+                 <div className="wc-corner-left"></div>
+                 <h2 className="wc-hoje">Hoje</h2>
+                 <div className="wc-main-icon-wrapper">
                     {renderMainIcon()}
                  </div>
-
-                 <div className="text-white text-[12vh] portrait:text-[10vh] font-black leading-none tracking-tighter z-10">
-                    {weather.temp}°
-                 </div>
-                 <div className="text-white text-[3vh] portrait:text-[2.5vh] font-semibold text-center z-10 px-[2vw] leading-tight mt-[1vh]">{weather.description}</div>
-                 <div className="text-white/70 text-[2.5vh] portrait:text-[2vh] mt-[0.5vh] z-10">{weather.clouds}</div>
+                 <div className="wc-temp">{weather.temp}°</div>
+                 <div className="wc-desc">{weather.description}</div>
+                 <div className="wc-clouds">{weather.clouds}</div>
                </div>
 
-               {/* Chevron Separator */}
-               <div className="flex items-center justify-center shrink-0 w-[6vw] portrait:w-full portrait:h-[4vh]">
-                 <svg viewBox="0 0 24 24" className="w-[8vw] h-[12vh] portrait:w-[6vh] portrait:h-[6vh] text-[#facc15] fill-[#facc15] drop-shadow-md portrait:rotate-90">
+               <div className="wc-separator">
+                 <svg viewBox="0 0 24 24" className="wc-sep-svg">
                     <path d="M5 3l14 9-14 9v-5l6.2-4L5 8V3z"/>
                  </svg>
                </div>
 
-               {/* Right Card: Details Grid */}
-               <div className="relative flex-1 portrait:flex-none portrait:w-[94vw] portrait:py-[2.5vh] bg-[#15234b] rounded-[40px] portrait:rounded-[30px] p-[6vh] portrait:p-[4vh] shadow-2xl overflow-hidden flex flex-col justify-center">
-                 {/* Yellow corner accent bottom right */}
-                 <div className="absolute bottom-0 right-0 w-[6vw] h-[6vw] portrait:w-[10vw] portrait:h-[10vw] bg-[#facc15]" style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 100%)' }}></div>
-
-                 <div className="grid grid-cols-3 portrait:grid-cols-2 gap-y-[8vh] portrait:gap-y-[2.5vh] gap-x-[4vw] portrait:gap-x-[2vw] z-10 relative">
-                    {/* Vento */}
-                    <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <Wind className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] text-white shrink-0 drop-shadow" />
-                       <div className="flex flex-col justify-center">
-                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2vh] font-medium leading-tight mb-1">Vento</span>
-                          <span className="text-white text-[3vh] portrait:text-[2.8vh] font-bold leading-tight">{weather.wind}</span>
+               <div className="wc-card-right">
+                 <div className="wc-corner-right"></div>
+                 <div className="wc-grid">
+                    <div className="wc-grid-item">
+                       <Wind className="wc-grid-icon" style={{color: 'white'}} />
+                       <div className="wc-grid-text">
+                          <span className="wc-grid-label">Vento</span>
+                          <span className="wc-grid-val">{weather.wind}</span>
                        </div>
                     </div>
                     
-                    {/* Umidade */}
-                    <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <Droplets className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] text-[#00aaff] shrink-0 drop-shadow" />
-                       <div className="flex flex-col justify-center">
-                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2vh] font-medium leading-tight mb-1">Umidade</span>
-                          <span className="text-white text-[3vh] portrait:text-[2.8vh] font-bold leading-tight">{weather.humidity}</span>
+                    <div className="wc-grid-item">
+                       <Droplets className="wc-grid-icon" style={{color: '#00aaff'}} />
+                       <div className="wc-grid-text">
+                          <span className="wc-grid-label">Umidade</span>
+                          <span className="wc-grid-val">{weather.humidity}</span>
                        </div>
                     </div>
 
-                    {/* Chuva */}
-                    <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <CloudRain className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] text-[#00aaff] shrink-0 drop-shadow" />
-                       <div className="flex flex-col justify-center">
-                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2vh] font-medium leading-tight mb-1">Chuva</span>
-                          <span className="text-white text-[3vh] portrait:text-[2.8vh] font-bold leading-tight">0%</span>
+                    <div className="wc-grid-item">
+                       <CloudRain className="wc-grid-icon" style={{color: '#00aaff'}} />
+                       <div className="wc-grid-text">
+                          <span className="wc-grid-label">Chuva</span>
+                          <span className="wc-grid-val">0%</span>
                        </div>
                     </div>
 
-                    {/* Sensação Térmica */}
-                    <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <Thermometer className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] text-[#ff6600] shrink-0 drop-shadow" />
-                       <div className="flex flex-col justify-center">
-                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2vh] font-medium leading-tight mb-1">Sensação<br/>Térmica</span>
-                          <span className="text-white text-[3vh] portrait:text-[2.8vh] font-bold leading-tight">{weather.feels_like}°</span>
+                    <div className="wc-grid-item">
+                       <Thermometer className="wc-grid-icon" style={{color: '#ff6600'}} />
+                       <div className="wc-grid-text">
+                          <span className="wc-grid-label">Sensação<br/>Térmica</span>
+                          <span className="wc-grid-val">{weather.feels_like}°</span>
                        </div>
                     </div>
 
-                    {/* Amanhecer */}
-                    <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <Sunrise className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] text-[#facc15] shrink-0 drop-shadow" />
-                       <div className="flex flex-col justify-center">
-                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2vh] font-medium leading-tight mb-1">Amanhecer</span>
-                          <span className="text-white text-[3vh] portrait:text-[2.8vh] font-bold leading-tight">{weather.sunrise}</span>
+                    <div className="wc-grid-item">
+                       <Sunrise className="wc-grid-icon" style={{color: '#facc15'}} />
+                       <div className="wc-grid-text">
+                          <span className="wc-grid-label">Amanhecer</span>
+                          <span className="wc-grid-val">{weather.sunrise}</span>
                        </div>
                     </div>
 
-                    {/* Pôr do Sol */}
-                    <div className="flex items-center gap-[1.5vw] portrait:gap-[2vw]">
-                       <Sunset className="w-[6vh] h-[6vh] portrait:w-[3.5vh] portrait:h-[3.5vh] text-[#00aaff] shrink-0 drop-shadow" />
-                       <div className="flex flex-col justify-center">
-                          <span className="text-[#a0b0d0] text-[2vh] portrait:text-[2vh] font-medium leading-tight mb-1">Pôr do Sol</span>
-                          <span className="text-white text-[3vh] portrait:text-[2.8vh] font-bold leading-tight">{weather.sunset}</span>
+                    <div className="wc-grid-item">
+                       <Sunset className="wc-grid-icon" style={{color: '#00aaff'}} />
+                       <div className="wc-grid-text">
+                          <span className="wc-grid-label">Pôr do Sol</span>
+                          <span className="wc-grid-val">{weather.sunset}</span>
                        </div>
                     </div>
                  </div>
