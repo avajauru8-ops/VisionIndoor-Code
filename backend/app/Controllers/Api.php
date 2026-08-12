@@ -449,4 +449,30 @@ class Api extends ResourceController
         
         return $this->response->setContentType('text/xml')->setBody($xml);
     }
+
+    public function generateId()
+    {
+        try {
+            $db = \Config\Database::connect();
+            $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            $length = 6;
+            $isUnique = false;
+            $deviceId = '';
+            
+            while (!$isUnique) {
+                $deviceId = '';
+                for ($i = 0; $i < $length; $i++) {
+                    $deviceId .= $chars[rand(0, strlen($chars) - 1)];
+                }
+                $count = $db->table('totens')->where('device_id', $deviceId)->countAllResults();
+                if ($count === 0) {
+                    $isUnique = true;
+                }
+            }
+            
+            return $this->respond(['device_id' => $deviceId]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['error' => $e->getMessage()])->setStatusCode(500);
+        }
+    }
 }
