@@ -98,53 +98,87 @@ export default function WidgetLoteria() {
   const bgColor = colors[tipo] || '#209869';
   const title = titles[tipo] || 'Loteria';
 
+  const isLotofacil = tipo === 'lotofacil';
+
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-between text-white overflow-hidden p-[4vh] relative" style={{ backgroundColor: bgColor }}>
+    <div className="wl-container" style={{ backgroundColor: bgColor }}>
+       <style dangerouslySetInnerHTML={{__html: `
+         .wl-container {
+           width: 100vw; height: 100vh;
+           display: flex; flex-direction: column;
+           align-items: center; justify-content: space-between;
+           color: white; overflow: hidden;
+           padding: 4vh; position: relative;
+         }
+         .wl-bg-top { position: absolute; top: -10vh; left: -10vh; opacity: 0.1; pointer-events: none; }
+         .wl-bg-bottom { position: absolute; bottom: -10vh; right: -10vh; opacity: 0.1; pointer-events: none; }
+         .wl-bg-icon { width: 40vh; height: 40vh; }
+         
+         .wl-header { display: flex; flex-direction: column; align-items: center; margin-top: 4vh; width: 100%; z-index: 10; }
+         .wl-header-title-container { display: flex; align-items: center; gap: 2vw; margin-bottom: 3vh; }
+         .wl-header-icon { width: 10vh; height: 10vh; color: white; }
+         .wl-header-title { font-size: 10vh; font-weight: bold; text-transform: uppercase; letter-spacing: -0.025em; color: white; line-height: 1; text-shadow: 0 4px 6px rgba(0,0,0,0.3); margin: 0; }
+         
+         .wl-date-container { display: flex; align-items: center; gap: 2vw; background-color: rgba(0,0,0,0.2); padding: 1.5vh 5vw; border-radius: 9999px; border: 0.3vh solid rgba(255,255,255,0.2); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+         .wl-date-icon { width: 4vh; height: 4vh; opacity: 0.9; }
+         .wl-date-label { font-size: 3.5vh; font-weight: 500; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.1em; }
+         .wl-date-value { font-size: 4.5vh; font-weight: bold; }
+         
+         .wl-numbers-container { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; align-content: center; flex: 1; max-width: 90vw; width: 100%; z-index: 10; }
+         .wl-numbers-container.lotofacil { gap: 2vw; }
+         .wl-numbers-container.default { gap: 3vw; }
+         
+         .wl-number-ball { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; text-align: center; border: 0.4vh solid white; filter: drop-shadow(0 10px 8px rgba(0,0,0,0.2)); background-color: transparent; }
+         .wl-number-ball.lotofacil { width: 12vh; height: 12vh; font-size: 5.5vh; margin: 0.5vh; }
+         .wl-number-ball.default { width: 16vh; height: 16vh; font-size: 7.5vh; margin: 1vh; }
+         
+         .wl-footer { display: flex; flex-direction: column; align-items: center; margin-bottom: 4vh; gap: 1vh; z-index: 10; width: 100%; }
+         .wl-prize-container { background-color: rgba(0,0,0,0.3); padding: 2vh 6vw; border-radius: 2vh; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 0.2vh solid rgba(253,224,71,0.3); text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+         .wl-prize-label { font-size: 3vh; font-weight: 500; opacity: 0.9; display: block; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1vh; }
+         .wl-prize-value { font-size: 5.5vh; color: #fde047; font-weight: 900; filter: drop-shadow(0 4px 3px rgba(0,0,0,0.3)); line-height: 1; }
+       `}} />
        
-       {/* Background Pattern Elements (Simulating the mockup background) */}
-       <div className="absolute top-[-10vh] left-[-10vh] opacity-10 pointer-events-none">
-          <Clover className="w-[40vh] h-[40vh]" />
+       {/* Background Pattern Elements */}
+       <div className="wl-bg-top">
+          <Clover className="wl-bg-icon" />
        </div>
-       <div className="absolute bottom-[-10vh] right-[-10vh] opacity-10 pointer-events-none">
-          <Clover className="w-[40vh] h-[40vh]" />
+       <div className="wl-bg-bottom">
+          <Clover className="wl-bg-icon" />
        </div>
 
        {/* HEADER */}
-       <div className="flex flex-col items-center mt-[4vh] w-full z-10">
-           <div className="flex items-center gap-[2vw] mb-[3vh]">
-               <Clover className="w-[10vh] h-[10vh] text-white" />
-               <h1 className="text-[10vh] font-bold uppercase tracking-tight text-white leading-none drop-shadow-md">
+       <div className="wl-header">
+           <div className="wl-header-title-container">
+               <Clover className="wl-header-icon" />
+               <h1 className="wl-header-title">
                   {title}
                </h1>
            </div>
            
-           <div className="flex items-center gap-[2vw] bg-black/20 px-[5vw] py-[1.5vh] rounded-full border-[0.3vh] border-white/20 shadow-lg backdrop-blur-sm">
-              <Calendar className="w-[4vh] h-[4vh] opacity-90" />
-              <span className="text-[3.5vh] font-medium opacity-90 uppercase tracking-widest">Data do Sorteio:</span>
-              <span className="text-[4.5vh] font-bold">{dataSorteio}</span>
+           <div className="wl-date-container">
+              <Calendar className="wl-date-icon" />
+              <span className="wl-date-label">Data do Sorteio:</span>
+              <span className="wl-date-value">{dataSorteio}</span>
            </div>
        </div>
        
        {/* NUMBERS */}
-       <div className={`flex flex-wrap justify-center items-center content-center flex-1 max-w-[90vw] w-full z-10 ${tipo === 'lotofacil' ? 'gap-[2vw]' : 'gap-[3vw]'}`}>
+       <div className={`wl-numbers-container ${isLotofacil ? 'lotofacil' : 'default'}`}>
           {numbers.map((n, i) => (
-            <div key={i} 
-                 className={`rounded-full flex items-center justify-center font-bold text-center border-[0.4vh] border-white drop-shadow-lg bg-transparent ${
-                   tipo === 'lotofacil' ? 'w-[12vh] h-[12vh] text-[5.5vh] m-[0.5vh]' : 'w-[16vh] h-[16vh] text-[7.5vh] m-[1vh]'
-                 }`}>
+            <div key={i} className={`wl-number-ball ${isLotofacil ? 'lotofacil' : 'default'}`}>
                {n}
             </div>
           ))}
        </div>
 
        {/* FOOTER */}
-       <div className="flex flex-col items-center mb-[4vh] gap-[1vh] z-10 w-full">
+       <div className="wl-footer">
            {premio && (
-             <div className="bg-black/30 px-[6vw] py-[2vh] rounded-[2vh] backdrop-blur-md border-[0.2vh] border-yellow-300/30 text-center shadow-2xl">
-               <span className="text-[3vh] font-medium opacity-90 block uppercase tracking-wider mb-[1vh]">
+             <div className="wl-prize-container">
+               <span className="wl-prize-label">
                  Próximo prêmio estimado
                </span>
-               <span className="text-[5.5vh] text-yellow-300 font-black drop-shadow-lg leading-none">
+               <span className="wl-prize-value">
                  {premio}
                </span>
              </div>
