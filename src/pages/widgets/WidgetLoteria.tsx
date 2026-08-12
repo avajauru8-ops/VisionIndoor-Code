@@ -103,19 +103,24 @@ export default function WidgetLoteria() {
   return (
     <div className="wl-container" style={{ backgroundColor: bgColor }}>
        <style dangerouslySetInnerHTML={{__html: `
-         html, body {
-           margin: 0; padding: 0;
+         * {
+           box-sizing: border-box;
+           margin: 0;
+           padding: 0;
+         }
+         html, body, #root {
            width: 100%; height: 100%;
-           background-color: black;
+           background-color: ${bgColor};
            overflow: hidden;
          }
          .wl-container {
-           width: 100vw; height: 100vh;
+           position: absolute;
+           top: 0; left: 0;
+           width: 100%; height: 100%;
            display: flex; flex-direction: column;
            align-items: center; justify-content: space-between;
            color: white; overflow: hidden;
-           padding: 4vh; position: relative;
-           box-sizing: border-box;
+           padding: 4vh;
          }
          .wl-bg-top { position: absolute; top: -10vh; left: -10vh; opacity: 0.1; pointer-events: none; }
          .wl-bg-bottom { position: absolute; bottom: -10vh; right: -10vh; opacity: 0.1; pointer-events: none; }
