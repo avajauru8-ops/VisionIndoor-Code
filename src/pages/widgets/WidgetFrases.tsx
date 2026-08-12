@@ -51,6 +51,14 @@ export default function WidgetFrases() {
   return (
     <div className="widget-frases">
       <style dangerouslySetInnerHTML={{__html: `
+        html, body {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          height: 100%;
+          background-color: #10131c;
+          overflow: hidden;
+        }
         .widget-frases {
           width: 100vw;
           height: 100vh;

@@ -57,8 +57,22 @@ export default function WidgetNoticias() {
         }
 
         const title = selectedItem.querySelector('title')?.textContent || '';
+        const link = selectedItem.querySelector('link')?.textContent || '';
         
         let itemCategory = getCategoryName(feed);
+        // Tenta extrair a categoria exata da URL da notícia, ex: noticias.uol.com.br/politica/
+        try {
+           if (link) {
+              const urlParts = link.split('/');
+              if (urlParts.length > 3) {
+                 const possibleCategory = urlParts[3];
+                 if (possibleCategory && possibleCategory.length > 2 && !possibleCategory.includes('.')) {
+                    itemCategory = possibleCategory.charAt(0).toUpperCase() + possibleCategory.slice(1);
+                 }
+              }
+           }
+        } catch(e) {}
+
         const categoryNodes = selectedItem.querySelectorAll('category');
         if (categoryNodes.length > 0 && categoryNodes[0].textContent) {
            itemCategory = categoryNodes[0].textContent.trim();
@@ -69,12 +83,22 @@ export default function WidgetNoticias() {
         if (enclosure && enclosure.getAttribute('type')?.startsWith('image/')) {
           image = enclosure.getAttribute('url');
         } else {
-          const content = selectedItem.getElementsByTagNameNS('*', 'content');
-          for (let i = 0; i < content.length; i++) {
-            if (content[i].getAttribute('type')?.startsWith('image/')) {
-              image = content[i].getAttribute('url');
-              break;
-            }
+          // Fallback para procurar tag <img> dentro da description ou content:encoded (padrão UOL)
+          const desc = selectedItem.querySelector('description')?.textContent || '';
+          const contentEncoded = selectedItem.getElementsByTagNameNS('*', 'encoded')[0]?.textContent || '';
+          const htmlContent = desc + ' ' + contentEncoded;
+          
+          const imgMatch = htmlContent.match(/<img[^>]+src=["']([^"']+)["']/i);
+          if (imgMatch && imgMatch[1]) {
+             image = imgMatch[1];
+          } else {
+             const content = selectedItem.getElementsByTagNameNS('*', 'content');
+             for (let i = 0; i < content.length; i++) {
+               if (content[i].getAttribute('type')?.startsWith('image/')) {
+                 image = content[i].getAttribute('url');
+                 break;
+               }
+             }
           }
         }
 
@@ -123,6 +147,14 @@ export default function WidgetNoticias() {
   return (
     <div className="widget-noticias">
       <style dangerouslySetInnerHTML={{__html: `
+        html, body {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          height: 100%;
+          background-color: black;
+          overflow: hidden;
+        }
         .widget-noticias {
           width: 100vw;
           height: 100vh;

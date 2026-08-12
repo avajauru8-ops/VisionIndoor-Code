@@ -122,6 +122,14 @@ export default function WidgetClima() {
    return (
       <div className="widget-clima">
          <style dangerouslySetInnerHTML={{__html: `
+            html, body {
+               margin: 0;
+               padding: 0;
+               width: 100%;
+               height: 100%;
+               background-color: #f3f4f6;
+               overflow: hidden;
+            }
             .widget-clima {
                width: 100vw;
                height: 100vh;
