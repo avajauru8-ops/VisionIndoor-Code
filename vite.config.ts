@@ -44,6 +44,17 @@ export default defineConfig(() => {
     build: {
       outDir: 'backend/public',
       emptyOutDir: false,
+      target: ['es2020', 'edge88', 'firefox78', 'chrome74', 'safari13'],
+      cssTarget: 'chrome74',
     },
+    css: {
+      transformer: 'lightningcss',
+      lightningcss: {
+        targets: {
+          chrome: 74 << 16,
+          android: 74 << 16
+        }
+      }
+    }
   };
 });

@@ -138,6 +138,11 @@ class Totems extends ResourceController
     {
         try {
             $db = \Config\Database::connect();
+            
+            // Remove o vínculo deste totem em qualquer campanha antes de deletá-lo
+            // Isso previne o erro de Foreign Key Constraint Failure (Cannot delete parent row)
+            $db->table('campanhas')->where('totem_id', $id)->update(['totem_id' => null]);
+            
             $db->table('totens')->where('id', $id)->delete();
             return $this->respondDeleted(['id' => $id]);
         } catch (\Exception $e) {
