@@ -162,8 +162,15 @@ export default function WidgetLoteria() {
          .wl-prize-value { font-size: 5.5vh; color: #fde047; font-weight: 900; filter: drop-shadow(0 4px 3px rgba(0,0,0,0.3)); line-height: 1; }
          .wl-next-date { display: block; font-size: 2.2vh; margin-top: 1vh; opacity: 0.8; font-weight: bold; text-transform: uppercase; }
          .wl-acumulou-badge { background-color: #e74c3c; color: white; font-weight: 900; padding: 0.8vh 3vw; border-radius: 1.5vh; font-size: 4vh; text-transform: uppercase; letter-spacing: 0.1em; animation: pulse 2s infinite; box-shadow: 0 4px 10px rgba(231,76,60,0.4); margin-bottom: 1.5vh; }
+         .wl-acumulou-badge.saiu { background-color: #27ae60; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.4); animation: pulse-success 2s infinite; }
          
          @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+         }
+
+         @keyframes pulse-success {
             0% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.05); opacity: 0.9; }
             100% { transform: scale(1); opacity: 1; }
@@ -231,11 +238,9 @@ export default function WidgetLoteria() {
 
        {/* FOOTER */}
        <div className="wl-footer">
-           {acumulado && (
-             <div className="wl-acumulou-badge">
-               Acumulou!
-             </div>
-           )}
+           <div className={`wl-acumulou-badge ${!acumulado ? 'saiu' : ''}`}>
+             {acumulado ? 'Acumulou!' : 'Saiu o prêmio!'}
+           </div>
            {premio && (
              <div className="wl-prize-container">
                <span className="wl-prize-label">

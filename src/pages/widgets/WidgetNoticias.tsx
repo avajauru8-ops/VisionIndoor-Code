@@ -108,6 +108,21 @@ export default function WidgetNoticias() {
            image = image.replace(/_\d+x\d+\./i, '_1920x1080.');
         }
 
+        // Se ainda não encontrou imagem, tentar buscar do próprio link via proxy (opengraph)
+        if (!image && link) {
+           try {
+             const ogRes = await fetch(`/api/og-image?url=${encodeURIComponent(link)}`);
+             if (ogRes.ok) {
+               const ogData = await ogRes.json();
+               if (ogData && ogData.image) {
+                 image = ogData.image;
+               }
+             }
+           } catch(e) {
+             console.error('Failed to fetch og:image', e);
+           }
+        }
+
         setNoticia({ title, image, category: itemCategory });
         localStorage.setItem(`noticias_${feed}_${mode}`, JSON.stringify({ title, image, category: itemCategory }));
       } catch (err) {

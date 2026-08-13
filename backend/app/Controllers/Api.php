@@ -475,4 +475,32 @@ class Api extends ResourceController
             return $this->response->setJSON(['error' => $e->getMessage()])->setStatusCode(500);
         }
     }
+
+    public function ogImage()
+    {
+        $url = $this->request->getGet('url');
+        if (!$url) return $this->fail('URL não fornecida', 400);
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)');
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        
+        $html = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || !$html) {
+             return $this->respond(['image' => null]);
+        }
+
+        if (preg_match('/<meta[^>]+property=[\'"]og:image[\'"][^>]+content=[\'"]([^\'"]+)[\'"]/i', $html, $matches) || 
+            preg_match('/<meta[^>]+content=[\'"]([^\'"]+)[\'"][^>]+property=[\'"]og:image[\'"]/i', $html, $matches)) {
+             return $this->respond(['image' => $matches[1]]);
+        }
+
+        return $this->respond(['image' => null]);
+    }
 }
