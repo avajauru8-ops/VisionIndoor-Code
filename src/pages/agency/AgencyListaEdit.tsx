@@ -208,28 +208,35 @@ const SortableItem = ({ id, item, onRemove, onDuplicate, onTimeChange, onUpdateF
       {isSettingsOpen && (
       <div className="p-4 bg-zinc-50/50 space-y-4">
         
-        {!isVideo && (
+        <div className="flex items-center justify-end gap-4">
+          <label className="text-xs font-bold text-zinc-500 w-48 text-right">{isVideo ? 'Tempo maximo de exibicao (segundos):' : 'Tempo (em segundos) por exibicao:'}</label>
+          <div className="flex items-center w-40">
+            <button 
+              onClick={() => onTimeChange(Math.max(1, item.tempo_exibicao - 1))}
+              className="w-8 h-8 flex items-center justify-center bg-[#00bcd4] text-white font-bold"
+            >
+              -
+            </button>
+            <input 
+              type="number" 
+              value={item.tempo_exibicao}
+              onChange={(e) => onTimeChange(Number(e.target.value))}
+              className="flex-1 h-8 text-center text-xs border-y border-zinc-200 focus:outline-none"
+            />
+            <button 
+              onClick={() => onTimeChange(item.tempo_exibicao + 1)}
+              className="w-8 h-8 flex items-center justify-center bg-[#00bcd4] text-white font-bold"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {isVideo && (
           <div className="flex items-center justify-end gap-4">
-            <label className="text-xs font-bold text-zinc-500 w-48 text-right">Tempo (em segundos) por exibição:</label>
-            <div className="flex items-center w-40">
-              <button 
-                onClick={() => onTimeChange(Math.max(1, item.tempo_exibicao - 1))}
-                className="w-8 h-8 flex items-center justify-center bg-[#00bcd4] text-white font-bold"
-              >
-                -
-              </button>
-              <input 
-                type="number" 
-                value={item.tempo_exibicao}
-                onChange={(e) => onTimeChange(Number(e.target.value))}
-                className="flex-1 h-8 text-center text-xs border-y border-zinc-200 focus:outline-none"
-              />
-              <button 
-                onClick={() => onTimeChange(item.tempo_exibicao + 1)}
-                className="w-8 h-8 flex items-center justify-center bg-[#00bcd4] text-white font-bold"
-              >
-                +
-              </button>
+            <label className="text-xs font-bold text-zinc-500 w-48 text-right">Observacao:</label>
+            <div className="w-40 text-[10px] text-zinc-400 leading-tight">
+              Se o video for menor que este tempo, avanca ao final. Se for maior, corta no tempo configurado.
             </div>
           </div>
         )}
