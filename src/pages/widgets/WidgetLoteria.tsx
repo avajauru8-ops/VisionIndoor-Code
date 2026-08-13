@@ -2,95 +2,102 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Clover, Calendar } from 'lucide-react';
 
+const generateNumbers = (count: number, seed: number) => {
+  let result: number[] = [];
+  let currentSeed = seed;
+  const random = () => {
+    const x = Math.sin(currentSeed++) * 10000;
+    return x - Math.floor(x);
+  };
+  while (result.length < count) {
+    const num = Math.floor(random() * 60) + 1;
+    if (!result.includes(num)) result.push(num);
+  }
+  return result.sort((a, b) => a - b).map(n => n.toString().padStart(2, '0'));
+};
+
+function applyData(data: any, tipo: string, setNumbers: any, setDataSorteio: any, setConcurso: any, setPremio: any, setAcumulado: any, setDataProximoConcurso: any) {
+  if (data.dezenasSorteadasOrdemSorteio && data.dezenasSorteadasOrdemSorteio.length > 0) {
+    setNumbers(data.dezenasSorteadasOrdemSorteio);
+  } else if (data.listaDezenas) {
+    setNumbers(data.listaDezenas);
+  }
+  if (data.dataApuracao) setDataSorteio(data.dataApuracao);
+  if (data.numero) setConcurso(data.numero.toString());
+  if (data.valorEstimadoProximoConcurso) {
+    const valor = data.valorEstimadoProximoConcurso > 1000
+      ? (data.valorEstimadoProximoConcurso / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' Milhões'
+      : data.valorEstimadoProximoConcurso.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    setPremio(`R$ ${valor}`);
+  }
+  if (typeof data.acumulado !== 'undefined') setAcumulado(data.acumulado);
+  if (data.dataProximoConcurso) setDataProximoConcurso(data.dataProximoConcurso);
+}
+
+function getFallback(tipo: string) {
+  const today = new Date();
+  const seed = today.getFullYear() * 1000 + today.getMonth() * 100 + today.getDate() + (tipo === 'megasena' ? 1 : tipo === 'lotofacil' ? 2 : 3);
+  return {
+    numbers: generateNumbers(tipo === 'lotofacil' ? 15 : tipo === 'quina' ? 5 : 6, seed),
+    dataSorteio: today.toLocaleDateString('pt-BR'),
+    concurso: '0000',
+    premio: `R$ ${Math.floor(Math.random() * 40 + 10)} Milhões`,
+    acumulado: false,
+    dataProximoConcurso: ''
+  };
+}
+
 export default function WidgetLoteria() {
   const [searchParams] = useSearchParams();
   const tipo = searchParams.get('tipo') || 'megasena';
-  
-  const generateNumbers = (count: number, seed: number) => {
-    let result: number[] = [];
-    let currentSeed = seed;
-    const random = () => {
-      const x = Math.sin(currentSeed++) * 10000;
-      return x - Math.floor(x);
-    };
-    
-    while(result.length < count) {
-       const num = Math.floor(random() * 60) + 1;
-       if (!result.includes(num)) result.push(num);
-    }
-    return result.sort((a,b) => a-b).map(n => n.toString().padStart(2, '0'));
-  };
 
-  const [numbers, setNumbers] = useState<string[]>([]);
-  const [dataSorteio, setDataSorteio] = useState('');
-  const [concurso, setConcurso] = useState('');
-  const [premio, setPremio] = useState('');
-  const [acumulado, setAcumulado] = useState(false);
-  const [dataProximoConcurso, setDataProximoConcurso] = useState('');
-  
+  const fallback = getFallback(tipo);
+  const [numbers, setNumbers] = useState<string[]>(fallback.numbers);
+  const [dataSorteio, setDataSorteio] = useState(fallback.dataSorteio);
+  const [concurso, setConcurso] = useState(fallback.concurso);
+  const [premio, setPremio] = useState(fallback.premio);
+  const [acumulado, setAcumulado] = useState(fallback.acumulado);
+  const [dataProximoConcurso, setDataProximoConcurso] = useState(fallback.dataProximoConcurso);
+
   useEffect(() => {
-     const fetchData = async () => {
-        try {
-           const response = await fetch(`/api/loteria?tipo=${tipo}`);
-           if (!response.ok) throw new Error('API request failed');
-           const data = await response.json();
-           
-           if (data.dezenasSorteadasOrdemSorteio && data.dezenasSorteadasOrdemSorteio.length > 0) {
-              setNumbers(data.dezenasSorteadasOrdemSorteio);
-           } else if (data.listaDezenas) {
-              setNumbers(data.listaDezenas);
-           }
-           if (data.dataApuracao) {
-              setDataSorteio(data.dataApuracao);
-           }
-           if (data.numero) {
-              setConcurso(data.numero.toString());
-           }
-           if (data.valorEstimadoProximoConcurso) {
-              const valorFormatado = (data.valorEstimadoProximoConcurso / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
-              setPremio(`R$ ${valorFormatado} Milhões`);
-           }
-           if (typeof data.acumulado !== 'undefined') setAcumulado(data.acumulado);
-           if (data.dataProximoConcurso) setDataProximoConcurso(data.dataProximoConcurso);
-           
-           localStorage.setItem(`loteria_${tipo}`, JSON.stringify(data));
-        } catch (error) {
-           console.error('Erro ao carregar loteria:', error);
-           
-           const cached = localStorage.getItem(`loteria_${tipo}`);
-           if (cached) {
-              try {
-                 const data = JSON.parse(cached);
-                 if (data.dezenasSorteadasOrdemSorteio && data.dezenasSorteadasOrdemSorteio.length > 0) {
-                    setNumbers(data.dezenasSorteadasOrdemSorteio);
-                 } else if (data.listaDezenas) setNumbers(data.listaDezenas);
-                 
-                 if (data.dataApuracao) setDataSorteio(data.dataApuracao);
-                 if (data.numero) setConcurso(data.numero.toString());
-                 if (data.valorEstimadoProximoConcurso) {
-                    const valorFormatado = (data.valorEstimadoProximoConcurso / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
-                    setPremio(`R$ ${valorFormatado} Milhões`);
-                 }
-                 if (typeof data.acumulado !== 'undefined') setAcumulado(data.acumulado);
-                 if (data.dataProximoConcurso) setDataProximoConcurso(data.dataProximoConcurso);
-                 return;
-              } catch (e) {
-                 console.error('Erro parse cache loteria', e);
-              }
-           }
-           
-           // Fallback para valores simulados em caso de erro da API e sem cache
-           const today = new Date();
-           const seed = today.getFullYear() * 1000 + today.getMonth() * 100 + today.getDate() + (tipo === 'megasena' ? 1 : 2);
-           setNumbers(generateNumbers(tipo === 'lotofacil' ? 15 : tipo === 'quina' ? 5 : 6, seed));
-           setDataSorteio(today.toLocaleDateString('pt-BR'));
-           setConcurso('0000');
-           setPremio(`R$ ${Math.floor(Math.random() * 40 + 10)} Milhões`);
-           setAcumulado(true);
-        }
-     };
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-     fetchData();
+    const fetchData = async () => {
+      try {
+        const cached = localStorage.getItem(`loteria_${tipo}`);
+        if (cached) {
+          try {
+            const cData = JSON.parse(cached);
+            applyData(cData, tipo, setNumbers, setDataSorteio, setConcurso, setPremio, setAcumulado, setDataProximoConcurso);
+          } catch (_) {}
+        }
+
+        const response = await fetch(`/api/loteria?tipo=${tipo}`, { signal: controller.signal });
+        if (!response.ok) throw new Error('API request failed');
+        const data = await response.json();
+
+        applyData(data, tipo, setNumbers, setDataSorteio, setConcurso, setPremio, setAcumulado, setDataProximoConcurso);
+        localStorage.setItem(`loteria_${tipo}`, JSON.stringify(data));
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          console.warn('Loteria API timeout, usando fallback');
+          return;
+        }
+        console.error('Erro ao carregar loteria:', error);
+        const cached = localStorage.getItem(`loteria_${tipo}`);
+        if (cached) {
+          try {
+            applyData(JSON.parse(cached), tipo, setNumbers, setDataSorteio, setConcurso, setPremio, setAcumulado, setDataProximoConcurso);
+          } catch (_) {}
+        }
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    };
+
+    fetchData();
+    return () => { controller.abort(); clearTimeout(timeoutId); };
   }, [tipo]);
 
   const colors: Record<string, string> = {

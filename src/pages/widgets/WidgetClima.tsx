@@ -25,8 +25,16 @@ export default function WidgetClima() {
    useEffect(() => {
       async function fetchWeather() {
          const cacheKey = `weather_${cidade}_${estado}`;
+         const cached = localStorage.getItem(cacheKey);
+         if (cached) {
+            try { setWeather(JSON.parse(cached)); setLoading(false); } catch (_) {}
+         }
+
+         const controller = new AbortController();
+         const timeoutId = setTimeout(() => controller.abort(), 8000);
+
          try {
-            const res = await fetch(`/api/clima?cidade=${encodeURIComponent(cidade)}&estado=${encodeURIComponent(estado)}`);
+            const res = await fetch(`/api/clima?cidade=${encodeURIComponent(cidade)}&estado=${encodeURIComponent(estado)}`, { signal: controller.signal });
             const data = await res.json();
 
             if (!res.ok) {
@@ -49,19 +57,10 @@ export default function WidgetClima() {
 
             setWeather(weatherData);
             localStorage.setItem(cacheKey, JSON.stringify(weatherData));
-
          } catch (err: any) {
-            console.error(err);
-            // Fallback for offline mode
-            const cached = localStorage.getItem(cacheKey);
-            if (cached) {
-               try {
-                  setWeather(JSON.parse(cached));
-               } catch (e) {
-                  console.error("Erro ao fazer parse do cache de clima");
-               }
-            }
+            if (err.name !== 'AbortError') console.error(err);
          } finally {
+            clearTimeout(timeoutId);
             setLoading(false);
          }
       }
@@ -81,7 +80,7 @@ export default function WidgetClima() {
          }).catch(err => console.error('Erro ao atualizar status do widget:', err));
       }
 
-      return () => clearInterval(interval);
+      return () => { clearInterval(interval); };
    }, [cidade, estado, searchParams]);
 
    let titleFontSize = '8vh';
@@ -114,10 +113,6 @@ export default function WidgetClima() {
          default: return isDay ? <Sun {...propsSun} /> : <Moon {...props} />;
       }
    };
-
-   if (loading) {
-      return <div style={{ width: '100vw', height: '100vh', backgroundColor: '#f3f4f6' }}></div>;
-   }
 
    return (
       <div className="widget-clima">

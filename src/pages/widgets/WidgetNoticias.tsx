@@ -34,9 +34,18 @@ export default function WidgetNoticias() {
   };
 
   useEffect(() => {
+    const cacheKey = `noticias_${feed}_${mode}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try { setNoticia(JSON.parse(cached)); setLoading(false); } catch (_) {}
+    }
+
     async function fetchRSS() {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
       try {
-        const res = await fetch(`/api/rss-uol?feed=${encodeURIComponent(feed)}`);
+        const res = await fetch(`/api/rss-uol?feed=${encodeURIComponent(feed)}`, { signal: controller.signal });
         if (!res.ok) throw new Error('Failed to fetch RSS');
         
         const buffer = await res.arrayBuffer();
@@ -125,12 +134,17 @@ export default function WidgetNoticias() {
 
         setNoticia({ title, image, category: itemCategory });
         localStorage.setItem(`noticias_${feed}_${mode}`, JSON.stringify({ title, image, category: itemCategory }));
-      } catch (err) {
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          clearTimeout(timeoutId);
+          setLoading(false);
+          return;
+        }
         console.error('Error parsing RSS:', err);
-        const cached = localStorage.getItem(`noticias_${feed}_${mode}`);
-        if (cached) {
+        const cachedLocal = localStorage.getItem(cacheKey);
+        if (cachedLocal) {
           try {
-            setNoticia(JSON.parse(cached));
+            setNoticia(JSON.parse(cachedLocal));
           } catch(e) {}
         } else {
           setNoticia({
@@ -140,18 +154,15 @@ export default function WidgetNoticias() {
           });
         }
       } finally {
+        clearTimeout(timeoutId);
         setLoading(false);
       }
     }
 
     fetchRSS();
     const interval = setInterval(fetchRSS, 30 * 60 * 1000);
-    return () => clearInterval(interval);
+    return () => { clearInterval(interval); };
   }, [feed, mode]);
-
-  if (loading) {
-    return <div style={{ width: '100vw', height: '100vh', backgroundColor: 'black', fontFamily: 'sans-serif' }}></div>;
-  }
 
   const bgImage = noticia?.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80';
 

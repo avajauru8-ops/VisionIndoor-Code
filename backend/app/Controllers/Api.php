@@ -395,24 +395,44 @@ class Api extends ResourceController
             return $this->fail('Tipo de loteria inválido', 400);
         }
 
+        $cacheFile = sys_get_temp_dir() . '/loteria_' . $tipo . '.json';
+        $cacheMaxAge = 3600;
+
+        if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $cacheMaxAge) {
+            $cached = json_decode(file_get_contents($cacheFile), true);
+            if ($cached) {
+                return $this->response->setJSON($cached);
+            }
+        }
+
         try {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $urls[$tipo]);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            // Caixa API often blocks default curl user agents, let's use a standard browser agent
             curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
             
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
 
             if ($httpCode !== 200 || !$response) {
+                if (file_exists($cacheFile)) {
+                    return $this->response->setJSON(json_decode(file_get_contents($cacheFile), true));
+                }
                 return $this->fail('Erro ao buscar dados da Caixa', 500);
             }
 
-            return $this->response->setJSON(json_decode($response));
+            $data = json_decode($response);
+            if ($data) {
+                @file_put_contents($cacheFile, $response);
+            }
+            return $this->response->setJSON($data);
         } catch (\Exception $e) {
+            if (file_exists($cacheFile)) {
+                return $this->response->setJSON(json_decode(file_get_contents($cacheFile), true));
+            }
             return $this->fail('Erro interno: ' . $e->getMessage(), 500);
         }
     }
