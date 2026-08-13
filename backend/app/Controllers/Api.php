@@ -224,20 +224,38 @@ class Api extends ResourceController
                 if ($c['data_fim'] && $c['data_fim'] < $now) continue;
                 
                 $url = $c['arquivo_url'];
-                if (empty($url)) continue; // Evita quebrar o app Android com mídia vazia
+                if (empty($url)) continue;
+                
+                $tipo = $c['tipo_midia'];
                 
                 if ($url && !preg_match('/^https?:\/\//', $url)) {
                     if (strpos($url, '/widget/') === 0) {
                         $separator = (strpos($url, '?') !== false) ? '&' : '?';
-                        $url = rtrim(base_url(), '/') . $url . $separator . 'device_id=' . urlencode($device_id); // Rota do React Frontend com ID
+                        $url = rtrim(base_url(), '/') . $url . $separator . 'device_id=' . urlencode($device_id);
                     } else {
-                        $url = base_url('uploads/' . ltrim($url, '/')); // Imagem/Vídeo
+                        $fileUrl = base_url('uploads/' . ltrim($url, '/'));
+                        
+                        if ($tipo === 'video') {
+                            $videoExt = strtolower(pathinfo($url, PATHINFO_EXTENSION));
+                            if (in_array($videoExt, ['mp4', 'webm', 'ogg'])) {
+                                $separator = '?';
+                                $url = rtrim(base_url(), '/') . '/widget/video' . $separator
+                                    . 'url=' . urlencode($fileUrl)
+                                    . '&device_id=' . urlencode($device_id)
+                                    . '&loop=1&mute=1';
+                                $tipo = 'noticia';
+                            } else {
+                                $url = $fileUrl;
+                            }
+                        } else {
+                            $url = $fileUrl;
+                        }
                     }
                 }
                 
                 $playlist[] = [
-                    'id' => (int)$c['id'], // Cast para inteiro, o Android exige Integer
-                    'tipo_midia' => $c['tipo_midia'],
+                    'id' => (int)$c['id'],
+                    'tipo_midia' => $tipo,
                     'url_arquivo' => $url,
                     'tempo_exibicao' => (int)$c['tempo_exibicao']
                 ];

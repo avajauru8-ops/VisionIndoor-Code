@@ -36,6 +36,7 @@ import WidgetYoutube from './pages/widgets/WidgetYoutube';
 import WidgetNoticias from './pages/widgets/WidgetNoticias';
 import WidgetFrases from './pages/widgets/WidgetFrases';
 import WidgetHoraCerta from './pages/widgets/WidgetHoraCerta';
+import WidgetVideoPlayer from './pages/widgets/WidgetVideoPlayer';
 
 export default function App() {
   return (
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/widget/noticias" element={<WidgetNoticias />} />
           <Route path="/widget/frases" element={<WidgetFrases />} />
           <Route path="/widget/horacerta" element={<WidgetHoraCerta />} />
+          <Route path="/widget/video" element={<WidgetVideoPlayer />} />
           
           <Route path="/" element={<Layout />}>
              <Route index element={<Navigate to="/login" replace />} />
