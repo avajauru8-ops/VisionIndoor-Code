@@ -25,6 +25,8 @@ export default function WidgetLoteria() {
   const [dataSorteio, setDataSorteio] = useState('');
   const [concurso, setConcurso] = useState('');
   const [premio, setPremio] = useState('');
+  const [acumulado, setAcumulado] = useState(false);
+  const [dataProximoConcurso, setDataProximoConcurso] = useState('');
   
   useEffect(() => {
      const fetchData = async () => {
@@ -33,7 +35,9 @@ export default function WidgetLoteria() {
            if (!response.ok) throw new Error('API request failed');
            const data = await response.json();
            
-           if (data.listaDezenas) {
+           if (data.dezenasSorteadasOrdemSorteio && data.dezenasSorteadasOrdemSorteio.length > 0) {
+              setNumbers(data.dezenasSorteadasOrdemSorteio);
+           } else if (data.listaDezenas) {
               setNumbers(data.listaDezenas);
            }
            if (data.dataApuracao) {
@@ -46,6 +50,8 @@ export default function WidgetLoteria() {
               const valorFormatado = (data.valorEstimadoProximoConcurso / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
               setPremio(`R$ ${valorFormatado} Milhões`);
            }
+           if (typeof data.acumulado !== 'undefined') setAcumulado(data.acumulado);
+           if (data.dataProximoConcurso) setDataProximoConcurso(data.dataProximoConcurso);
            
            localStorage.setItem(`loteria_${tipo}`, JSON.stringify(data));
         } catch (error) {
@@ -55,13 +61,18 @@ export default function WidgetLoteria() {
            if (cached) {
               try {
                  const data = JSON.parse(cached);
-                 if (data.listaDezenas) setNumbers(data.listaDezenas);
+                 if (data.dezenasSorteadasOrdemSorteio && data.dezenasSorteadasOrdemSorteio.length > 0) {
+                    setNumbers(data.dezenasSorteadasOrdemSorteio);
+                 } else if (data.listaDezenas) setNumbers(data.listaDezenas);
+                 
                  if (data.dataApuracao) setDataSorteio(data.dataApuracao);
                  if (data.numero) setConcurso(data.numero.toString());
                  if (data.valorEstimadoProximoConcurso) {
                     const valorFormatado = (data.valorEstimadoProximoConcurso / 1000000).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
                     setPremio(`R$ ${valorFormatado} Milhões`);
                  }
+                 if (typeof data.acumulado !== 'undefined') setAcumulado(data.acumulado);
+                 if (data.dataProximoConcurso) setDataProximoConcurso(data.dataProximoConcurso);
                  return;
               } catch (e) {
                  console.error('Erro parse cache loteria', e);
@@ -75,6 +86,7 @@ export default function WidgetLoteria() {
            setDataSorteio(today.toLocaleDateString('pt-BR'));
            setConcurso('0000');
            setPremio(`R$ ${Math.floor(Math.random() * 40 + 10)} Milhões`);
+           setAcumulado(true);
         }
      };
 
@@ -148,6 +160,14 @@ export default function WidgetLoteria() {
          .wl-prize-container { background-color: rgba(0,0,0,0.3); padding: 2vh 6vw; border-radius: 2vh; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 0.2vh solid rgba(253,224,71,0.3); text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
          .wl-prize-label { font-size: 3vh; font-weight: 500; opacity: 0.9; display: block; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1vh; }
          .wl-prize-value { font-size: 5.5vh; color: #fde047; font-weight: 900; filter: drop-shadow(0 4px 3px rgba(0,0,0,0.3)); line-height: 1; }
+         .wl-next-date { display: block; font-size: 2.2vh; margin-top: 1vh; opacity: 0.8; font-weight: bold; text-transform: uppercase; }
+         .wl-acumulou-badge { background-color: #e74c3c; color: white; font-weight: 900; padding: 0.8vh 3vw; border-radius: 1.5vh; font-size: 4vh; text-transform: uppercase; letter-spacing: 0.1em; animation: pulse 2s infinite; box-shadow: 0 4px 10px rgba(231,76,60,0.4); margin-bottom: 1.5vh; }
+         
+         @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+         }
          
          @media (orientation: portrait) {
            .wl-container { padding: 3vh 4vw; }
@@ -171,6 +191,8 @@ export default function WidgetLoteria() {
            .wl-prize-container { padding: 2vh 5vw; border-radius: 1.5vh; width: 90%; }
            .wl-prize-label { font-size: 2.2vh; margin-bottom: 0.5vh; }
            .wl-prize-value { font-size: 4vh; }
+           .wl-next-date { font-size: 1.8vh; margin-top: 0.8vh; }
+           .wl-acumulou-badge { font-size: 3vh; padding: 0.6vh 4vw; border-radius: 1vh; }
          }
        `}} />
        
@@ -193,7 +215,7 @@ export default function WidgetLoteria() {
            
            <div className="wl-date-container">
               <Calendar className="wl-date-icon" />
-              <span className="wl-date-label">Data do Sorteio:</span>
+              <span className="wl-date-label">Resultado:</span>
               <span className="wl-date-value">{dataSorteio}</span>
            </div>
        </div>
@@ -209,6 +231,11 @@ export default function WidgetLoteria() {
 
        {/* FOOTER */}
        <div className="wl-footer">
+           {acumulado && (
+             <div className="wl-acumulou-badge">
+               Acumulou!
+             </div>
+           )}
            {premio && (
              <div className="wl-prize-container">
                <span className="wl-prize-label">
@@ -217,6 +244,11 @@ export default function WidgetLoteria() {
                <span className="wl-prize-value">
                  {premio}
                </span>
+               {dataProximoConcurso && (
+                 <span className="wl-next-date">
+                   Sorteio em: {dataProximoConcurso}
+                 </span>
+               )}
              </div>
            )}
        </div>
