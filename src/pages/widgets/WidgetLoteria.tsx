@@ -220,11 +220,11 @@ export default function WidgetLoteria() {
                </h1>
            </div>
            
-           <div className="wl-date-container">
-              <Calendar className="wl-date-icon" />
-              <span className="wl-date-label">Resultado:</span>
-              <span className="wl-date-value">{dataSorteio}</span>
-           </div>
+            <div className="wl-date-container">
+               <Calendar className="wl-date-icon" />
+               <span className="wl-date-label">Concurso {concurso}</span>
+               <span className="wl-date-value">{dataSorteio}</span>
+            </div>
        </div>
        
        {/* NUMBERS */}
@@ -236,12 +236,14 @@ export default function WidgetLoteria() {
           ))}
        </div>
 
-       {/* FOOTER */}
-       <div className="wl-footer">
-           <div className={`wl-acumulou-badge ${!acumulado ? 'saiu' : ''}`}>
-             {acumulado ? 'Acumulou!' : 'Saiu o prêmio!'}
-           </div>
-           {premio && (
+        {/* FOOTER */}
+        <div className="wl-footer">
+            {acumulado && (
+              <div className="wl-acumulou-badge">
+                Acumulou!
+              </div>
+            )}
+            {premio && (
              <div className="wl-prize-container">
                <span className="wl-prize-label">
                  Próximo prêmio estimado
