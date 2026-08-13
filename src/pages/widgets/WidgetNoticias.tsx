@@ -102,6 +102,12 @@ export default function WidgetNoticias() {
           }
         }
 
+        // Tentar obter a imagem de alta resolução se for gerada pelo UOL (removendo formato miniatura)
+        if (image) {
+           image = image.replace(/_v\d+_\d+x\d+\./i, '_v2_1920x1080.');
+           image = image.replace(/_\d+x\d+\./i, '_1920x1080.');
+        }
+
         setNoticia({ title, image, category: itemCategory });
         localStorage.setItem(`noticias_${feed}_${mode}`, JSON.stringify({ title, image, category: itemCategory }));
       } catch (err) {
