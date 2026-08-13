@@ -31,6 +31,7 @@ const WIDGETS_BASE: Media[] = [
   { id: 'w-noticias', titulo: 'Widget de Notícias (RSS)', tipo_midia: 'widget', arquivo_url: 'noticias?feed=noticias' },
   { id: 'w-youtube', titulo: 'Widget do YouTube', tipo_midia: 'widget', arquivo_url: 'youtube?url=&loop=1&mute=1' },
   { id: 'w-frases', titulo: 'Widget de Frases e Pensamentos', tipo_midia: 'widget', arquivo_url: 'frases' },
+  { id: 'w-horacerta', titulo: 'Widget de Hora Certa', tipo_midia: 'widget', arquivo_url: 'horacerta' },
 ];
 
 const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key: string, value: string) => void }) => {
