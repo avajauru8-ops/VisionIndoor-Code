@@ -103,10 +103,10 @@ export default function WidgetHoraCerta() {
           .whc-bg-glow { width: 100vw; height: 100vw; }
           .whc-header-icon { width: 6vw; height: 6vw; }
           .whc-header-title { font-size: 5vw; }
-          .whc-hours-mins { font-size: 35vw; }
-          .whc-seconds { font-size: 15vw; margin-left: 3vw; }
+          .whc-hours-mins { font-size: 20vw; }
+          .whc-seconds { font-size: 8vw; margin-left: 2vw; }
           .whc-date-box { margin-top: 6vw; padding: 3vw 6vw; }
-          .whc-date-text { font-size: 6vw; }
+          .whc-date-text { font-size: 5vw; }
         }
       `}} />
 
