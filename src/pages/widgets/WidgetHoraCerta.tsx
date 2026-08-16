@@ -24,7 +24,7 @@ export default function WidgetHoraCerta() {
   const formatDate = (date: Date) => {
     const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
     const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-    
+
     return `${days[date.getDay()]}, ${date.getDate()} de ${months[date.getMonth()]} de ${date.getFullYear()}`;
   };
 
@@ -32,7 +32,8 @@ export default function WidgetHoraCerta() {
 
   return (
     <div className="whc-container">
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         * {
           box-sizing: border-box;
           margin: 0;
@@ -96,8 +97,19 @@ export default function WidgetHoraCerta() {
           font-size: 4vh; font-weight: 400; color: #d0d0d0;
           text-transform: capitalize; letter-spacing: 0.05em;
         }
+
+        /* Portrait overrides */
+        @media (orientation: portrait) {
+          .whc-bg-glow { width: 100vw; height: 100vw; }
+          .whc-header-icon { width: 6vw; height: 6vw; }
+          .whc-header-title { font-size: 5vw; }
+          .whc-hours-mins { font-size: 35vw; }
+          .whc-seconds { font-size: 15vw; margin-left: 3vw; }
+          .whc-date-box { margin-top: 6vw; padding: 3vw 6vw; }
+          .whc-date-text { font-size: 6vw; }
+        }
       `}} />
-      
+
       <div className="whc-bg-glow" />
 
       <div className="whc-clock-box">
@@ -105,7 +117,7 @@ export default function WidgetHoraCerta() {
           <Clock className="whc-header-icon" />
           <h2 className="whc-header-title">Hora Certa</h2>
         </div>
-        
+
         <div className="whc-time">
           <span className="whc-hours-mins">{hours}:{minutes}</span>
           <span className="whc-seconds">{seconds}</span>
