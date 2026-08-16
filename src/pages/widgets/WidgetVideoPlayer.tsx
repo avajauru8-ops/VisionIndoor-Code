@@ -66,7 +66,6 @@ export default function WidgetVideoPlayer() {
         ref={videoRef}
         src={url}
         autoPlay
-        loop
         muted
         playsInline
         preload="auto"
