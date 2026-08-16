@@ -26,6 +26,7 @@ export default function WidgetVideoPlayer() {
     if (!vid || !url) return;
 
     vid.muted = true;
+    vid.load();
 
     const tryPlay = () => {
       const p = vid.play();
