@@ -64,6 +64,13 @@ class Api extends ResourceController
         }
     }
 
+    public function checkColumns()
+    {
+        $db = \Config\Database::connect();
+        $fields = $db->getFieldNames('totens');
+        return $this->respond(['columns' => $fields]);
+    }
+
     public function blobUpload()
     {
         return $this->respond(['error' => 'Blob upload via API descontinuado. Use o upload do CodeIgniter.'], 400);
