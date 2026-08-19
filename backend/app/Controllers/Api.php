@@ -46,15 +46,19 @@ class Api extends ResourceController
                 'horario_fim' => "VARCHAR(100) DEFAULT NULL"
             ];
             
+            $errors = [];
             foreach ($columns as $col => $def) {
                 try {
                     $db->query("ALTER TABLE totens ADD COLUMN {$col} {$def}");
                 } catch (\Exception $e) {
-                    // Ignore column already exists errors
+                    $errors[] = $col . ": " . $e->getMessage();
                 }
             }
             
-            return $this->respond(['success' => 'Todas as colunas extras foram atualizadas/criadas na produção!']);
+            if (count($errors) > 0) {
+                return $this->respond(['success' => false, 'errors' => $errors]);
+            }
+            return $this->respond(['success' => true, 'msg' => 'Todas as colunas extras foram atualizadas/criadas na produção!']);
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => $e->getMessage()])->setStatusCode(500);
         }
