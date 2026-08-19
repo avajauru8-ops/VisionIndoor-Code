@@ -149,15 +149,11 @@ class Api extends ResourceController
             $db->table('totens')->where('id', $totem['id'])->update($updateData);
             
             // ========================================================
-            // 3. VERIFICAÇÃO DE LICENÇA
+            // 3. VERIFICAÇÃO DE LICENÇA (REMOVIDA A PEDIDO)
             // ========================================================
             $user = $db->table('usuarios')->where('id', $totem['usuario_id'])->get()->getRowArray();
-            if (!$user || $user['status_licenca'] !== 'ativa') {
-                return $this->respond(['erro' => 'Licença expirada ou inativa']);
-            }
-            
-            if ($user['validade_licenca'] && strtotime($user['validade_licenca']) < time()) {
-                 return $this->respond(['erro' => 'Licença expirada ou inativa']);
+            if (!$user) {
+                $user = ['id' => 0]; // Evita erro no PHP caso o totem esteja sem usuário e caia no modelo antigo
             }
             
             // ========================================================

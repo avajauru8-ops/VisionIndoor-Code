@@ -152,16 +152,25 @@ export default function AgencyTotemSettings() {
       setRotacao(data.rotacao || 'padrao');
       setListas(listasData || []);
       
-      // Load Extras state
-      setAutoIniciar(!!data.auto_iniciar);
-      setIniciarTvEnergia(!!data.iniciar_tv_energia);
-      setFusoHorario(data.fuso_horario || 'America/Sao_Paulo');
-      setExibirBarraTarefas(data.exibir_barra_tarefas !== undefined ? !!data.exibir_barra_tarefas : true);
-      setAudioLigado(data.audio_ligado !== undefined ? !!data.audio_ligado : true);
-      setAutoReiniciarHoras(data.auto_reiniciar_horas || 0);
-      setExibirNotificacoes(!!data.exibir_notificacoes);
-      setLimpezaAutomatica(data.limpeza_automatica !== undefined ? !!data.limpeza_automatica : true);
-      setTempoExibicao(data.tempo_exibicao_padrao || 10);
+      
+        const parseBool = (val: any, defaultVal: boolean) => {
+          if (val === undefined || val === null) return defaultVal;
+          if (val === '1' || val === 1 || val === true || val === 'true') return true;
+          if (val === '0' || val === 0 || val === false || val === 'false') return false;
+          return !!val;
+        };
+
+        // Load Extras state safely
+        setAutoIniciar(parseBool(data.auto_iniciar, true));
+        setIniciarTvEnergia(parseBool(data.iniciar_tv_energia, false));
+        setFusoHorario(data.fuso_horario || 'America/Sao_Paulo');
+        setExibirBarraTarefas(parseBool(data.exibir_barra_tarefas, true));
+        setAudioLigado(parseBool(data.audio_ligado, true));
+        setAutoReiniciarHoras(data.auto_reiniciar_horas || 0);
+        setExibirNotificacoes(parseBool(data.exibir_notificacoes, false));
+        setLimpezaAutomatica(parseBool(data.limpeza_automatica, true));
+        setTempoExibicao(data.tempo_exibicao_padrao || 15);
+
       setIdMonetizacao(data.id_monetizacao || '');
       setHorarioInicio(data.horario_inicio || data.horario_liga || '');
       setHorarioFim(data.horario_fim || data.horario_desliga || '');
