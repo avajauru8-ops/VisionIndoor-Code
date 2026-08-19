@@ -65,6 +65,10 @@ export default function AgencyTotemSettings() {
   const [tempoExibicao, setTempoExibicao] = useState(10);
   const [idMonetizacao, setIdMonetizacao] = useState('');
   
+  // Agendamento State
+  const [horarioInicio, setHorarioInicio] = useState('');
+  const [horarioFim, setHorarioFim] = useState('');
+  
   // Replace Screen State
   const [showReplaceModal, setShowReplaceModal] = useState(false);
   const [replaceCode, setReplaceCode] = useState('');
@@ -159,6 +163,8 @@ export default function AgencyTotemSettings() {
       setLimpezaAutomatica(data.limpeza_automatica !== undefined ? !!data.limpeza_automatica : true);
       setTempoExibicao(data.tempo_exibicao_padrao || 10);
       setIdMonetizacao(data.id_monetizacao || '');
+      setHorarioInicio(data.horario_inicio || data.horario_liga || '');
+      setHorarioFim(data.horario_fim || data.horario_desliga || '');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -183,7 +189,9 @@ export default function AgencyTotemSettings() {
           exibir_notificacoes: exibirNotificacoes,
           limpeza_automatica: limpezaAutomatica,
           tempo_exibicao_padrao: tempoExibicao,
-          id_monetizacao: idMonetizacao
+          id_monetizacao: idMonetizacao,
+          horario_inicio: horarioInicio,
+          horario_fim: horarioFim
         }),
       });
       alert('Configurações salvas com sucesso!');
@@ -587,6 +595,66 @@ export default function AgencyTotemSettings() {
                   className="flex-1 max-w-sm border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none border-dashed"
                 />
               </div>
+              </fieldset>
+            </section>
+          </div>
+        )}
+
+        {/* Agendamentos Tab Content */}
+        {activeTab === 'agendamentos' && (
+          <div className="space-y-10">
+            <section>
+              <fieldset disabled={!isEditing} className="contents">
+                <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
+                  <Calendar className="w-4 h-4" />
+                  Agendamentos
+                </h3>
+                
+                <div className="flex flex-col gap-4 max-w-4xl">
+                  <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    <span className="text-xs font-bold text-zinc-500 w-32 md:text-right shrink-0">Agendamento:</span>
+                    
+                    <div className="flex-1 bg-zinc-50 border border-zinc-200 rounded p-3 flex flex-wrap items-center gap-3">
+                      <button className="text-zinc-400 hover:text-red-500" disabled={!isEditing}>
+                        <X className="w-4 h-4" />
+                      </button>
+                      
+                      <span className="text-xs text-zinc-500">Lista de reprodução:</span>
+                      <select 
+                        disabled
+                        className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600"
+                      >
+                        <option>TELA PRETA (MODO DESCANSO)</option>
+                      </select>
+
+                      <span className="text-xs text-zinc-500">a partir de</span>
+                      <input 
+                        type="time" 
+                        value={horarioInicio}
+                        onChange={e => setHorarioInicio(e.target.value)}
+                        className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600 focus:outline-none focus:border-[#104a9e]"
+                      />
+
+                      <span className="text-xs text-zinc-500">até</span>
+                      <input 
+                        type="time" 
+                        value={horarioFim}
+                        onChange={e => setHorarioFim(e.target.value)}
+                        className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600 focus:outline-none focus:border-[#104a9e]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="md:pl-36 mt-2">
+                    <button 
+                      className="bg-[#d4a017] hover:bg-[#b8860b] text-white text-[10px] font-bold px-4 py-2 rounded flex items-center gap-2 uppercase opacity-80"
+                      disabled
+                      title="Adicionar mais agendamentos estará disponível em breve"
+                    >
+                      + ADICIONAR AGENDAMENTO
+                    </button>
+                  </div>
+                </div>
               </fieldset>
             </section>
           </div>
