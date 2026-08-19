@@ -41,7 +41,9 @@ class Api extends ResourceController
                 'id_monetizacao' => "VARCHAR(150) DEFAULT NULL",
                 'comando_acao' => "VARCHAR(100) DEFAULT NULL",
                 'comando_id' => "VARCHAR(100) DEFAULT NULL",
-                'data_hora_tv' => "VARCHAR(100) DEFAULT NULL"
+                'data_hora_tv' => "VARCHAR(100) DEFAULT NULL",
+                'horario_inicio' => "VARCHAR(100) DEFAULT NULL",
+                'horario_fim' => "VARCHAR(100) DEFAULT NULL"
             ];
             
             foreach ($columns as $col => $def) {
@@ -258,6 +260,8 @@ class Api extends ResourceController
                 'exibir_notificacoes' => isset($totem['exibir_notificacoes']) ? (bool)$totem['exibir_notificacoes'] : false,
                 'limpeza_automatica' => isset($totem['limpeza_automatica']) ? (bool)$totem['limpeza_automatica'] : true,
                 'tempo_exibicao_padrao' => isset($totem['tempo_exibicao_padrao']) ? (int)$totem['tempo_exibicao_padrao'] : 10,
+                'horario_inicio' => $totem['horario_inicio'] ?? null,
+                'horario_fim' => $totem['horario_fim'] ?? null,
                 'id_monetizacao' => $totem['id_monetizacao'] ?? null,
                 'playlist' => $playlist
             ];

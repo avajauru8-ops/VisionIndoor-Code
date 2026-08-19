@@ -122,6 +122,8 @@ class Totems extends ResourceController
             if (isset($json->limpeza_automatica)) $data['limpeza_automatica'] = $json->limpeza_automatica ? 1 : 0;
             if (isset($json->tempo_exibicao_padrao)) $data['tempo_exibicao_padrao'] = (int)$json->tempo_exibicao_padrao;
             if (isset($json->id_monetizacao)) $data['id_monetizacao'] = $json->id_monetizacao;
+            if (property_exists($json, 'horario_inicio')) $data['horario_inicio'] = $json->horario_inicio;
+            if (property_exists($json, 'horario_fim')) $data['horario_fim'] = $json->horario_fim;
             if (property_exists($json, 'playlist_id')) $data['playlist_id'] = empty($json->playlist_id) ? null : $json->playlist_id;
             
             if (!empty($data)) {
