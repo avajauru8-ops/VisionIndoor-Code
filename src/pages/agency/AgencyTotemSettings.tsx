@@ -390,14 +390,14 @@ export default function AgencyTotemSettings() {
                   onChange={e => setRotacao(e.target.value)}
                   className="flex-1 border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none border-dashed"
                 >
-                  <option value="padrao">Padrão</option>
-                  <option value="90">90 Graus</option>
-                  <option value="180">180 Graus</option>
-                  <option value="270">270 Graus</option>
+                  <option value="padrao">Horizontal (Padrão)</option>
+                  <option value="90">Vertical (90 Graus)</option>
+                  <option value="180">Horizontal Invertido (180 Graus)</option>
+                  <option value="270">Vertical Invertido (270 Graus)</option>
                 </select>
               ) : (
                 <div className="flex-1 text-sm text-[#104a9e] border-b border-dashed border-zinc-200 pb-1">
-                  {rotacao === '90' ? '90 Graus' : rotacao === '180' ? '180 Graus' : rotacao === '270' ? '270 Graus' : 'Padrão'}
+                  {rotacao === '90' ? 'Vertical (90 Graus)' : rotacao === '180' ? 'Horizontal Invertido (180 Graus)' : rotacao === '270' ? 'Vertical Invertido (270 Graus)' : 'Horizontal (Padrão)'}
                 </div>
               )}
             </div>
