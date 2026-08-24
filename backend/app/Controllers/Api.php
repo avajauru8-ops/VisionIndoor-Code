@@ -248,7 +248,7 @@ class Api extends ResourceController
                     'id' => (int)$c['id'],
                     'tipo_midia' => $c['tipo_midia'],
                     'url_arquivo' => $url,
-                    'tempo_exibicao' => (int)$c['tempo_exibicao']
+                    'tempo_exibicao' => (isset($c['tempo_exibicao']) && (int)$c['tempo_exibicao'] > 0) ? (int)$c['tempo_exibicao'] : (isset($totem['tempo_exibicao_padrao']) ? (int)$totem['tempo_exibicao_padrao'] : 15)
                 ];
             }
             
