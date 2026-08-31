@@ -56,6 +56,14 @@ class Users extends ResourceController
                 $data['cpf'] = $json->cpf;
             }
             
+            // Filter out columns that don't exist in the database yet
+            $existing_columns = $db->getFieldNames('usuarios');
+            foreach (array_keys($data) as $key) {
+                if (!in_array($key, $existing_columns)) {
+                    unset($data[$key]);
+                }
+            }
+            
             $db->table('usuarios')->insert($data);
             return $this->respondCreated(['id' => (string)$db->insertID()]);
         } catch (\Exception $e) {
@@ -106,8 +114,14 @@ class Users extends ResourceController
                 return $value !== null;
             });
             
-            // Se as colunas não existirem no banco, o update vai falhar.
-            // O usuário precisa rodar /api/migrate-now
+            // Filter out columns that don't exist in the database yet
+            $existing_columns = $db->getFieldNames('usuarios');
+            foreach (array_keys($data) as $key) {
+                if (!in_array($key, $existing_columns)) {
+                    unset($data[$key]);
+                }
+            }
+            
             $db->table('usuarios')->where('id', $id)->update($data);
             return $this->respond(['success' => true]);
         } catch (\Exception $e) {
