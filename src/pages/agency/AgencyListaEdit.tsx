@@ -34,6 +34,78 @@ const WIDGETS_BASE: Media[] = [
   { id: 'w-horacerta', titulo: 'Widget de Hora Certa', tipo_midia: 'widget', arquivo_url: 'horacerta' },
 ];
 
+const getUFTimezone = (uf: string) => {
+  if (['AC'].includes(uf)) return 'UTC -05:00';
+  if (['AM', 'MT', 'MS', 'RO', 'RR'].includes(uf)) return 'UTC -04:00';
+  if (['PE_FN'].includes(uf)) return 'UTC -02:00'; 
+  return 'UTC -03:00';
+};
+
+const CityAutocomplete = ({ cidade, estado, onChange }: { cidade: string, estado: string, onChange: (c: string, e: string) => void }) => {
+  const [query, setQuery] = useState(cidade && estado ? `${cidade}, ${estado}, BR (${getUFTimezone(estado)})` : '');
+  const [options, setOptions] = useState<{label: string, cidade: string, estado: string}[]>([]);
+  const [filteredOptions, setFilteredOptions] = useState<{label: string, cidade: string, estado: string}[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  
+  useEffect(() => {
+    fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios')
+      .then(res => res.json())
+      .then(data => {
+        const mapped = data.map((city: any) => {
+          const uf = city.microrregiao.mesorregiao.UF.sigla;
+          const label = `${city.nome}, ${uf}, BR (${getUFTimezone(uf)})`;
+          return { label, cidade: city.nome, estado: uf };
+        });
+        setOptions(mapped);
+      })
+      .catch(console.error);
+  }, []);
+  
+  useEffect(() => {
+    if (query) {
+      const q = query.toLowerCase();
+      setFilteredOptions(options.filter(o => o.label.toLowerCase().includes(q)).slice(0, 50));
+    } else {
+      setFilteredOptions([]);
+    }
+  }, [query, options]);
+
+  return (
+    <div className="relative w-full max-w-lg mt-4">
+      <div className="text-xs font-bold text-zinc-500 text-center mb-2">Selecione a Cidade (recomendável):</div>
+      <div className="flex items-center border border-zinc-200 rounded bg-white px-2 h-10 w-full">
+        {cidade && estado ? (
+          <button type="button" onClick={() => { onChange('', ''); setQuery(''); }} className="text-zinc-400 hover:text-zinc-600 mr-2 shrink-0">
+            <X className="w-4 h-4" />
+          </button>
+        ) : null}
+        <input 
+          type="text" 
+          value={query} 
+          onChange={e => { setQuery(e.target.value); setShowDropdown(true); }}
+          onFocus={() => setShowDropdown(true)}
+          onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+          className="w-full h-full text-xs focus:outline-none bg-transparent" 
+          placeholder={cidade && estado ? "" : "Digite a cidade..."}
+        />
+      </div>
+      {showDropdown && filteredOptions.length > 0 && (
+        <ul className="absolute z-50 w-full bg-white border border-zinc-200 mt-1 max-h-48 overflow-y-auto rounded shadow-lg text-left">
+          {filteredOptions.map((opt, i) => (
+            <li 
+              key={i} 
+              onClick={() => { onChange(opt.cidade, opt.estado); setQuery(opt.label); setShowDropdown(false); }}
+              className="px-3 py-2 text-xs hover:bg-zinc-100 cursor-pointer text-zinc-700"
+            >
+              {opt.label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
 const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key: string, value: string) => void }) => {
   const parsedUrl = new URL(item.widget_nome || '', 'http://localhost');
   const params = parsedUrl.searchParams;
@@ -48,20 +120,28 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
 
   if (widgetType === 'clima') {
     return (
-      <>
-        <div className="flex items-center justify-end gap-4">
-          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Cidade:</label>
+      <div className="flex flex-col items-center w-full">
+        <div className="flex items-center justify-center gap-4 mt-2">
+          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Celsius / Fahrenheit:</label>
           <div className="w-40">
-            <input type="text" value={params.get('cidade') || ''} onChange={e => handleParamChange('cidade', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="Ex: São Paulo" />
+            <select value={params.get('unidade') || 'C'} onChange={e => handleParamChange('unidade', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+              <option value="C">Celsius</option>
+              <option value="F">Fahrenheit</option>
+            </select>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-4">
-          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Estado (Sigla):</label>
-          <div className="w-40">
-            <input type="text" value={params.get('estado') || ''} onChange={e => handleParamChange('estado', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="Ex: SP" maxLength={2} />
-          </div>
-        </div>
-      </>
+        <CityAutocomplete 
+          cidade={params.get('cidade') || ''} 
+          estado={params.get('estado') || ''} 
+          onChange={(cidade, estado) => {
+            const newParams = new URLSearchParams(parsedUrl.search);
+            newParams.set('cidade', cidade);
+            newParams.set('estado', estado);
+            const newWidgetNome = `${widgetType}?${newParams.toString()}`;
+            onUpdate('widget_nome', newWidgetNome);
+          }}
+        />
+      </div>
     );
   }
 

@@ -331,6 +331,7 @@ class Api extends ResourceController
 
         $cidade = $this->request->getGet('cidade');
         $estado = $this->request->getGet('estado');
+        $unidade = $this->request->getGet('unidade') ?? 'C';
         
         if (!$cidade || !$estado) {
             return $this->fail('Cidade ou estado não fornecidos', 400);
@@ -348,7 +349,8 @@ class Api extends ResourceController
             }
 
             // Step 1: OpenWeather 2.5 API
-            $weatherUrl = $apiUrl . "?q=" . urlencode($cidade) . "," . urlencode($estado) . ",BR&units=metric&lang=pt_br&appid=" . $apiKey;
+            $unitsParam = ($unidade === 'F') ? 'imperial' : 'metric';
+            $weatherUrl = $apiUrl . "?q=" . urlencode($cidade) . "," . urlencode($estado) . ",BR&units=" . $unitsParam . "&lang=pt_br&appid=" . $apiKey;
             $weatherRes = @file_get_contents($weatherUrl);
             
             if (!$weatherRes) {
@@ -443,7 +445,6 @@ class Api extends ResourceController
             
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
 
             if ($httpCode !== 200 || !$response) {
                 if (file_exists($cacheFile)) {
@@ -538,7 +539,6 @@ class Api extends ResourceController
         
         $html = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         if ($httpCode !== 200 || !$html) {
              return $this->respond(['image' => null]);
