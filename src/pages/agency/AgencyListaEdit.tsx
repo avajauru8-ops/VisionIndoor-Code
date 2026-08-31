@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
+import { CIDADES_BRASIL } from '../../data/cidades-brasil';
 import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors, useDraggable, useDroppable } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -43,41 +44,23 @@ const getUFTimezone = (uf: string) => {
 
 const CityAutocomplete = ({ cidade, estado, onChange }: { cidade: string, estado: string, onChange: (c: string, e: string) => void }) => {
   const [query, setQuery] = useState(cidade && estado ? `${cidade}, ${estado}, BR (${getUFTimezone(estado)})` : '');
-  const [options, setOptions] = useState<{label: string, cidade: string, estado: string}[]>([]);
-  const [filteredOptions, setFilteredOptions] = useState<{label: string, cidade: string, estado: string}[]>([]);
+  const [filteredOptions, setFilteredOptions] = useState<{nome: string, uf: string, utc: string}[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [loading, setLoading] = useState(true);
   const inputRef = React.useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setLoading(true);
-    fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios')
-      .then(res => res.json())
-      .then(data => {
-        const mapped = data.map((city: any) => {
-          const uf = city.microrregiao.mesorregiao.UF.sigla;
-          const label = `${city.nome}, ${uf}, BR (${getUFTimezone(uf)})`;
-          return { label, cidade: city.nome, estado: uf };
-        });
-        setOptions(mapped);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
 
   useEffect(() => {
     const q = query.trim().toLowerCase();
     if (q.length >= 2) {
-      const filtered = options.filter(o =>
-        o.cidade.toLowerCase().includes(q) ||
-        o.estado.toLowerCase().startsWith(q) ||
-        o.label.toLowerCase().includes(q)
+      const filtered = CIDADES_BRASIL.filter(c =>
+        c.nome.toLowerCase().includes(q) ||
+        c.uf.toLowerCase() === q ||
+        (`${c.nome}, ${c.uf}`).toLowerCase().includes(q)
       ).slice(0, 60);
-      setFilteredOptions(filtered);
+      setFilteredOptions(filtered as {nome: string, uf: string, utc: string}[]);
     } else {
       setFilteredOptions([]);
     }
-  }, [query, options]);
+  }, [query]);
 
   const handleClear = () => {
     onChange('', '');
@@ -113,16 +96,11 @@ const CityAutocomplete = ({ cidade, estado, onChange }: { cidade: string, estado
           onFocus={() => setShowDropdown(true)}
           onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
           className="w-full h-full text-xs focus:outline-none bg-transparent text-center"
-          placeholder={loading ? 'Carregando cidades...' : 'Digite o nome da cidade...'}
-          disabled={loading}
+          placeholder="Digite o nome da cidade..."
         />
-        {loading ? (
-          <div className="shrink-0 ml-1 w-4 h-4 border-2 border-zinc-300 border-t-zinc-600 rounded-full animate-spin" />
-        ) : (
-          <svg className="shrink-0 ml-1 w-4 h-4 text-zinc-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-          </svg>
-        )}
+        <svg className="shrink-0 ml-1 w-4 h-4 text-zinc-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+        </svg>
       </div>
 
       {showDropdown && query.trim().length >= 2 && (
@@ -134,12 +112,12 @@ const CityAutocomplete = ({ cidade, estado, onChange }: { cidade: string, estado
               <li
                 key={i}
                 onMouseDown={e => e.preventDefault()}
-                onClick={() => { onChange(opt.cidade, opt.estado); setQuery(opt.label); setShowDropdown(false); }}
+                onClick={() => { onChange(opt.nome, opt.uf); setQuery(`${opt.nome}, ${opt.uf}, BR (${opt.utc})`); setShowDropdown(false); }}
                 className="px-3 py-2 text-xs hover:bg-[#e8f0fe] cursor-pointer text-zinc-700 border-b border-zinc-100 last:border-b-0"
               >
-                <span className="font-semibold text-zinc-800">{opt.cidade}</span>
-                <span className="text-zinc-400">, {opt.estado}, BR</span>
-                <span className="text-zinc-400 ml-1">({getUFTimezone(opt.estado)})</span>
+                <span className="font-semibold text-zinc-800">{opt.nome}</span>
+                <span className="text-zinc-400">, {opt.uf}, BR</span>
+                <span className="text-zinc-400 ml-1">({opt.utc})</span>
               </li>
             ))
           )}
