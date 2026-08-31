@@ -38,12 +38,11 @@ class Users extends ResourceController
             $json = $this->request->getJSON();
             $db = \Config\Database::connect();
             
-            $senha = password_hash($json->senha, PASSWORD_DEFAULT);
+            $senha = password_hash($json->senha ?? '123456', PASSWORD_DEFAULT);
             
             $data = [
-                'nome' => $json->nome,
-                'cpf' => $json->cpf,
-                'email' => $json->email,
+                'nome' => $json->nome ?? 'Usuário',
+                'email' => $json->email ?? '',
                 'senha' => $senha,
                 'nivel' => $json->nivel ?? 'agencia',
                 'status_licenca' => $json->status_licenca ?? 'ativa',
@@ -52,6 +51,10 @@ class Users extends ResourceController
                 'limite_tvs' => $json->limite_tvs ?? 1,
                 'created_at' => date('Y-m-d H:i:s')
             ];
+            
+            if (isset($json->cpf)) {
+                $data['cpf'] = $json->cpf;
+            }
             
             $db->table('usuarios')->insert($data);
             return $this->respondCreated(['id' => (string)$db->insertID()]);
@@ -76,26 +79,40 @@ class Users extends ResourceController
 
     public function update($id = null)
     {
-        $json = $this->request->getJSON();
-        $db = \Config\Database::connect();
-        
-        $data = [
-            'nome' => $json->nome,
-            'cpf' => $json->cpf,
-            'email' => $json->email,
-            'nivel' => $json->nivel,
-            'status_licenca' => $json->status_licenca,
-            'validade_licenca' => $json->validade_licenca ?? null,
-            'plano' => $json->plano ?? 'gratis',
-            'limite_tvs' => $json->limite_tvs ?? 1
-        ];
-        
-        if (!empty($json->senha)) {
-            $data['senha'] = password_hash($json->senha, PASSWORD_DEFAULT);
+        try {
+            $json = $this->request->getJSON();
+            $db = \Config\Database::connect();
+            
+            $data = [
+                'nome' => $json->nome ?? null,
+                'email' => $json->email ?? null,
+                'nivel' => $json->nivel ?? null,
+                'status_licenca' => $json->status_licenca ?? null,
+                'validade_licenca' => $json->validade_licenca ?? null,
+                'plano' => $json->plano ?? 'gratis',
+                'limite_tvs' => $json->limite_tvs ?? 1
+            ];
+            
+            if (isset($json->cpf)) {
+                $data['cpf'] = $json->cpf;
+            }
+            
+            if (!empty($json->senha)) {
+                $data['senha'] = password_hash($json->senha, PASSWORD_DEFAULT);
+            }
+            
+            // Remove null values to avoid overwriting with null if they were omitted in the request
+            $data = array_filter($data, function($value) {
+                return $value !== null;
+            });
+            
+            // Se as colunas não existirem no banco, o update vai falhar.
+            // O usuário precisa rodar /api/migrate-now
+            $db->table('usuarios')->where('id', $id)->update($data);
+            return $this->respond(['success' => true]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
         }
-        
-        $db->table('usuarios')->where('id', $id)->update($data);
-        return $this->respond(['success' => true]);
     }
 
     public function delete($id = null)
