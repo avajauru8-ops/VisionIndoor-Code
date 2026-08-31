@@ -46,8 +46,11 @@ const CityAutocomplete = ({ cidade, estado, onChange }: { cidade: string, estado
   const [options, setOptions] = useState<{label: string, cidade: string, estado: string}[]>([]);
   const [filteredOptions, setFilteredOptions] = useState<{label: string, cidade: string, estado: string}[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  
+  const [loading, setLoading] = useState(true);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
   useEffect(() => {
+    setLoading(true);
     fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios')
       .then(res => res.json())
       .then(data => {
@@ -58,53 +61,94 @@ const CityAutocomplete = ({ cidade, estado, onChange }: { cidade: string, estado
         });
         setOptions(mapped);
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
-  
+
   useEffect(() => {
-    if (query) {
-      const q = query.toLowerCase();
-      setFilteredOptions(options.filter(o => o.label.toLowerCase().includes(q)).slice(0, 50));
+    const q = query.trim().toLowerCase();
+    if (q.length >= 2) {
+      const filtered = options.filter(o =>
+        o.cidade.toLowerCase().includes(q) ||
+        o.estado.toLowerCase().startsWith(q) ||
+        o.label.toLowerCase().includes(q)
+      ).slice(0, 60);
+      setFilteredOptions(filtered);
     } else {
       setFilteredOptions([]);
     }
   }, [query, options]);
 
+  const handleClear = () => {
+    onChange('', '');
+    setQuery('');
+    setShowDropdown(false);
+    inputRef.current?.focus();
+  };
+
+  const isSelected = !!(cidade && estado);
+
   return (
     <div className="relative w-full max-w-lg mt-4">
       <div className="text-xs font-bold text-zinc-500 text-center mb-2">Selecione a Cidade (recomendável):</div>
-      <div className="flex items-center border border-zinc-200 rounded bg-white px-2 h-10 w-full">
-        {cidade && estado ? (
-          <button type="button" onClick={() => { onChange('', ''); setQuery(''); }} className="text-zinc-400 hover:text-zinc-600 mr-2 shrink-0">
+      <div
+        className="flex items-center border border-zinc-200 rounded bg-white px-2 h-10 w-full cursor-text"
+        onClick={() => inputRef.current?.focus()}
+      >
+        {isSelected ? (
+          <button
+            type="button"
+            onClick={e => { e.stopPropagation(); handleClear(); }}
+            className="text-zinc-400 hover:text-zinc-600 mr-2 shrink-0"
+            title="Limpar"
+          >
             <X className="w-4 h-4" />
           </button>
         ) : null}
-        <input 
-          type="text" 
-          value={query} 
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
           onChange={e => { setQuery(e.target.value); setShowDropdown(true); }}
           onFocus={() => setShowDropdown(true)}
           onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-          className="w-full h-full text-xs focus:outline-none bg-transparent" 
-          placeholder={cidade && estado ? "" : "Digite a cidade..."}
+          className="w-full h-full text-xs focus:outline-none bg-transparent text-center"
+          placeholder={loading ? 'Carregando cidades...' : 'Digite o nome da cidade...'}
+          disabled={loading}
         />
+        {loading ? (
+          <div className="shrink-0 ml-1 w-4 h-4 border-2 border-zinc-300 border-t-zinc-600 rounded-full animate-spin" />
+        ) : (
+          <svg className="shrink-0 ml-1 w-4 h-4 text-zinc-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        )}
       </div>
-      {showDropdown && filteredOptions.length > 0 && (
-        <ul className="absolute z-50 w-full bg-white border border-zinc-200 mt-1 max-h-48 overflow-y-auto rounded shadow-lg text-left">
-          {filteredOptions.map((opt, i) => (
-            <li 
-              key={i} 
-              onClick={() => { onChange(opt.cidade, opt.estado); setQuery(opt.label); setShowDropdown(false); }}
-              className="px-3 py-2 text-xs hover:bg-zinc-100 cursor-pointer text-zinc-700"
-            >
-              {opt.label}
-            </li>
-          ))}
+
+      {showDropdown && query.trim().length >= 2 && (
+        <ul className="absolute z-50 w-full bg-white border border-zinc-200 mt-1 max-h-52 overflow-y-auto rounded shadow-lg text-left">
+          {filteredOptions.length === 0 ? (
+            <li className="px-3 py-3 text-xs text-zinc-400 text-center">Nenhuma cidade encontrada.</li>
+          ) : (
+            filteredOptions.map((opt, i) => (
+              <li
+                key={i}
+                onMouseDown={e => e.preventDefault()}
+                onClick={() => { onChange(opt.cidade, opt.estado); setQuery(opt.label); setShowDropdown(false); }}
+                className="px-3 py-2 text-xs hover:bg-[#e8f0fe] cursor-pointer text-zinc-700 border-b border-zinc-100 last:border-b-0"
+              >
+                <span className="font-semibold text-zinc-800">{opt.cidade}</span>
+                <span className="text-zinc-400">, {opt.estado}, BR</span>
+                <span className="text-zinc-400 ml-1">({getUFTimezone(opt.estado)})</span>
+              </li>
+            ))
+          )}
         </ul>
       )}
     </div>
   );
 };
+
 
 const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key: string, value: string) => void }) => {
   const parsedUrl = new URL(item.widget_nome || '', 'http://localhost');
