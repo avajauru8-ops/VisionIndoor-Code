@@ -11,15 +11,23 @@ class Users extends ResourceController
         try {
             $db = \Config\Database::connect();
             $builder = $db->table('usuarios');
-            $users = $builder->select('id, nome, cpf, email, nivel, status_licenca, validade_licenca, plano, limite_tvs, created_at')->get()->getResultArray();
+            $users = $builder->get()->getResultArray();
             
-            // Convert ID to string for JS compatibility
+            // Convert ID to string for JS compatibility and ensure new columns exist
             foreach ($users as &$u) {
+                unset($u['senha']);
                 $u['id'] = (string)$u['id'];
+                $u['cpf'] = $u['cpf'] ?? '';
+                $u['status_licenca'] = $u['status_licenca'] ?? 'ativa';
+                $u['validade_licenca'] = $u['validade_licenca'] ?? '2099-12-31T23:59:59Z';
+                $u['plano'] = $u['plano'] ?? 'gratis';
+                $u['limite_tvs'] = $u['limite_tvs'] ?? 1;
+                $u['nivel'] = $u['nivel'] ?? 'agencia';
             }
             
             return $this->respond($users);
         } catch (\Exception $e) {
+            file_put_contents(WRITEPATH . 'logs/db_error.log', $e->getMessage());
             return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
         }
     }

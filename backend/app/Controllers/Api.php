@@ -55,10 +55,27 @@ class Api extends ResourceController
                 }
             }
             
+            // New columns for "usuarios" table
+            $user_columns = [
+                'cpf' => "VARCHAR(20) DEFAULT NULL",
+                'status_licenca' => "VARCHAR(50) DEFAULT 'ativa'",
+                'validade_licenca' => "DATETIME DEFAULT '2099-12-31 23:59:59'",
+                'plano' => "VARCHAR(50) DEFAULT 'gratis'",
+                'limite_tvs' => "INT DEFAULT 1"
+            ];
+            
+            foreach ($user_columns as $col => $def) {
+                try {
+                    $db->query("ALTER TABLE usuarios ADD COLUMN {$col} {$def}");
+                } catch (\Exception $e) {
+                    $errors[] = "usuarios." . $col . ": " . $e->getMessage();
+                }
+            }
+
             if (count($errors) > 0) {
                 return $this->respond(['success' => false, 'errors' => $errors]);
             }
-            return $this->respond(['success' => true, 'msg' => 'Todas as colunas extras foram atualizadas/criadas na produção!']);
+            return $this->respond(['success' => true, 'msg' => 'Todas as colunas extras e de usuários foram atualizadas/criadas na produção!']);
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => $e->getMessage()])->setStatusCode(500);
         }
