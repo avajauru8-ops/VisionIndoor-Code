@@ -733,6 +733,7 @@ export default function AgencyTotemSettings() {
                               className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600 flex-1 min-w-[180px]"
                             >
                               <option value="">Selecione...</option>
+                              <option value="descanso">MODO DE DESCANSO</option>
                               {listas.map(l => (
                                 <option key={l.id} value={l.id}>{l.nome}</option>
                               ))}
