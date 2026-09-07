@@ -75,6 +75,10 @@ class Api extends ResourceController
             if (count($errors) > 0) {
                 return $this->respond(['success' => false, 'errors' => $errors]);
             }
+            
+            // Fix existing totem names to include device_id
+            $db->query("UPDATE totens SET nome = CONCAT(device_id, ' - TV - ', DATE_FORMAT(data_cadastro, '%d/%m/%Y')) WHERE nome LIKE 'TV - %'");
+            
             return $this->respond(['success' => true, 'msg' => 'Todas as colunas extras e de usuários foram atualizadas/criadas na produção!']);
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => $e->getMessage()])->setStatusCode(500);

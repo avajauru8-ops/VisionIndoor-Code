@@ -83,13 +83,14 @@ class Totems extends ResourceController
             // Limit Check Removed as requested by user
             
             $nome = $json->nome ?? '';
+            $deviceIdNorm = strtoupper(str_replace(['O', 'I', 'l'], ['0', '1', '1'], $json->device_id ?? ''));
             if (empty($nome)) {
-                $nome = 'TV - ' . date('d/m/Y');
+                $nome = $deviceIdNorm . ' - TV - ' . date('d/m/Y');
             }
 
             $data = [
                 'nome' => $nome,
-                'device_id' => strtoupper(str_replace(['O', 'I', 'l'], ['0', '1', '1'], $json->device_id ?? '')),
+                'device_id' => $deviceIdNorm,
                 'usuario_id' => $user_id,
                 'status' => 'offline'
             ];
