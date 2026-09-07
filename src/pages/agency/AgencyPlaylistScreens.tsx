@@ -113,7 +113,7 @@ export default function AgencyPlaylistScreens() {
                     <MonitorPlay className="w-6 h-6" />
                   </div>
                   <div className="flex flex-col items-end gap-1.5">
-                    {totem.status === 'online' ? (
+                    {(totem.status === 'online' || totem.status === 'FUNCIONANDO CORRETAMENTE') ? (
                       <span className="flex items-center gap-1.5 bg-[#e8f5ed] text-emerald-600 px-3 py-1 rounded-full border border-emerald-100 text-[9px] uppercase font-bold tracking-wider shadow-sm">
                         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                         Online
@@ -126,7 +126,7 @@ export default function AgencyPlaylistScreens() {
                     )}
                     {/* Time Badge always visible */}
                     <span className={`flex items-center gap-1 text-[9px] font-semibold px-2 py-0.5 rounded-full border ${
-                      totem.status === 'online' 
+                      (totem.status === 'online' || totem.status === 'FUNCIONANDO CORRETAMENTE') 
                         ? 'text-emerald-600 bg-emerald-50 border-emerald-100'
                         : 'text-rose-600 bg-rose-50 border-rose-100'
                     }`}>

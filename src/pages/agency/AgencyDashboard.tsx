@@ -56,7 +56,7 @@ export default function AgencyDashboard() {
         let online = 0;
         let offline = 0;
         totemsData.forEach((t: any) => {
-          if (t.status === 'online') online++;
+          if (t.status === 'online' || t.status === 'FUNCIONANDO CORRETAMENTE') online++;
           else offline++;
         });
         setStats({ online, offline, total: totemsData.length });
@@ -257,7 +257,7 @@ export default function AgencyDashboard() {
             {totems.slice(0, 3).map((totem) => (
               <div key={totem.id} className="flex items-center justify-between p-3 rounded-xl border border-zinc-50 hover:bg-zinc-50 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${totem.status === 'online' ? 'bg-[#e8f5ed] text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${totem.status === 'online' || totem.status === 'FUNCIONANDO CORRETAMENTE' ? 'bg-[#e8f5ed] text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                     <Tv className="w-4 h-4" />
                   </div>
                   <div>
@@ -266,8 +266,8 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`w-2.5 h-2.5 rounded-full ${totem.status === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-400'}`}></span>
-                  <span className="text-[9px] font-bold uppercase text-zinc-400">{totem.status}</span>
+                  <span className={`w-2.5 h-2.5 rounded-full ${(totem.status === 'online' || totem.status === 'FUNCIONANDO CORRETAMENTE') ? 'bg-emerald-500 animate-pulse' : 'bg-rose-400'}`}></span>
+                  <span className="text-[9px] font-bold uppercase text-zinc-400">{(totem.status === 'online' || totem.status === 'FUNCIONANDO CORRETAMENTE') ? 'ONLINE - ' + totem.device_id : totem.status}</span>
                 </div>
               </div>
             ))}

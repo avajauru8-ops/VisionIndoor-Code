@@ -157,7 +157,7 @@ export default function AgencyPlaylistView() {
                 <span className="text-xs text-[#8b9aa5] font-medium flex items-center gap-1">
                   <Activity className="w-3.5 h-3.5" /> ID: {totem.device_id}
                 </span>
-                {totem.status === 'online' ? (
+                {(totem.status === 'online' || totem.status === 'FUNCIONANDO CORRETAMENTE') ? (
                   <span className="flex items-center gap-1 bg-[#e8f5ed] text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-100 text-[9px] uppercase font-bold tracking-wider">
                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>Online
                   </span>
