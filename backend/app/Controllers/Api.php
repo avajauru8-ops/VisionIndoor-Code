@@ -108,8 +108,12 @@ class Api extends ResourceController
                 return $this->respond(['erro' => 'Identificador do dispositivo nao fornecido.']);
             }
             
+            // Normaliza device_id para evitar confusão visual: O→0, I→1, l→1
+            $normalizedId = $this->normalizeDeviceId($device_id);
+            
+            // Busca case-insensitive com LIKE para tolerar variações
             $builder = $db->table('totens');
-            $totem = $builder->where('device_id', $device_id)->get()->getRowArray();
+            $totem = $builder->where('LOWER(REPLACE(REPLACE(device_id, "O", "0"), "I", "1"))', strtolower(str_replace(['O','I'], ['0','1'], $normalizedId)))->get()->getRowArray();
             
             if (!$totem) {
                 return $this->respond([
@@ -279,6 +283,12 @@ class Api extends ResourceController
         } catch (\Exception $e) {
             return $this->respond(['erro' => 'Erro interno: ' . $e->getMessage()]);
         }
+    }
+
+    private function normalizeDeviceId($id)
+    {
+        // Normalize visually ambiguous characters: O→0, I→1, l→1
+        return str_replace(['O', 'I', 'l'], ['0', '1', '1'], $id);
     }
 
     private function checkWidgetStatus($identificador)
@@ -482,7 +492,7 @@ class Api extends ResourceController
     {
         try {
             $db = \Config\Database::connect();
-            $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No O, 0, I, l (ambiguous in monospace)
             $length = 6;
             $isUnique = false;
             $deviceId = '';

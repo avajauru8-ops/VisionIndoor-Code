@@ -89,7 +89,7 @@ class Totems extends ResourceController
 
             $data = [
                 'nome' => $nome,
-                'device_id' => $json->device_id ?? '',
+                'device_id' => strtoupper(str_replace(['O', 'I', 'l'], ['0', '1', '1'], $json->device_id ?? '')),
                 'usuario_id' => $user_id,
                 'status' => 'offline'
             ];
@@ -109,7 +109,7 @@ class Totems extends ResourceController
             
             $data = [];
             if (isset($json->nome)) $data['nome'] = $json->nome;
-            if (isset($json->device_id)) $data['device_id'] = $json->device_id;
+            if (isset($json->device_id)) $data['device_id'] = strtoupper(str_replace(['O', 'I', 'l'], ['0', '1', '1'], $json->device_id));
             if (isset($json->rotacao)) $data['rotacao'] = $json->rotacao;
             if (isset($json->status)) $data['status'] = $json->status;
             if (isset($json->auto_iniciar)) $data['auto_iniciar'] = $json->auto_iniciar ? 1 : 0;
