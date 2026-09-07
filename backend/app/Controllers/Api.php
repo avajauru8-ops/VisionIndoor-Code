@@ -43,8 +43,7 @@ class Api extends ResourceController
                 'comando_id' => "VARCHAR(100) DEFAULT NULL",
                 'data_hora_tv' => "VARCHAR(100) DEFAULT NULL",
                 'horario_inicio' => "VARCHAR(100) DEFAULT NULL",
-                'horario_fim' => "VARCHAR(100) DEFAULT NULL",
-                'agendamentos' => "JSON DEFAULT NULL"
+                'horario_fim' => "VARCHAR(100) DEFAULT NULL"
             ];
             
             $errors = [];
@@ -75,6 +74,13 @@ class Api extends ResourceController
 
             // Fix existing totem names to include device_id (runs regardless of column errors)
             $db->query("UPDATE totens SET nome = CONCAT(device_id, ' - ', nome) WHERE nome LIKE 'TV - %' AND nome NOT LIKE '% - TV - %'");
+
+            // Add agendamentos column if not exists
+            try {
+                $db->query("ALTER TABLE totens ADD COLUMN agendamentos TEXT DEFAULT NULL");
+            } catch (\Exception $e) {
+                // Column already exists, ignore
+            }
 
             if (count($errors) > 0) {
                 return $this->respond(['success' => false, 'errors' => $errors, 'msg' => 'Migração parcial (colunas já existentes)']);
