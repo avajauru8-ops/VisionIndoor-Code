@@ -30,7 +30,7 @@ class AuthFilter implements FilterInterface
             if (!empty($arguments) && in_array('admin', $arguments)) {
                 if (!isset($decoded->nivel) || $decoded->nivel !== 'admin') {
                     return \Config\Services::response()
-                        ->setJSON(['error' => 'Acesso negado'])
+                        ->setJSON(['error' => 'Acesso negado. Somente administradores.'])
                         ->setStatusCode(ResponseInterface::HTTP_FORBIDDEN);
                 }
             }
@@ -39,9 +39,21 @@ class AuthFilter implements FilterInterface
             $request->setHeader('X-User-Id', $decoded->id);
             $request->setHeader('X-User-Email', $decoded->email);
             $request->setHeader('X-User-Nivel', $decoded->nivel);
+        } catch (\Firebase\JWT\ExpiredException $e) {
+            return \Config\Services::response()
+                ->setJSON(['error' => 'Token expirado. Por favor, faça login novamente.'])
+                ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED);
+        } catch (\Firebase\JWT\SignatureInvalidException $e) {
+            return \Config\Services::response()
+                ->setJSON(['error' => 'Token inválido. Assinatura incorreta.'])
+                ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED);
+        } catch (\Firebase\JWT\InvalidTokenException $e) {
+            return \Config\Services::response()
+                ->setJSON(['error' => 'Token inválido. Formato incorreto.'])
+                ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED);
         } catch (Exception $e) {
             return \Config\Services::response()
-                ->setJSON(['error' => 'Token inválido', 'details' => $e->getMessage()])
+                ->setJSON(['error' => 'Token inválido. Faça login novamente.'])
                 ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED);
         }
     }

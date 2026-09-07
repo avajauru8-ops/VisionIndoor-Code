@@ -21,6 +21,7 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
 
     // Autenticação
     $routes->post('auth/login', 'Auth::login');
+    $routes->post('auth/refresh', 'Auth::refresh');
 
     // Admin Users (CRUD)
     $routes->group('admin/users', ['filter' => 'auth:admin'], static function ($routes) {

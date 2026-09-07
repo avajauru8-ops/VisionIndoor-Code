@@ -32,7 +32,8 @@ class Auth extends ResourceController
                     'email' => $user['email'],
                     'nivel' => $user['nivel'],
                     'nome'  => $user['nome'],
-                    'exp'   => time() + (24 * 60 * 60) // 24 hours
+                    'iat'   => time(),
+                    'exp'   => time() + (30 * 24 * 60 * 60) // 30 dias
                 ];
                 
                 $token = JWT::encode($payload, $key, 'HS256');
@@ -55,6 +56,74 @@ class Auth extends ResourceController
         } catch (\Exception $e) {
             return $this->response->setJSON([
                 'error' => 'Erro DB/PHP: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    public function refresh()
+    {
+        try {
+            $header = $this->request->getHeaderLine('Authorization');
+            
+            if (empty($header) || !preg_match('/Bearer\s(\S+)/', $header, $matches)) {
+                return $this->response->setJSON(['error' => 'Token não fornecido'])->setStatusCode(401);
+            }
+
+            $oldToken = $matches[1];
+            $key = env('JWT_SECRET') ?: 'visioindoor_jwt_secret_key_fallback_32_bytes';
+            
+            $decoded = null;
+            
+            // Tenta decodificar normalmente
+            try {
+                $decoded = JWT::decode($oldToken, new Key($key, 'HS256'));
+            } catch (\Firebase\JWT\ExpiredException $e) {
+                // Token expirado - decodifica manualmente para obter os dados do usuario
+                $parts = explode('.', $oldToken);
+                if (count($parts) === 3) {
+                    $payloadData = json_decode(base64_decode(strtr($parts[1], '-_', '+/')));
+                    if ($payloadData && isset($payloadData->id) && isset($payloadData->email)) {
+                        // Verifica a assinatura manualmente
+                        $expectedSig = hash_hmac('sha256', $parts[0] . '.' . $parts[1], $key, true);
+                        $expectedSigB64 = strtr(rtrim(base64_encode($expectedSig), '='), '+/', '-_');
+                        
+                        if (hash_equals($expectedSigB64, $parts[2])) {
+                            $decoded = $payloadData;
+                        }
+                    }
+                }
+                
+                if (!$decoded) {
+                    return $this->response->setJSON(['error' => 'Token expirado e invalido. Faça login novamente.'])->setStatusCode(401);
+                }
+            } catch (\Exception $e) {
+                return $this->response->setJSON(['error' => 'Token invalido. Faça login novamente.'])->setStatusCode(401);
+            }
+            
+            // Gera novo token
+            $payload = [
+                'id'    => $decoded->id,
+                'email' => $decoded->email,
+                'nivel' => $decoded->nivel,
+                'nome'  => $decoded->nome,
+                'iat'   => time(),
+                'exp'   => time() + (30 * 24 * 60 * 60) // 30 dias
+            ];
+            
+            $newToken = JWT::encode($payload, $key, 'HS256');
+            
+            return $this->response->setJSON([
+                'token' => $newToken,
+                'user'  => [
+                    'id'    => $decoded->id,
+                    'email' => $decoded->email,
+                    'nome'  => $decoded->nome,
+                    'nivel' => $decoded->nivel
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'error' => 'Erro ao renovar token: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
     }
