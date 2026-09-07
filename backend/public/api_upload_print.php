@@ -5,11 +5,11 @@ header('Content-Type: application/json');
 // Recebe os dados brutos (O Android envia via Payload Body JSON)
 $data = json_decode(file_get_contents('php://input'), true);
 
-if (isset($data['device_id']) && isset($data['imagem_base64'])) {
+if (isset($data['device_id']) && (isset($data['imagem']) || isset($data['imagem_base64']))) {
     
     // 1. Sanitiza o device_id para permitir apenas letras e números (evita Path Traversal)
     $device_id = preg_replace('/[^a-zA-Z0-9_-]/', '', $data['device_id']);
-    $base64 = $data['imagem_base64'];
+    $base64 = isset($data['imagem']) ? $data['imagem'] : $data['imagem_base64'];
 
     // 2. Verifica o tamanho (limite de 5MB, por exemplo, na string base64)
     // Uma imagem de 5MB em base64 tem cerca de 6.6MB
