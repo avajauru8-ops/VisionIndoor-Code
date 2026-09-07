@@ -515,6 +515,24 @@ class Api extends ResourceController
         }
     }
 
+    public function fixDeviceId()
+    {
+        try {
+            $db = \Config\Database::connect();
+            $json = $this->request->getJSON(true);
+            $old = $json['old_device_id'] ?? '';
+            $new = $json['new_device_id'] ?? '';
+            if (empty($old) || empty($new)) {
+                return $this->respond(['error' => 'old_device_id and new_device_id required']);
+            }
+            $db->table('totens')->where('device_id', $old)->update(['device_id' => $new]);
+            $affected = $db->affectedRows();
+            return $this->respond(['success' => true, 'affected' => $affected, 'old' => $old, 'new' => $new]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['error' => $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
     public function ogImage()
     {
         $url = $this->request->getGet('url');
