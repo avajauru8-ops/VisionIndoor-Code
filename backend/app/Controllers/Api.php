@@ -72,12 +72,12 @@ class Api extends ResourceController
                 }
             }
 
-            if (count($errors) > 0) {
-                return $this->respond(['success' => false, 'errors' => $errors]);
-            }
-            
-            // Fix existing totem names to include device_id
+            // Fix existing totem names to include device_id (runs regardless of column errors)
             $db->query("UPDATE totens SET nome = CONCAT(device_id, ' - TV - ', DATE_FORMAT(data_cadastro, '%d/%m/%Y')) WHERE nome LIKE 'TV - %'");
+
+            if (count($errors) > 0) {
+                return $this->respond(['success' => false, 'errors' => $errors, 'msg' => 'Migração parcial (colunas já existentes)']);
+            }
             
             return $this->respond(['success' => true, 'msg' => 'Todas as colunas extras e de usuários foram atualizadas/criadas na produção!']);
         } catch (\Exception $e) {
