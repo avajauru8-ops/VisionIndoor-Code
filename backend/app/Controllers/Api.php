@@ -111,9 +111,11 @@ class Api extends ResourceController
             // Normaliza device_id para evitar confusão visual: O→0, I→1, l→1
             $normalizedId = $this->normalizeDeviceId($device_id);
             
-            // Busca case-insensitive com LIKE para tolerar variações
+            // Busca com normalização visual (O/0, I/1, l/1) case-insensitive
             $builder = $db->table('totens');
-            $totem = $builder->where('LOWER(REPLACE(REPLACE(device_id, "O", "0"), "I", "1"))', strtolower(str_replace(['O','I'], ['0','1'], $normalizedId)))->get()->getRowArray();
+            $normQuery = 'LOWER(REPLACE(REPLACE(REPLACE(REPLACE(device_id, "O", "0"), "o", "0"), "I", "1"), "l", "1"))';
+            $normValue = strtolower(str_replace(['O', 'o', 'I', 'i', 'l'], ['0', '0', '1', '1', '1'], $normalizedId));
+            $totem = $builder->where($normQuery, $normValue)->get()->getRowArray();
             
             if (!$totem) {
                 return $this->respond([
