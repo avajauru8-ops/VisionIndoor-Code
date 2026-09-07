@@ -68,6 +68,75 @@ export default function AgencyTotemSettings() {
   // Agendamento State
   const [horarioInicio, setHorarioInicio] = useState('');
   const [horarioFim, setHorarioFim] = useState('');
+  const [agendamentos, setAgendamentos] = useState<Array<{
+    id: string;
+    tipo: string;
+    playlist_id: string;
+    data_inicio: string;
+    data_fim: string;
+    hora_inicio: string;
+    hora_fim: string;
+    dia_semana: string;
+    dia_mes: string;
+    mes: string;
+  }>>([]);
+
+  const SCHEDULE_TYPES = [
+    { value: 'periodo_dias_horas', label: 'Período de Dias e Horas' },
+    { value: 'periodo_horas_dia', label: 'Período de Horas do Dia' },
+    { value: 'periodo_horas_dia_especifico', label: 'Período de Horas do Dia em Dia Específico' },
+    { value: 'dia_semana', label: 'Dia da Semana' },
+    { value: 'dia_mes', label: 'Dia do Mês' },
+    { value: 'mes', label: 'Mês' },
+  ];
+
+  const DIAS_SEMANA = [
+    { value: '0', label: 'Domingo' },
+    { value: '1', label: 'Segunda-feira' },
+    { value: '2', label: 'Terça-feira' },
+    { value: '3', label: 'Quarta-feira' },
+    { value: '4', label: 'Quinta-feira' },
+    { value: '5', label: 'Sexta-feira' },
+    { value: '6', label: 'Sábado' },
+  ];
+
+  const MESES = [
+    { value: '1', label: 'Janeiro' },
+    { value: '2', label: 'Fevereiro' },
+    { value: '3', label: 'Março' },
+    { value: '4', label: 'Abril' },
+    { value: '5', label: 'Maio' },
+    { value: '6', label: 'Junho' },
+    { value: '7', label: 'Julho' },
+    { value: '8', label: 'Agosto' },
+    { value: '9', label: 'Setembro' },
+    { value: '10', label: 'Outubro' },
+    { value: '11', label: 'Novembro' },
+    { value: '12', label: 'Dezembro' },
+  ];
+
+  const addAgendamento = () => {
+    setAgendamentos([...agendamentos, {
+      id: Date.now().toString(),
+      tipo: '',
+      playlist_id: '',
+      data_inicio: '',
+      data_fim: '',
+      hora_inicio: '',
+      hora_fim: '',
+      dia_semana: '',
+      dia_mes: '',
+      mes: '',
+    }]);
+  };
+
+  const removeAgendamento = (idx: number) => {
+    setAgendamentos(agendamentos.filter((_, i) => i !== idx));
+  };
+
+  const updateAgendamento = (idx: number, field: string, value: string) => {
+    setAgendamentos(agendamentos.map((a, i) => i === idx ? { ...a, [field]: value } : a));
+  };
   
   // Replace Screen State
   const [showReplaceModal, setShowReplaceModal] = useState(false);
@@ -174,6 +243,11 @@ export default function AgencyTotemSettings() {
       setIdMonetizacao(data.id_monetizacao || '');
       setHorarioInicio(data.horario_inicio || data.horario_liga || '');
       setHorarioFim(data.horario_fim || data.horario_desliga || '');
+      
+      // Load agendamentos
+      if (data.agendamentos && Array.isArray(data.agendamentos)) {
+        setAgendamentos(data.agendamentos);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -200,7 +274,8 @@ export default function AgencyTotemSettings() {
           tempo_exibicao_padrao: tempoExibicao,
           id_monetizacao: idMonetizacao,
           horario_inicio: horarioInicio,
-          horario_fim: horarioFim
+          horario_fim: horarioFim,
+          agendamentos: agendamentos
         }),
       });
       alert('Configurações salvas com sucesso!');
@@ -611,7 +686,7 @@ export default function AgencyTotemSettings() {
 
         {/* Agendamentos Tab Content */}
         {activeTab === 'agendamentos' && (
-          <div className="space-y-10">
+          <div className="space-y-6">
             <section>
               <fieldset disabled={!isEditing} className="contents">
                 <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
@@ -620,48 +695,161 @@ export default function AgencyTotemSettings() {
                 </h3>
                 
                 <div className="flex flex-col gap-4 max-w-4xl">
-                  <div className="flex flex-col md:flex-row md:items-center gap-4">
-                    <span className="text-xs font-bold text-zinc-500 w-32 md:text-right shrink-0">Agendamento:</span>
-                    
-                    <div className="flex-1 bg-zinc-50 border border-zinc-200 rounded p-3 flex flex-wrap items-center gap-3">
-                      <button className="text-zinc-400 hover:text-red-500" disabled={!isEditing}>
-                        <X className="w-4 h-4" />
-                      </button>
+                  {agendamentos.map((ag, idx) => (
+                    <div key={ag.id} className="flex flex-col md:flex-row md:items-start gap-4">
+                      <span className="text-xs font-bold text-zinc-500 w-32 md:text-right shrink-0 mt-2">
+                        {idx === 0 ? 'Agendamento:' : ''}
+                      </span>
                       
-                      <span className="text-xs text-zinc-500">Lista de reprodução:</span>
-                      <select 
-                        disabled
-                        className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600"
-                      >
-                        <option>TELA PRETA (MODO DESCANSO)</option>
-                      </select>
+                      <div className="flex-1 bg-zinc-50 border border-zinc-200 rounded p-3 space-y-3">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <button 
+                            className="text-zinc-400 hover:text-red-500 shrink-0"
+                            onClick={() => removeAgendamento(idx)}
+                            disabled={!isEditing}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                          
+                          <span className="text-xs text-zinc-500">Tipo:</span>
+                          <select 
+                            value={ag.tipo}
+                            onChange={e => updateAgendamento(idx, 'tipo', e.target.value)}
+                            className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600 flex-1 min-w-[200px]"
+                          >
+                            <option value="">Selecione o Tipo de Agendamento</option>
+                            {SCHEDULE_TYPES.map(t => (
+                              <option key={t.value} value={t.value}>{t.label}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                      <span className="text-xs text-zinc-500">a partir de</span>
-                      <input 
-                        type="time" 
-                        value={horarioInicio}
-                        onChange={e => setHorarioInicio(e.target.value)}
-                        className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600 focus:outline-none focus:border-[#104a9e]"
-                      />
+                        {ag.tipo && (
+                          <div className="flex items-center gap-3 flex-wrap pl-7">
+                            <span className="text-xs text-zinc-500">lista de reprodução</span>
+                            <select 
+                              value={ag.playlist_id}
+                              onChange={e => updateAgendamento(idx, 'playlist_id', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600 flex-1 min-w-[180px]"
+                            >
+                              <option value="">Selecione...</option>
+                              {listas.map(l => (
+                                <option key={l.id} value={l.id}>{l.nome}</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
 
-                      <span className="text-xs text-zinc-500">até</span>
-                      <input 
-                        type="time" 
-                        value={horarioFim}
-                        onChange={e => setHorarioFim(e.target.value)}
-                        className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600 focus:outline-none focus:border-[#104a9e]"
-                      />
+                        {/* Período de Dias e Horas */}
+                        {ag.tipo === 'periodo_dias_horas' && (
+                          <div className="flex items-center gap-3 flex-wrap pl-7">
+                            <span className="text-xs text-zinc-500">a partir de</span>
+                            <input type="date" value={ag.data_inicio} onChange={e => updateAgendamento(idx, 'data_inicio', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                            <input type="time" value={ag.hora_inicio} onChange={e => updateAgendamento(idx, 'hora_inicio', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                            <span className="text-xs text-zinc-500">até</span>
+                            <input type="date" value={ag.data_fim} onChange={e => updateAgendamento(idx, 'data_fim', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                            <input type="time" value={ag.hora_fim} onChange={e => updateAgendamento(idx, 'hora_fim', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                          </div>
+                        )}
+
+                        {/* Período de Horas do Dia */}
+                        {ag.tipo === 'periodo_horas_dia' && (
+                          <div className="flex items-center gap-3 flex-wrap pl-7">
+                            <span className="text-xs text-zinc-500">a partir de</span>
+                            <input type="time" value={ag.hora_inicio} onChange={e => updateAgendamento(idx, 'hora_inicio', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                            <span className="text-xs text-zinc-500">até</span>
+                            <input type="time" value={ag.hora_fim} onChange={e => updateAgendamento(idx, 'hora_fim', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                          </div>
+                        )}
+
+                        {/* Período de Horas do Dia em Dia Específico */}
+                        {ag.tipo === 'periodo_horas_dia_especifico' && (
+                          <div className="flex items-center gap-3 flex-wrap pl-7">
+                            <span className="text-xs text-zinc-500">dia</span>
+                            <input type="date" value={ag.data_inicio} onChange={e => updateAgendamento(idx, 'data_inicio', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                            <span className="text-xs text-zinc-500">a partir de</span>
+                            <input type="time" value={ag.hora_inicio} onChange={e => updateAgendamento(idx, 'hora_inicio', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                            <span className="text-xs text-zinc-500">até</span>
+                            <input type="time" value={ag.hora_fim} onChange={e => updateAgendamento(idx, 'hora_fim', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                          </div>
+                        )}
+
+                        {/* Dia da Semana */}
+                        {ag.tipo === 'dia_semana' && (
+                          <div className="flex items-center gap-3 flex-wrap pl-7">
+                            <span className="text-xs text-zinc-500">dia</span>
+                            <select value={ag.dia_semana} onChange={e => updateAgendamento(idx, 'dia_semana', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600">
+                              <option value="">Selecione...</option>
+                              {DIAS_SEMANA.map(d => (
+                                <option key={d.value} value={d.value}>{d.label}</option>
+                              ))}
+                            </select>
+                            <span className="text-xs text-zinc-500">a partir de</span>
+                            <input type="time" value={ag.hora_inicio} onChange={e => updateAgendamento(idx, 'hora_inicio', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                            <span className="text-xs text-zinc-500">até</span>
+                            <input type="time" value={ag.hora_fim} onChange={e => updateAgendamento(idx, 'hora_fim', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                          </div>
+                        )}
+
+                        {/* Dia do Mês */}
+                        {ag.tipo === 'dia_mes' && (
+                          <div className="flex items-center gap-3 flex-wrap pl-7">
+                            <span className="text-xs text-zinc-500">dia</span>
+                            <input type="number" min="1" max="31" value={ag.dia_mes} onChange={e => updateAgendamento(idx, 'dia_mes', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600 w-16" />
+                            <span className="text-xs text-zinc-500">a partir de</span>
+                            <input type="time" value={ag.hora_inicio} onChange={e => updateAgendamento(idx, 'hora_inicio', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                            <span className="text-xs text-zinc-500">até</span>
+                            <input type="time" value={ag.hora_fim} onChange={e => updateAgendamento(idx, 'hora_fim', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                          </div>
+                        )}
+
+                        {/* Mês */}
+                        {ag.tipo === 'mes' && (
+                          <div className="flex items-center gap-3 flex-wrap pl-7">
+                            <span className="text-xs text-zinc-500">mês</span>
+                            <select value={ag.mes} onChange={e => updateAgendamento(idx, 'mes', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600">
+                              <option value="">Selecione...</option>
+                              {MESES.map(m => (
+                                <option key={m.value} value={m.value}>{m.label}</option>
+                              ))}
+                            </select>
+                            <span className="text-xs text-zinc-500">a partir de</span>
+                            <input type="time" value={ag.hora_inicio} onChange={e => updateAgendamento(idx, 'hora_inicio', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                            <span className="text-xs text-zinc-500">até</span>
+                            <input type="time" value={ag.hora_fim} onChange={e => updateAgendamento(idx, 'hora_fim', e.target.value)}
+                              className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600" />
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  ))}
 
-                  <div className="md:pl-36 mt-2">
+                  <div className="md:pl-36 mt-2 flex items-center gap-3">
                     <button 
-                      className="bg-[#d4a017] hover:bg-[#b8860b] text-white text-[10px] font-bold px-4 py-2 rounded flex items-center gap-2 uppercase opacity-80"
-                      disabled
-                      title="Adicionar mais agendamentos estará disponível em breve"
+                      className="bg-[#d4a017] hover:bg-[#b8860b] text-white text-[10px] font-bold px-4 py-2 rounded flex items-center gap-2 uppercase"
+                      onClick={addAgendamento}
+                      disabled={!isEditing}
                     >
                       + ADICIONAR AGENDAMENTO
                     </button>
+                    <span className="text-zinc-400 hover:text-zinc-600 cursor-help" title="Configure agendamentos para trocar a playlist automaticamente em horários específicos">?</span>
                   </div>
                 </div>
               </fieldset>

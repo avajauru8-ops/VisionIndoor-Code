@@ -43,7 +43,8 @@ class Api extends ResourceController
                 'comando_id' => "VARCHAR(100) DEFAULT NULL",
                 'data_hora_tv' => "VARCHAR(100) DEFAULT NULL",
                 'horario_inicio' => "VARCHAR(100) DEFAULT NULL",
-                'horario_fim' => "VARCHAR(100) DEFAULT NULL"
+                'horario_fim' => "VARCHAR(100) DEFAULT NULL",
+                'agendamentos' => "JSON DEFAULT NULL"
             ];
             
             $errors = [];

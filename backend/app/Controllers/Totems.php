@@ -61,6 +61,10 @@ class Totems extends ResourceController
             if (!isset($totem['data_cadastro']) && isset($totem['created_at'])) {
                 $totem['data_cadastro'] = $totem['created_at'];
             }
+            // Decode agendamentos JSON
+            if (isset($totem['agendamentos']) && is_string($totem['agendamentos'])) {
+                $totem['agendamentos'] = json_decode($totem['agendamentos'], true) ?? [];
+            }
             return $this->respond($totem);
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
@@ -126,6 +130,7 @@ class Totems extends ResourceController
             if (property_exists($json, 'horario_inicio')) $data['horario_inicio'] = $json->horario_inicio;
             if (property_exists($json, 'horario_fim')) $data['horario_fim'] = $json->horario_fim;
             if (property_exists($json, 'playlist_id')) $data['playlist_id'] = empty($json->playlist_id) ? null : $json->playlist_id;
+            if (property_exists($json, 'agendamentos')) $data['agendamentos'] = json_encode($json->agendamentos);
             
             if (!empty($data)) {
                 $db->table('totens')->where('id', $id)->update($data);
