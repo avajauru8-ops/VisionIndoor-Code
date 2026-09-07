@@ -214,34 +214,13 @@ class Api extends ResourceController
                             'data_inicio' => null,
                             'data_fim' => null
                         ];
-                    } else if (!empty($item['id'])) { // Is valid campaign
+                    } else if (!empty($item['id'])) {
                         $item['tempo_exibicao'] = $item['tempo_exibicao_lista'];
                         $campanhas[] = $item;
                     }
                 }
             } else {
-                // Modelo Antigo (Fallback)
-                $campanhas = $db->table('campanhas')
-                    ->select('campanhas.*')
-                    ->join('usuarios', 'usuarios.id = campanhas.usuario_id', 'left')
-                    ->groupStart()
-                        ->groupStart()
-                            ->where('campanhas.totem_id', $totem['id'])
-                            ->groupStart()
-                                ->where('campanhas.usuario_id', $user['id'])
-                                ->orWhere('usuarios.nivel', 'admin')
-                            ->groupEnd()
-                        ->groupEnd()
-                        ->orGroupStart()
-                            ->where('campanhas.usuario_id', $user['id'])
-                            ->groupStart()
-                                ->where('campanhas.totem_id', null)
-                                ->orWhere('campanhas.totem_id', 0)
-                            ->groupEnd()
-                        ->groupEnd()
-                    ->groupEnd()
-                    ->where('campanhas.ativo', 1)
-                    ->get()->getResultArray();
+                $campanhas = [];
             }
                 
             $playlist = [];
