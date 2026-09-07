@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   Monitor, Settings, Puzzle, Calendar, Bell, Activity, 
-  Camera, RotateCcw, Trash2, ShieldAlert, X, Save, Pencil, ExternalLink
+  Camera, RotateCcw, Trash2, ShieldAlert, X, Save, Pencil, ExternalLink,
+  BarChart3, Download, ChevronDown, ChevronUp, Clock, Image, Film, Radio
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -41,6 +43,7 @@ interface Totem {
 export default function AgencyTotemSettings() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [totem, setTotem] = useState<Totem | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('configuracoes');
@@ -858,6 +861,52 @@ export default function AgencyTotemSettings() {
           </div>
         )}
 
+        {/* Notificações Tab Content */}
+        {activeTab === 'notificacoes' && (
+          <div className="space-y-6">
+            <section>
+              <h3 className="text-emerald-600 text-sm font-bold flex items-center gap-2 mb-6">
+                <Bell className="w-4 h-4" />
+                Notificações
+              </h3>
+
+              <div className="max-w-4xl space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <span className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">Receber notificação quando ficar Offline:</span>
+                  <select
+                    value={exibirNotificacoes ? 'sim' : 'nao'}
+                    onChange={e => setExibirNotificacoes(e.target.value === 'sim')}
+                    disabled={!isEditing}
+                    className="border border-zinc-300 rounded px-3 py-1.5 text-sm bg-white text-zinc-600 w-32"
+                  >
+                    <option value="sim">Sim</option>
+                    <option value="nao">Não</option>
+                  </select>
+                </div>
+
+                <div className="md:pl-64 text-[11px] text-zinc-500 space-y-2">
+                  <p>
+                    Você será notificado por Email quando a TV ficar Offline. A notificação será enviada para seu email: <span className="font-bold text-zinc-700">{user?.email || 'email@email.com'}</span>
+                  </p>
+                  <p>
+                    Se não receber emails, verifique se os mesmos estão indo para caixa de SPAM ou adicione este email como remetente confiável: <span className="font-bold text-zinc-700">status@on-cloud.live</span>
+                  </p>
+                </div>
+
+                <div className="md:pl-64 bg-amber-50 border border-amber-200 rounded-lg p-3 text-[11px] text-amber-700 flex items-start gap-2">
+                  <span className="text-amber-500 mt-0.5">⚠</span>
+                  <span>Se definido um Horário de Funcionamento, você só receberá notificações se a TV ficar Offline / Sem comunicação dentro do horário de funcionamento.</span>
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {/* Relatório de Exibição Tab Content */}
+        {activeTab === 'relatorio' && (
+          <RelatorioExibicao totemId={id!} user={user} />
+        )}
+
         {/* Status e Informações (Only on Configurações tab) */}
         {activeTab === 'configuracoes' && (
         <section>
@@ -1045,6 +1094,203 @@ export default function AgencyTotemSettings() {
         </div>
       )}
 
+    </div>
+  );
+}
+
+function RelatorioExibicao({ totemId, user }: { totemId: string; user: any }) {
+  const [periodo, setPeriodo] = useState('tempo_real');
+  const [dataInicio, setDataInicio] = useState(() => {
+    const d = new Date(); d.setDate(d.getDate() - 3);
+    return d.toISOString().split('T')[0];
+  });
+  const [dataFim, setDataFim] = useState(() => new Date().toISOString().split('T')[0]);
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
+
+  const PERIODOS = [
+    { value: 'tempo_real', label: 'Em Tempo Real' },
+    { value: 'hoje', label: 'Hoje' },
+    { value: '3d', label: 'Últimos 3 dias' },
+    { value: '7d', label: 'Últimos 7 dias' },
+    { value: '15d', label: 'Últimos 15 dias' },
+    { value: '30d', label: 'Últimos 30 dias' },
+    { value: 'custom', label: 'Período customizado' },
+  ];
+
+  useEffect(() => {
+    if (periodo !== 'custom') {
+      const now = new Date();
+      setDataFim(now.toISOString().split('T')[0]);
+      switch (periodo) {
+        case 'hoje': setDataInicio(now.toISOString().split('T')[0]); break;
+        case '3d': { const d = new Date(); d.setDate(d.getDate() - 3); setDataInicio(d.toISOString().split('T')[0]); break; }
+        case '7d': { const d = new Date(); d.setDate(d.getDate() - 7); setDataInicio(d.toISOString().split('T')[0]); break; }
+        case '15d': { const d = new Date(); d.setDate(d.getDate() - 15); setDataInicio(d.toISOString().split('T')[0]); break; }
+        case '30d': { const d = new Date(); d.setDate(d.getDate() - 30); setDataInicio(d.toISOString().split('T')[0]); break; }
+        default: { const d = new Date(); d.setDate(d.getDate() - 3); setDataInicio(d.toISOString().split('T')[0]); break; }
+      }
+    }
+  }, [periodo]);
+
+  const handleSearch = async () => {
+    setLoading(true);
+    try {
+      const data = await apiFetch(`/api/totems/${totemId}/relatorio?data_inicio=${dataInicio}&data_fim=${dataFim}`);
+      setLogs(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setLogs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleDate = (date: string) => {
+    setExpandedDates(prev => ({ ...prev, [date]: !prev[date] }));
+  };
+
+  const getMediaIcon = (tipo: string) => {
+    if (tipo === 'imagem') return <Image className="w-3 h-3" />;
+    if (tipo === 'video') return <Film className="w-3 h-3" />;
+    if (tipo === 'noticia') return <Radio className="w-3 h-3" />;
+    return <Clock className="w-3 h-3" />;
+  };
+
+  const getMediaColor = (tipo: string) => {
+    switch (tipo) {
+      case 'imagem': return 'bg-sky-500';
+      case 'video': return 'bg-sky-600';
+      case 'noticia': return 'bg-sky-500';
+      case 'clima': return 'bg-orange-500';
+      case 'loteria': return 'bg-green-600';
+      case 'hora': return 'bg-slate-700';
+      case 'frases': return 'bg-emerald-600';
+      case 'versiculos': return 'bg-amber-600';
+      default: return 'bg-sky-500';
+    }
+  };
+
+  const groupedLogs: Record<string, any[]> = {};
+  logs.forEach(log => {
+    const date = log.data_exibicao || log.created_at?.split(' ')[0] || 'Sem data';
+    if (!groupedLogs[date]) groupedLogs[date] = [];
+    groupedLogs[date].push(log);
+  });
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr + 'T12:00:00');
+      return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', weekday: 'long' });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <section>
+        <h3 className="text-[#104a9e] text-sm font-bold flex items-center gap-2 mb-6">
+          <BarChart3 className="w-4 h-4" />
+          Relatório de Exibição
+        </h3>
+
+        <div className="max-w-5xl space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={periodo}
+              onChange={e => setPeriodo(e.target.value)}
+              className="border border-zinc-300 rounded px-3 py-2 text-sm bg-white text-zinc-600 min-w-[200px]"
+            >
+              {PERIODOS.map(p => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+
+            <div className="flex items-center gap-2 bg-zinc-100 rounded px-3 py-2">
+              <span className="text-xs text-zinc-500">a partir de</span>
+              <input
+                type="date"
+                value={dataInicio}
+                onChange={e => setDataInicio(e.target.value)}
+                disabled={periodo !== 'custom'}
+                className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600 disabled:bg-zinc-200"
+              />
+              <span className="text-xs text-zinc-500">até</span>
+              <input
+                type="date"
+                value={dataFim}
+                onChange={e => setDataFim(e.target.value)}
+                disabled={periodo !== 'custom'}
+                className="border border-zinc-300 rounded px-2 py-1 text-sm bg-white text-zinc-600 disabled:bg-zinc-200"
+              />
+            </div>
+
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="bg-[#104a9e] hover:bg-[#0d3a7e] text-white text-[11px] font-bold px-5 py-2 rounded flex items-center gap-2 transition-colors"
+            >
+              {loading ? '...' : <><BarChart3 className="w-3.5 h-3.5" /> PESQUISAR</>}
+            </button>
+          </div>
+
+          {/* Results */}
+          <div className="space-y-4 mt-6">
+            {Object.keys(groupedLogs).length === 0 && !loading && (
+              <div className="text-center py-12 text-zinc-400">
+                <p className="text-3xl mb-2">😊</p>
+                <p className="text-sm">Nada para exibir por enquanto.</p>
+              </div>
+            )}
+
+            {Object.entries(groupedLogs).sort(([a], [b]) => b.localeCompare(a)).map(([date, items]) => (
+              <div key={date} className="border border-zinc-200 rounded-xl overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
+                    <span className="text-xs font-bold text-zinc-600">{formatDate(date)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button className="text-zinc-400 hover:text-zinc-600 p-1" title="Baixar relatório">
+                      <Download className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => toggleDate(date)}
+                      className="text-zinc-400 hover:text-zinc-600 p-1"
+                    >
+                      {expandedDates[date] === false ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {expandedDates[date] !== false && (
+                  <div className="p-3 space-y-1.5">
+                    {items.map((item, idx) => {
+                      const nome = item.playlist_nome || item.lista_nome || '';
+                      return (
+                        <React.Fragment key={idx}>
+                          {idx === 0 && nome && (
+                            <div className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold text-zinc-500 uppercase">
+                              <span className="w-1.5 h-1.5 bg-zinc-300 rounded-full"></span>
+                              {nome}
+                            </div>
+                          )}
+                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-white text-[11px] ${getMediaColor(item.tipo_midia || item.tipo || '')}`}>
+                            <span className="font-mono font-bold w-10 shrink-0">{item.hora_exibicao || item.hora || ''}</span>
+                            {getMediaIcon(item.tipo_midia || item.tipo || '')}
+                            <span className="truncate">{item.titulo || item.nome_arquivo || item.descricao || item.campanha_nome || '—'}</span>
+                          </div>
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -142,6 +142,55 @@ class Totems extends ResourceController
         }
     }
 
+    public function relatorio($id = null)
+    {
+        try {
+            $db = \Config\Database::connect();
+            $dataInicio = $this->request->getGet('data_inicio');
+            $dataFim = $this->request->getGet('data_fim');
+
+            if (!$dataInicio || !$dataFim) {
+                return $this->respond([]);
+            }
+
+            // Check if relatorio table exists
+            $tables = $db->listTables();
+            $hasLog = false;
+            foreach ($tables as $t) {
+                if ($t === 'relatorio_exibicao') { $hasLog = true; break; }
+            }
+
+            if (!$hasLog) {
+                // Create table if not exists
+                $db->query("CREATE TABLE IF NOT EXISTS relatorio_exibicao (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    totem_id INT NOT NULL,
+                    campanha_id INT DEFAULT NULL,
+                    playlist_id INT DEFAULT NULL,
+                    playlist_nome VARCHAR(255) DEFAULT NULL,
+                    titulo VARCHAR(500) DEFAULT NULL,
+                    tipo_midia VARCHAR(50) DEFAULT NULL,
+                    hora_exibicao TIME DEFAULT NULL,
+                    data_exibicao DATE DEFAULT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )");
+            }
+
+            $logs = $db->table('relatorio_exibicao')
+                ->where('totem_id', $id)
+                ->where('data_exibicao >=', $dataInicio)
+                ->where('data_exibicao <=', $dataFim)
+                ->orderBy('data_exibicao DESC, hora_exibicao DESC')
+                ->limit(500)
+                ->get()
+                ->getResultArray();
+
+            return $this->respond($logs);
+        } catch (\Exception $e) {
+            return $this->respond([]);
+        }
+    }
+
     public function delete($id = null)
     {
         try {
