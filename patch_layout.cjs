@@ -1,0 +1,346 @@
+const fs = require('fs');
+
+const file = 'd:\\visioindoor---php (2)\\src\\components\\layout\\Layout.tsx';
+let content = fs.readFileSync(file, 'utf8');
+
+// The best way is to replace the `isAgency` checks with the admin values.
+// We can just redefine `isAgency` but hardcode the styling to be admin-like, OR carefully replace them.
+// Let's replace the whole Layout function with the merged version.
+
+// Wait, I can just replace the Layout component body.
+// I'll extract it and rewrite it.
+
+const newLayout = `export default function Layout() {
+  const { user, logout, isAuthenticated } = useAuth();
+  const location = useLocation();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
+  const [sysSettings, setSysSettings] = useState<any>({
+    nome_painel: 'GrandMídia',
+    logo_url: '',
+    show_apk_banner: true,
+    apk_banner_title: 'Player Android',
+    apk_banner_desc: 'Baixe o APK para rodar suas playlists em Telas ou Totens.',
+    apk_banner_btn_text: 'Instalar Player',
+    apk_file_url: ''
+  });
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const data = await apiFetch('/api/admin/settings');
+        if (data) setSysSettings(data);
+      } catch (err) {
+        console.error('Erro ao carregar configurações no layout:', err);
+      }
+    };
+    if (isAuthenticated) {
+      loadSettings();
+    }
+  }, [isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  const isAgency = user?.nivel !== 'admin';
+
+  type SubmenuItem = { name: string; path: string };
+  type MenuItem = { name: string; path: string; icon: React.ElementType; category: string; submenus?: SubmenuItem[] };
+
+  const adminLinks: MenuItem[] = [
+    { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, category: 'MENU' },
+    { name: 'Usuários & Licenças', path: '/admin/users', icon: Users, category: 'MENU' },
+    { name: 'Totens Cadastrados', path: '/admin/totems', icon: Tv, category: 'MENU' },
+    { name: 'Player Android', path: '/admin/integration', icon: Smartphone, category: 'MENU' },
+    { name: 'Gestão de Widgets', path: '/admin/widgets', icon: LayoutTemplate, category: 'MENU' },
+    { name: 'Configurações', path: '/admin/settings', icon: Settings, category: 'GERAL' },
+  ];
+
+  const agencyLinks: MenuItem[] = [
+    { name: 'Telas', path: '/agency/totems', icon: Tv, category: 'MENU' },
+    { name: 'Arquivos', path: '/agency/arquivos', icon: ImageIcon, category: 'MENU' },
+    { name: 'Lista de Reprodução', path: '/agency/listas', icon: List, category: 'MENU' },
+  ];
+
+  const rawLinks = isAgency ? agencyLinks : adminLinks;
+
+  // Group links by category
+  const menuLinks = rawLinks.filter(link => link.category === 'MENU');
+  const generalLinks = rawLinks.filter(link => link.category === 'GERAL');
+
+  const toggleMenu = (menuName: string) => {
+    setExpandedMenus(prev => ({ ...prev, [menuName]: !prev[menuName] }));
+  };
+
+  // Sidebar content component to dry up code
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-white text-zinc-800">
+      <div className="flex flex-col flex-1 min-h-0">
+        {/* Brand Logo */}
+        <div className="p-6 flex items-center justify-between relative border-b border-[#e8edf2]">
+          <div className="flex items-center gap-2">
+            {sysSettings.logo_url ? (
+              <img src={sysSettings.logo_url} alt="Logo" className="h-16 max-w-[180px] object-contain shrink-0" />
+            ) : (
+              <>
+                <div className="w-8 h-8 rounded-full bg-emerald-50 border-2 border-emerald-600 flex items-center justify-center shadow-sm">
+                  <div className="w-4 h-4 rounded-full border border-emerald-600 flex items-center justify-center font-bold text-[8px] text-[#0b462c]">
+                    V
+                  </div>
+                </div>
+                <div>
+                  <h1 className="text-base font-extrabold tracking-tight text-[#0b462c] uppercase truncate max-w-[120px]">
+                    {sysSettings.nome_painel || 'GRANDMÍDIA'}
+                  </h1>
+                  <p className="text-[9px] text-[#8b9aa5] uppercase tracking-widest font-bold">
+                    {isAgency ? 'Agência' : 'Administrador'}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+          <button 
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="lg:hidden absolute right-6 top-1/2 -translate-y-1/2 p-1 transition-colors text-zinc-400 hover:text-zinc-700"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Navigation Links */}
+        <div className="flex-1 py-6 space-y-6 overflow-y-auto">
+          {/* Category: MENU */}
+          <div>
+            <p className="px-7 text-[10px] font-bold text-[#8b9aa5] uppercase tracking-widest mb-3">Menu</p>
+            <nav className="space-y-1">
+              {menuLinks.map((link) => {
+                const Icon = link.icon;
+                const hasSubmenu = !!link.submenus;
+                const isExpanded = expandedMenus[link.name] || (hasSubmenu && location.pathname.startsWith(link.path));
+                const isActive = !hasSubmenu && (location.pathname === link.path || (link.path !== '/agency' && link.path !== '/admin' && location.pathname.startsWith(link.path + '/')));
+                
+                return (
+                  <div key={link.path} className="px-4">
+                    {hasSubmenu ? (
+                      <button
+                        onClick={() => toggleMenu(link.name)}
+                        className={cn(
+                          "w-full flex items-center justify-between py-2.5 transition-all cursor-pointer group relative px-3 rounded-xl",
+                          isExpanded ? "bg-[#e8f5ed] text-[#0b462c] font-semibold" : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className={cn("w-5 h-5", isExpanded ? "text-emerald-600" : "text-zinc-400 group-hover:text-zinc-600")} />
+                          <span className="text-sm">{link.name}</span>
+                        </div>
+                        {isExpanded ? <ChevronDown className="w-4 h-4 opacity-50" /> : <ChevronRight className="w-4 h-4 opacity-50" />}
+                      </button>
+                    ) : (
+                      <Link
+                        to={link.path}
+                        onClick={() => setIsMobileSidebarOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 py-2.5 transition-all cursor-pointer group relative px-3 rounded-xl",
+                          isActive ? "bg-[#e8f5ed] text-[#0b462c] font-semibold" : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800"
+                        )}
+                      >
+                        {isActive && (
+                          <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-emerald-600 rounded-r" />
+                        )}
+                        <Icon className={cn("w-5 h-5", isActive ? "text-emerald-600" : "text-zinc-400 group-hover:text-zinc-600")} />
+                        <span className="text-sm">{link.name}</span>
+                      </Link>
+                    )}
+                    
+                    {hasSubmenu && isExpanded && (
+                      <div className="mt-1 space-y-1 border-l-2 ml-6 pl-3 border-[#e8edf2]">
+                        {link.submenus!.map(sub => {
+                          const isSubActive = location.pathname === sub.path;
+                          return (
+                            <Link
+                              key={sub.path}
+                              to={sub.path}
+                              onClick={() => setIsMobileSidebarOpen(false)}
+                              className={cn(
+                                "block px-3 py-2 rounded-lg text-xs font-medium transition-colors",
+                                isSubActive ? "bg-emerald-50 text-emerald-700 font-bold" : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50"
+                              )}
+                            >
+                              {sub.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </nav>
+          </div>
+
+          {/* Category: GERAL */}
+          {generalLinks.length > 0 && (
+            <div className="px-4">
+              <p className="px-7 text-[10px] font-bold text-[#8b9aa5] uppercase tracking-widest mb-3">Geral</p>
+              <nav className="space-y-1">
+                {generalLinks.map((link) => {
+                  const Icon = link.icon;
+                  const isActive = location.pathname === link.path || location.pathname.startsWith(link.path + '/');
+                  return (
+                    <Link
+                      key={link.path}
+                      to={link.path}
+                      onClick={() => setIsMobileSidebarOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer group relative",
+                        isActive 
+                          ? "bg-[#e8f5ed] text-[#0b462c] font-semibold" 
+                          : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800"
+                      )}
+                    >
+                      {isActive && (
+                        <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-emerald-600 rounded-r" />
+                      )}
+                      <Icon className={cn("w-5 h-5", isActive ? "text-emerald-600" : "text-zinc-400 group-hover:text-zinc-600")} />
+                      <span className="text-sm">{link.name}</span>
+                    </Link>
+                  )
+                })}
+              </nav>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Sidebar Banner (Admin & Agency) */}
+      {sysSettings.show_apk_banner && (
+        <div className="px-4 py-2 shrink-0 border-t border-[#e8edf2] bg-zinc-50/50">
+          <div className="my-4 p-4 rounded-2xl bg-gradient-to-br from-[#0b462c] to-[#082a1b] text-white text-xs relative overflow-hidden shadow-sm">
+            <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-emerald-500/20 blur-lg"></div>
+            <div className="relative z-10 space-y-2">
+              <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">
+                📲
+              </div>
+              <p className="font-bold text-white text-xs leading-tight">{sysSettings.apk_banner_title || 'Player Android'}</p>
+              <p className="text-[10px] text-emerald-200/80 leading-normal">
+                {sysSettings.apk_banner_desc || 'Baixe o APK para rodar suas playlists em Telas ou Totens.'}
+              </p>
+              {sysSettings.apk_file_url ? (
+                <a 
+                  href={sysSettings.apk_file_url} 
+                  download="totemplayer.apk"
+                  className="block text-center bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-[10px] uppercase py-2 rounded-xl transition-all shadow-sm"
+                >
+                  {sysSettings.apk_banner_btn_text || 'Instalar Player'}
+                </a>
+              ) : (
+                <Link 
+                  to="/admin/integration"
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className="block text-center bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-[10px] uppercase py-2 rounded-xl transition-all shadow-sm"
+                >
+                  {sysSettings.apk_banner_btn_text || 'Instalar Player'}
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="flex h-screen bg-[#f4f6f8] text-zinc-800 font-sans overflow-hidden">
+      {/* Desktop Sidebar (visible only on lg screens and larger) */}
+      <aside className="hidden lg:flex w-66 flex-col justify-between shrink-0 shadow-lg relative z-20 border-r border-[#e8edf2]">
+        <SidebarContent />
+      </aside>
+
+      {/* Mobile/Tablet Sidebar Drawer (visible on mobile, animated slide) */}
+      {isMobileSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/40 z-50 lg:hidden backdrop-blur-xs transition-opacity"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+      <aside className={cn(
+        "fixed inset-y-0 left-0 w-66 z-50 flex flex-col justify-between shadow-xl transition-transform duration-300 lg:hidden",
+        isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <SidebarContent />
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Header (Full header for both Admin and Agency) */}
+        <header className="h-20 bg-white border-b border-[#e8edf2] flex items-center justify-between px-4 sm:px-8 shrink-0">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-xl hover:bg-zinc-50 border border-zinc-200 text-zinc-600 transition-colors"
+              title="Abrir Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <div className="relative w-40 sm:w-60 md:w-80">
+              <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <Search className="w-4 h-4 text-zinc-400" />
+              </span>
+              <input 
+                type="text" 
+                placeholder="Buscar..." 
+                className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-full pl-9 pr-10 py-2 text-xs text-[#0b462c] placeholder-zinc-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-sans" 
+              />
+              <span className="hidden sm:inline absolute right-3 top-1/2 -translate-y-1/2 bg-white border border-zinc-200 rounded px-1.5 py-0.5 text-[9px] font-mono text-zinc-400 shadow-sm pointer-none">
+                ⌘ F
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-6">
+            <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-50 border border-[#e8edf2] flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all relative">
+              <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full"></span>
+            </button>
+            <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-50 border border-[#e8edf2] flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all relative">
+              <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full"></span>
+            </button>
+
+            <div className="h-6 w-px bg-zinc-200" />
+
+            <div className="flex items-center gap-1.5 sm:gap-3">
+              <div className="text-right hidden md:block">
+                <p className="text-xs font-bold text-zinc-800 leading-none">Olá, {user?.nome}</p>
+                <p className="text-[10px] text-zinc-400 mt-1 leading-none truncate max-w-[120px]">{user?.email}</p>
+              </div>
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-emerald-500 to-[#0b462c] flex items-center justify-center text-xs font-extrabold text-white shadow-sm border border-emerald-100 relative shrink-0">
+                {user?.nome.substring(0, 2).toUpperCase()}
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+              </div>
+              <button
+                onClick={logout}
+                className="p-1 sm:p-1.5 text-zinc-400 hover:text-rose-500 transition-all rounded-lg hover:bg-rose-50 shrink-0"
+                title="Sair"
+              >
+                <LogOut className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Content Body Container */}
+        <div className="flex-1 overflow-y-auto relative p-4 sm:p-8">
+          <Outlet />
+        </div>
+      </main>
+    </div>
+  );
+}`;
+
+content = content.replace(/export default function Layout\(\) \{[\s\S]*\}\s*$/, newLayout);
+
+fs.writeFileSync(file, content, 'utf8');
+console.log('Layout patched!');
