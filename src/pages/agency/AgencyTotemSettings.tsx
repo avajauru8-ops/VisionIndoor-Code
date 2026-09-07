@@ -916,7 +916,7 @@ export default function AgencyTotemSettings() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16">
             
-            {/* Col 1 */}
+            {/* Col 1 - Status */}
             <div>
               <h4 className="text-xs font-bold text-[#104a9e] uppercase mb-4 border-b border-zinc-100 pb-2">Status</h4>
               <div className="space-y-3 text-[11px] font-bold text-zinc-500 border-l-2 border-[#104a9e] pl-4">
@@ -927,21 +927,58 @@ export default function AgencyTotemSettings() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Online a:</span>
+                  <span>{totem.status === 'FUNCIONANDO CORRETAMENTE' ? 'Online a:' : 'Offline a:'}</span>
                   <span className="text-[#104a9e]">
-                    {totem.ultima_sincronizacao ? format(new Date(totem.ultima_sincronizacao.replace(' ','T')), 'HH:mm') : '54 minutos'}
+                    {totem.ultima_sincronizacao ? (() => {
+                      const last = new Date(totem.ultima_sincronizacao.replace(' ', 'T') + 'Z');
+                      const now = new Date();
+                      const diffMs = now.getTime() - last.getTime();
+                      const diffMin = Math.floor(diffMs / 60000);
+                      if (diffMin < 1) return 'agora';
+                      if (diffMin < 60) return `${diffMin} minuto${diffMin > 1 ? 's' : ''}`;
+                      const diffH = Math.floor(diffMin / 60);
+                      if (diffH < 24) return `${diffH} hora${diffH > 1 ? 's' : ''}`;
+                      const diffD = Math.floor(diffH / 24);
+                      return `${diffD} dia${diffD > 1 ? 's' : ''}`;
+                    })() : 'Nunca'}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Última Atualização:</span>
                   <span className="text-[#104a9e]">
-                    {totem.ultima_sincronizacao ? format(new Date(totem.ultima_sincronizacao.replace(' ','T')), 'dd/MM/yyyy HH:mm:ss') : '08/08/2026 00:56:53'}
+                    {totem.ultima_sincronizacao ? format(new Date(totem.ultima_sincronizacao.replace(' ','T')), 'dd/MM/yyyy HH:mm:ss') : 'N/A'}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Última informação:</span>
+                <div className="flex justify-between items-start">
+                  <span>Última Informação:</span>
                 </div>
                 <div className="text-zinc-800">{getCalculatedStatusInfo().info}</div>
+              </div>
+
+              {/* Exibindo / Lista de Reprodução */}
+              <div className="mt-6 space-y-3 text-[11px] font-bold text-zinc-500 border-l-2 border-[#104a9e] pl-4">
+                {totem.ultima_informacao && totem.ultima_informacao.includes('Reproduzindo') && (
+                  <div>
+                    <span className="text-zinc-500">Exibindo {totem.ultima_informacao.replace('Reproduzindo ', '')}:</span>
+                    <div className="flex items-center gap-1.5 mt-1 text-zinc-700">
+                      <Image className="w-3.5 h-3.5 text-zinc-400" />
+                      <span className="font-mono text-[10px]">{totem.ultima_informacao}</span>
+                    </div>
+                  </div>
+                )}
+                {totem.playlist_id && (() => {
+                  const lista = listas.find(l => l.id === totem.playlist_id);
+                  return lista ? (
+                    <div>
+                      <span className="text-zinc-500">Lista de Reprodução:</span>
+                      <div className="flex items-center gap-1.5 mt-1 text-zinc-700">
+                        <span className="text-[10px]">☰</span>
+                        <span>{lista.nome}</span>
+                        <ExternalLink className="w-3 h-3 text-zinc-400 cursor-pointer hover:text-[#104a9e]" />
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
               </div>
             </div>
 
