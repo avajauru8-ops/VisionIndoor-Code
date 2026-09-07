@@ -73,7 +73,7 @@ class Api extends ResourceController
             }
 
             // Fix existing totem names to include device_id (runs regardless of column errors)
-            $db->query("UPDATE totens SET nome = CONCAT(device_id, ' - TV - ', DATE_FORMAT(data_cadastro, '%d/%m/%Y')) WHERE nome LIKE 'TV - %'");
+            $db->query("UPDATE totens SET nome = CONCAT(device_id, ' - ', nome) WHERE nome LIKE 'TV - %' AND nome NOT LIKE '% - TV - %'");
 
             if (count($errors) > 0) {
                 return $this->respond(['success' => false, 'errors' => $errors, 'msg' => 'Migração parcial (colunas já existentes)']);
