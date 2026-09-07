@@ -3,11 +3,31 @@ import { apiFetch } from '../../lib/api';
 import { Tv, MonitorPlay, ChevronRight, Activity, ListVideo, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+function getStatusStyle(status: string) {
+  switch (status) {
+    case 'FUNCIONANDO CORRETAMENTE':
+    case 'online':
+      return { dot: 'bg-emerald-500 animate-pulse', badge: 'bg-[#e8f5ed] text-emerald-600 border-emerald-100', label: 'Online' };
+    case 'EM VERIFICACAO':
+    case 'EM VERIFICAÇÃO':
+      return { dot: 'bg-yellow-400', badge: 'bg-yellow-50 text-yellow-600 border-yellow-100', label: 'Em Verificação' };
+    case 'SEM COMUNICACAO':
+    case 'SEM COMUNICAÇÃO':
+    case 'offline':
+      return { dot: 'bg-rose-500', badge: 'bg-rose-50 text-rose-600 border-rose-100', label: 'Offline' };
+    case 'SEM COMUNICACAO FORA DO HORARIO DE FUNCIONAMENTO':
+    case 'SEM COMUNICAÇÃO FORA DO HORÁRIO DE FUNCIONAMENTO':
+      return { dot: 'bg-zinc-400', badge: 'bg-zinc-100 text-zinc-500 border-zinc-200', label: 'Fora do Horário' };
+    default:
+      return { dot: 'bg-zinc-300', badge: 'bg-zinc-100 text-zinc-500 border-zinc-200', label: status || 'Desconhecido' };
+  }
+}
+
 interface Totem {
   id: string;
   nome: string;
   device_id: string;
-  status: 'online' | 'offline';
+  status: string;
   ultima_sincronizacao: string | null;
 }
 
@@ -113,26 +133,21 @@ export default function AgencyPlaylistScreens() {
                     <MonitorPlay className="w-6 h-6" />
                   </div>
                   <div className="flex flex-col items-end gap-1.5">
-                    {(totem.status === 'online' || totem.status === 'FUNCIONANDO CORRETAMENTE') ? (
-                      <span className="flex items-center gap-1.5 bg-[#e8f5ed] text-emerald-600 px-3 py-1 rounded-full border border-emerald-100 text-[9px] uppercase font-bold tracking-wider shadow-sm">
-                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                        Online
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1.5 bg-rose-50 text-rose-600 px-3 py-1 rounded-full border border-rose-100 text-[9px] uppercase font-bold tracking-wider shadow-sm">
-                        <span className="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
-                        Offline
-                      </span>
-                    )}
-                    {/* Time Badge always visible */}
-                    <span className={`flex items-center gap-1 text-[9px] font-semibold px-2 py-0.5 rounded-full border ${
-                      (totem.status === 'online' || totem.status === 'FUNCIONANDO CORRETAMENTE') 
-                        ? 'text-emerald-600 bg-emerald-50 border-emerald-100'
-                        : 'text-rose-600 bg-rose-50 border-rose-100'
-                    }`}>
-                      <Clock className="w-2.5 h-2.5 shrink-0" />
-                      {formatUptime(totem.ultima_sincronizacao)}
-                    </span>
+                    {(() => {
+                      const st = getStatusStyle(totem.status);
+                      return (
+                        <>
+                          <span className={`flex items-center gap-1.5 ${st.badge} px-3 py-1 rounded-full border text-[9px] uppercase font-bold tracking-wider shadow-sm`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`}></span>
+                            {st.label}
+                          </span>
+                          <span className={`flex items-center gap-1 text-[9px] font-semibold px-2 py-0.5 rounded-full border ${st.badge}`}>
+                            <Clock className="w-2.5 h-2.5 shrink-0" />
+                            {formatUptime(totem.ultima_sincronizacao)}
+                          </span>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
 

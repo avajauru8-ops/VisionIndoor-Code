@@ -7,7 +7,7 @@ interface Totem {
   id: number;
   nome: string;
   device_id: string;
-  status: 'online' | 'offline';
+  status: string;
   ultima_sincronizacao: string | null;
   auto_iniciar?: number | boolean;
   horario_liga?: string;

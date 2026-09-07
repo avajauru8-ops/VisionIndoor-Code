@@ -4,11 +4,31 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, MonitorPlay, Film, Cloud, Hash, LayoutGrid, Trash2, Edit2, Activity, Plus, Play, Pause } from 'lucide-react';
 import { format } from 'date-fns';
 
+function getStatusStyle(status: string) {
+  switch (status) {
+    case 'FUNCIONANDO CORRETAMENTE':
+    case 'online':
+      return { dot: 'bg-emerald-500 animate-pulse', badge: 'bg-[#e8f5ed] text-emerald-600 border-emerald-100', label: 'Online' };
+    case 'EM VERIFICACAO':
+    case 'EM VERIFICAÇÃO':
+      return { dot: 'bg-yellow-400', badge: 'bg-yellow-50 text-yellow-600 border-yellow-100', label: 'Em Verificação' };
+    case 'SEM COMUNICACAO':
+    case 'SEM COMUNICAÇÃO':
+    case 'offline':
+      return { dot: 'bg-rose-500', badge: 'bg-rose-50 text-rose-600 border-rose-100', label: 'Offline' };
+    case 'SEM COMUNICACAO FORA DO HORARIO DE FUNCIONAMENTO':
+    case 'SEM COMUNICAÇÃO FORA DO HORÁRIO DE FUNCIONAMENTO':
+      return { dot: 'bg-zinc-400', badge: 'bg-zinc-100 text-zinc-500 border-zinc-200', label: 'Fora do Horário' };
+    default:
+      return { dot: 'bg-zinc-300', badge: 'bg-zinc-100 text-zinc-500 border-zinc-200', label: status || 'Desconhecido' };
+  }
+}
+
 interface Totem {
   id: string;
   nome: string;
   device_id: string;
-  status: 'online' | 'offline';
+  status: string;
   ultima_sincronizacao: string | null;
 }
 
@@ -157,15 +177,14 @@ export default function AgencyPlaylistView() {
                 <span className="text-xs text-[#8b9aa5] font-medium flex items-center gap-1">
                   <Activity className="w-3.5 h-3.5" /> ID: {totem.device_id}
                 </span>
-                {(totem.status === 'online' || totem.status === 'FUNCIONANDO CORRETAMENTE') ? (
-                  <span className="flex items-center gap-1 bg-[#e8f5ed] text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-100 text-[9px] uppercase font-bold tracking-wider">
-                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>Online
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full border border-rose-100 text-[9px] uppercase font-bold tracking-wider">
-                    <span className="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>Offline
-                  </span>
-                )}
+                {(() => {
+                  const st = getStatusStyle(totem.status);
+                  return (
+                    <span className={`flex items-center gap-1 ${st.badge} px-2 py-0.5 rounded-full border text-[9px] uppercase font-bold tracking-wider`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`}></span>{st.label}
+                    </span>
+                  );
+                })()}
               </>
             )}
           </div>
