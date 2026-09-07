@@ -90,6 +90,7 @@ $routes->get('api.php', 'Api::getPlaylist', ['filter' => 'cors']);
 $routes->get('api/migrate-now', 'Api::migrateNow', ['filter' => 'cors']);
 $routes->options('api/migrate-now', 'Api::options', ['filter' => 'cors']);
 $routes->get('api/check-columns', 'Api::checkColumns', ['filter' => 'cors']);
+$routes->get('api/debug-devices', 'Api::debugDevices', ['filter' => 'cors']);
 $routes->post('api.php', 'Api::getPlaylist', ['filter' => 'cors']);
 $routes->post('api/get_playlist.php', 'Api::getPlaylist', ['filter' => 'cors']);
 

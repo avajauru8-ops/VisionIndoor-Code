@@ -520,6 +520,17 @@ class Api extends ResourceController
         }
     }
 
+    public function debugDevices()
+    {
+        try {
+            $db = \Config\Database::connect();
+            $devices = $db->table('totens')->select('id, device_id, nome')->get()->getResultArray();
+            return $this->respond(['devices' => $devices]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['error' => $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
     public function ogImage()
     {
         $url = $this->request->getGet('url');
