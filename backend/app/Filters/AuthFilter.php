@@ -47,11 +47,11 @@ class AuthFilter implements FilterInterface
             return \Config\Services::response()
                 ->setJSON(['error' => 'Token inválido. Assinatura incorreta.'])
                 ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED);
-        } catch (\Firebase\JWT\InvalidTokenException $e) {
+        } catch (\Firebase\JWT\BeforeValidException $e) {
             return \Config\Services::response()
                 ->setJSON(['error' => 'Token inválido. Formato incorreto.'])
                 ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return \Config\Services::response()
                 ->setJSON(['error' => 'Token inválido. Faça login novamente.'])
                 ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED);
