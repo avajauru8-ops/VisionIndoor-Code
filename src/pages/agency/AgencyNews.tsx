@@ -74,19 +74,46 @@ export default function AgencyNews() {
 
   useEffect(() => {
     loadData();
+
+    const cacheKeyEstados = 'ibge_estados';
+    const cachedEstados = localStorage.getItem(cacheKeyEstados);
+    if (cachedEstados) {
+      try { setEstados(JSON.parse(cachedEstados)); } catch (_) {}
+    }
+
     fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
       .then(res => res.json())
-      .then(data => setEstados(data))
-      .catch(console.error);
+      .then(data => {
+        setEstados(data);
+        localStorage.setItem(cacheKeyEstados, JSON.stringify(data));
+      })
+      .catch(() => {
+        if (!cachedEstados) {
+          console.error('Sem conexão para carregar estados e sem cache local.');
+        }
+      });
   }, []);
 
   useEffect(() => {
     if (estado) {
-      setCidade(''); // reset city when state changes
+      setCidade('');
+      const cacheKeyCidades = `ibge_cidades_${estado}`;
+      const cachedCidades = localStorage.getItem(cacheKeyCidades);
+      if (cachedCidades) {
+        try { setCidades(JSON.parse(cachedCidades)); } catch (_) {}
+      }
+
       fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estado}/municipios?orderBy=nome`)
         .then(res => res.json())
-        .then(data => setCidades(data))
-        .catch(console.error);
+        .then(data => {
+          setCidades(data);
+          localStorage.setItem(cacheKeyCidades, JSON.stringify(data));
+        })
+        .catch(() => {
+          if (!cachedCidades) {
+            console.error(`Sem conexão para carregar cidades de ${estado} e sem cache local.`);
+          }
+        });
     }
   }, [estado]);
 

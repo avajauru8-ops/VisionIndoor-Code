@@ -156,8 +156,6 @@ export default function AgencyMedia() {
       ));
     });
 
-    xhr.open('POST', 'http://localhost:8080/api/playlists'); // Em dev. Em prod ele ajusta pelo baseURL configurado no axios, mas para xhr:
-    // Melhor usar a URL correta baseada no ambiente:
     const baseUrl = (import.meta as any).env.VITE_API_URL || '';
     xhr.open('POST', `${baseUrl}/api/playlists`);
     

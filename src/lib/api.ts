@@ -52,10 +52,18 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   }
   headers['Accept'] = 'application/json';
 
-  let response = await fetch(endpoint, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      ...options,
+      headers,
+    });
+  } catch (err: any) {
+    if (err.name === 'TypeError' && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError') || err.message.includes('Network request failed'))) {
+      throw new Error('Sem conexão com a internet. Verifique sua rede e tente novamente.');
+    }
+    throw err;
+  }
 
   if (response.status === 401) {
     const error = await response.clone().json().catch(() => ({}));
@@ -82,7 +90,14 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
       });
 
       headers['Authorization'] = `Bearer ${newToken}`;
-      response = await fetch(endpoint, { ...options, headers });
+      try {
+        response = await fetch(endpoint, { ...options, headers });
+      } catch (err: any) {
+        if (err.name === 'TypeError' && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError') || err.message.includes('Network request failed'))) {
+          throw new Error('Sem conexão com a internet. Verifique sua rede e tente novamente.');
+        }
+        throw err;
+      }
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
