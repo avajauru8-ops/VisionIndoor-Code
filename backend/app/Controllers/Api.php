@@ -106,6 +106,7 @@ class Api extends ResourceController
 
     public function getPlaylist()
     {
+        date_default_timezone_set('America/Sao_Paulo');
         try {
             $db = \Config\Database::connect();
             
