@@ -40,7 +40,7 @@ export default function AgencyTotems() {
 
   useEffect(() => {
     loadTotems();
-    const interval = setInterval(loadTotems, 30000);
+    const interval = setInterval(loadTotems, 5000);
     return () => clearInterval(interval);
   }, []);
 
