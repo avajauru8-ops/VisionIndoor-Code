@@ -32,6 +32,8 @@ export default function AgencyMedia() {
 
   // Selection State
   const [selectedMedia, setSelectedMedia] = useState<string[]>([]);
+  const [showPreview, setShowPreview] = useState(true);
+  const [previewItem, setPreviewItem] = useState<Media | null>(null);
 
   // Drag and Drop
   const [isDragging, setIsDragging] = useState(false);
@@ -378,24 +380,33 @@ export default function AgencyMedia() {
                     />
                   </th>
                   <th className="px-4 py-3 font-semibold">Nome</th>
-                  <th className="px-4 py-3 font-semibold w-48 text-center border-l border-zinc-200">
-                    <div className="flex items-center justify-center gap-2">
-                      <input type="checkbox" checked readOnly className="rounded border-zinc-300 text-[#104a9e] focus:ring-[#104a9e]" />
-                      Preview
-                    </div>
-                  </th>
+                  {showPreview && (
+                    <th className="px-4 py-3 font-semibold w-48 text-center border-l border-zinc-200">
+                      <div className="flex items-center justify-center gap-2 cursor-pointer select-none" onClick={() => setShowPreview(!showPreview)}>
+                        <input type="checkbox" checked={showPreview} readOnly className="rounded border-zinc-300 text-[#104a9e] focus:ring-[#104a9e]" />
+                        Preview
+                      </div>
+                    </th>
+                  )}
+                  {!showPreview && (
+                    <th className="px-4 py-3 font-semibold w-12 text-center border-l border-zinc-200">
+                      <div className="flex items-center justify-center cursor-pointer select-none" onClick={() => setShowPreview(!showPreview)}>
+                        <input type="checkbox" checked={showPreview} readOnly className="rounded border-zinc-300 text-[#104a9e] focus:ring-[#104a9e]" />
+                      </div>
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200 text-sm bg-white">
                 {loading ? (
                   <tr>
-                    <td colSpan={3} className="px-4 py-8 text-center text-zinc-500">
+                    <td colSpan={showPreview ? 3 : 2} className="px-4 py-8 text-center text-zinc-500">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#104a9e] mx-auto"></div>
                     </td>
                   </tr>
                 ) : filteredMedia.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="px-4 py-8 text-center text-zinc-500">
+                    <td colSpan={showPreview ? 3 : 2} className="px-4 py-8 text-center text-zinc-500">
                       Nenhum arquivo encontrado.
                     </td>
                   </tr>
@@ -418,21 +429,27 @@ export default function AgencyMedia() {
                           {item.titulo || `Arquivo ${idx + 1}`}
                         </span>
                       </td>
-                      <td className="px-4 py-4 text-center border-l border-zinc-200">
-                        <div className="flex justify-center items-center h-16 w-full">
-                          {item.tipo_midia === 'imagem' ? (
-                            <img 
-                              src={item.arquivo_url} 
-                              alt={item.titulo} 
-                              className="h-full object-contain max-w-[120px] rounded shadow-sm border border-zinc-200"
-                            />
-                          ) : (
-                            <div className="w-12 h-10 rounded bg-[#0066ff] flex items-center justify-center shadow-sm cursor-pointer hover:bg-[#0052cc] transition-colors">
-                              <Play className="w-5 h-5 text-white ml-1" />
-                            </div>
-                          )}
-                        </div>
-                      </td>
+                      {showPreview && (
+                        <td className="px-4 py-4 text-center border-l border-zinc-200">
+                          <div className="flex justify-center items-center h-16 w-full">
+                            {item.tipo_midia === 'imagem' ? (
+                              <img 
+                                src={item.arquivo_url} 
+                                alt={item.titulo} 
+                                className="h-full object-contain max-w-[120px] rounded shadow-sm border border-zinc-200 cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => setPreviewItem(item)}
+                              />
+                            ) : (
+                              <div 
+                                className="w-12 h-10 rounded bg-[#0066ff] flex items-center justify-center shadow-sm cursor-pointer hover:bg-[#0052cc] transition-colors"
+                                onClick={() => setPreviewItem(item)}
+                              >
+                                <Play className="w-5 h-5 text-white ml-1" />
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}
@@ -557,6 +574,23 @@ export default function AgencyMedia() {
                 Concluído
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Preview */}
+      {previewItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setPreviewItem(null)}>
+          <div className="relative max-w-4xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setPreviewItem(null)} className="absolute -top-10 right-0 text-white hover:text-zinc-300 transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+            {previewItem.tipo_midia === 'imagem' ? (
+              <img src={previewItem.arquivo_url} alt={previewItem.titulo} className="max-h-[85vh] mx-auto rounded-lg shadow-2xl object-contain" />
+            ) : (
+              <video src={previewItem.arquivo_url} controls autoPlay className="max-h-[85vh] mx-auto rounded-lg shadow-2xl" />
+            )}
+            <p className="text-white text-center text-xs mt-3 font-medium">{previewItem.titulo}</p>
           </div>
         </div>
       )}
