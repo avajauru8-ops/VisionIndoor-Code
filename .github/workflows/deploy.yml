@@ -1,4 +1,4 @@
-name: Deploy to Hostinger
+name: Deploy Backend + Frontend
 
 on:
   push:
@@ -12,6 +12,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -24,5 +36,9 @@ jobs:
             **/.git*
             **/node_modules/**
             **/.env
+            **/vendor/**
+            **/writable/**
+            **/tests/**
+            **/composer.lock
           delete: false
           dry-run: false
