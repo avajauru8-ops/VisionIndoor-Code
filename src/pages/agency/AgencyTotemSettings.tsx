@@ -176,8 +176,10 @@ export default function AgencyTotemSettings() {
     const now = new Date();
     const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
 
+    const isDeviceReportWorking = totem.status === 'FUNCIONANDO CORRETAMENTE'
+      || (totem.ultima_informacao && totem.ultima_informacao.startsWith('Reproduzindo'));
+
     if (diffMinutes > 15 || diffMinutes < -15) {
-      // Check if out of operating hours
       const hInicio = totem.horario_liga || totem.horario_inicio;
       const hFim = totem.horario_desliga || totem.horario_fim;
       
@@ -200,12 +202,16 @@ export default function AgencyTotemSettings() {
       if (isOut) {
         return { status: 'SEM COMUNICAÇÃO (FORA DE HORÁRIO)', color: 'text-gray-400', info: 'Dispositivo Offline (Fora do Horário)' };
       }
+
+      if (isDeviceReportWorking) {
+        return { status: totem.status || 'FUNCIONANDO CORRETAMENTE', color: 'text-green-600', info: totem.ultima_informacao || 'Aguardando Conteúdo para Veiculação' };
+      }
+
       return { status: 'SEM COMUNICAÇÃO', color: 'text-red-500', info: 'Dispositivo Offline' };
     } else if (diffMinutes > 5) {
       return { status: 'EM VERIFICAÇÃO', color: 'text-yellow-500', info: totem.ultima_informacao || 'Aguardando Conteúdo para Veiculação' };
     }
     
-    // Online
     return { 
       status: totem.status || 'FUNCIONANDO CORRETAMENTE', 
       color: totem.status === 'FUNCIONANDO CORRETAMENTE' || totem.status === 'online' ? 'text-green-600' : 'text-yellow-500',

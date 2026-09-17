@@ -74,16 +74,14 @@ export default function AgencyTotems() {
   };
 
   const getTotemStatusColor = (totem: Totem) => {
-    if (!totem.ultima_sincronizacao) return 'bg-[#e74c3c]'; // Sem Comunicação
+    if (!totem.ultima_sincronizacao) return 'bg-[#e74c3c]';
     
-    // Server sends UTC time, so we append Z to ensure the browser parses it correctly
     const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T'));
     const now = new Date();
     
     const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
 
     if (diffMinutes > 15 || diffMinutes < -15) {
-      // Check if out of operating hours
       const hInicio = totem.horario_liga || totem.horario_inicio;
       const hFim = totem.horario_desliga || totem.horario_fim;
       
@@ -94,25 +92,23 @@ export default function AgencyTotems() {
         
         const startMinutes = startH * 60 + (startM || 0);
         const endMinutes = endH * 60 + (endM || 0);
-        
-        // Handle cases where end time is on the next day (e.g., 22:00 to 02:00)
+
         let isOut = false;
         if (startMinutes <= endMinutes) {
           isOut = currentMinutes < startMinutes || currentMinutes > endMinutes;
         } else {
-          // Crosses midnight
           isOut = currentMinutes < startMinutes && currentMinutes > endMinutes;
         }
 
         if (isOut) {
-          return 'bg-[#bdc3c7]'; // Sem comunicação (fora de horário)
+          return 'bg-[#bdc3c7]';
         }
       }
-      return 'bg-[#e74c3c]'; // Sem Comunicação
+      return 'bg-[#e74c3c]';
     } else if (diffMinutes > 5) {
-      return 'bg-[#f1c40f]'; // Em Verificação
+      return 'bg-[#f1c40f]';
     } else {
-      return 'bg-[#2ecc71]'; // Funcionando corretamente
+      return 'bg-[#2ecc71]';
     }
   };
 
