@@ -25,6 +25,10 @@ export default function AgencyMedia() {
   const [showUploader, setShowUploader] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Search & Sort
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('date_desc');
+
   // Selection State
   const [selectedMedia, setSelectedMedia] = useState<string[]>([]);
 
@@ -164,6 +168,17 @@ export default function AgencyMedia() {
   };
 
 
+  const filteredMedia = media
+    .filter(item => item.titulo.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      if (sortBy === 'name') return a.titulo.localeCompare(b.titulo, 'pt-BR');
+      // date_desc: items with higher id (newer) first
+      if (sortBy === 'date_desc') return Number(b.id) - Number(a.id);
+      return Number(a.id) - Number(b.id);
+    });
+
+  const paginatedMedia = filteredMedia;
+
   return (
     <div className="space-y-6 max-w-[1200px] mx-auto text-zinc-600 font-sans min-h-full pb-20 relative">
       {/* Header and Add Button */}
@@ -210,6 +225,8 @@ export default function AgencyMedia() {
             <input 
               type="text" 
               placeholder="PESQUISAR" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full border-b border-zinc-300 pl-9 pr-4 py-2 text-xs font-bold text-center text-[#104a9e] placeholder-[#104a9e] focus:outline-none focus:border-[#104a9e] bg-transparent uppercase" 
             />
           </div>
@@ -224,9 +241,14 @@ export default function AgencyMedia() {
         <div className="mt-6 flex flex-col md:flex-row justify-end items-center gap-4 text-[10px] font-bold text-zinc-400 uppercase">
           <div className="flex items-center gap-2">
             <span>ORDENAR POR</span>
-            <select className="border border-zinc-200 rounded p-1 text-zinc-600 focus:outline-none">
-              <option>Data de Envio</option>
-              <option>Nome</option>
+            <select 
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="border border-zinc-200 rounded p-1 text-zinc-600 focus:outline-none"
+            >
+              <option value="date_desc">Data de Envio (Recente)</option>
+              <option value="date_asc">Data de Envio (Antigo)</option>
+              <option value="name">Nome</option>
             </select>
           </div>
           <div className="flex items-center gap-2">
@@ -264,9 +286,9 @@ export default function AgencyMedia() {
                   <th className="px-4 py-3 w-12 text-center">
                     <input 
                       type="checkbox" 
-                      checked={media.length > 0 && selectedMedia.length === media.length}
+                      checked={filteredMedia.length > 0 && selectedMedia.length === filteredMedia.length}
                       onChange={(e) => {
-                        if (e.target.checked) setSelectedMedia(media.map(m => m.id));
+                        if (e.target.checked) setSelectedMedia(filteredMedia.map(m => m.id));
                         else setSelectedMedia([]);
                       }}
                       className="rounded border-zinc-300 text-[#104a9e] focus:ring-[#104a9e]" 
@@ -288,14 +310,14 @@ export default function AgencyMedia() {
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#104a9e] mx-auto"></div>
                     </td>
                   </tr>
-                ) : media.length === 0 ? (
+                ) : filteredMedia.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="px-4 py-8 text-center text-zinc-500">
                       Nenhum arquivo encontrado.
                     </td>
                   </tr>
                 ) : (
-                  media.map((item, idx) => (
+                  filteredMedia.map((item, idx) => (
                     <tr key={item.id || idx} className="hover:bg-zinc-50 transition-colors">
                       <td className="px-4 py-4 text-center">
                         <input 
@@ -338,7 +360,7 @@ export default function AgencyMedia() {
 
         {/* Footer info */}
         <div className="mt-4 text-[10px] text-zinc-500">
-          Mostrando de 1 a {media.length} de {media.length} arquivos
+          Mostrando de 1 a {filteredMedia.length} de {filteredMedia.length} arquivos
         </div>
 
         {/* Storage Bar */}
