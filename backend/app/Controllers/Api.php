@@ -141,8 +141,7 @@ class Api extends ResourceController
             // 2. ATUALIZA INFORMAÇÕES DE HARDWARE E STATUS DA TV
             // ========================================================
             $updateData = [
-                'ultima_sincronizacao' => date('Y-m-d H:i:s')
-                // Removi a tag "status => online" bruta daqui para usar a inteligente abaixo
+                'ultima_sincronizacao' => (new \DateTime('now', new \DateTimeZone('America/Sao_Paulo')))->format('Y-m-d H:i:s')
             ];
             
             if (isset($jsonRecebido['widget_status'])) {
@@ -209,7 +208,7 @@ class Api extends ResourceController
             // ========================================================
             // 5. PROCESSA CAMPANHAS E PLAYLIST
             // ========================================================
-            $now = date('Y-m-d H:i:s');
+            $now = (new \DateTime('now', new \DateTimeZone('America/Sao_Paulo')))->format('Y-m-d H:i:s');
             
             $campanhas = [];
 
