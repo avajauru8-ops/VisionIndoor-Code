@@ -9,6 +9,7 @@ interface Totem {
   device_id: string;
   status: string;
   ultima_sincronizacao: string | null;
+  ultima_informacao?: string;
   auto_iniciar?: number | boolean;
   horario_liga?: string;
   horario_desliga?: string;
@@ -81,6 +82,9 @@ export default function AgencyTotems() {
     
     const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
 
+    const isDeviceReportWorking = totem.status === 'FUNCIONANDO CORRETAMENTE'
+      || (totem.ultima_informacao && totem.ultima_informacao.startsWith('Reproduzindo'));
+
     if (diffMinutes > 15 || diffMinutes < -15) {
       const hInicio = totem.horario_liga || totem.horario_inicio;
       const hFim = totem.horario_desliga || totem.horario_fim;
@@ -104,6 +108,11 @@ export default function AgencyTotems() {
           return 'bg-[#bdc3c7]';
         }
       }
+
+      if (isDeviceReportWorking) {
+        return 'bg-[#2ecc71]';
+      }
+
       return 'bg-[#e74c3c]';
     } else if (diffMinutes > 5) {
       return 'bg-[#f1c40f]';
