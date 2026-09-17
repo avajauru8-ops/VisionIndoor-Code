@@ -60,7 +60,96 @@ class Playlists extends ResourceController
         $newName = time() . '_' . preg_replace('/[^a-zA-Z0-9.-]/', '_', $file->getName());
         $file->move(ROOTPATH . 'public/uploads', $newName);
         
+        $this->optimizeFile(ROOTPATH . 'public/uploads/' . $newName, $ext);
+        
         return $newName;
+    }
+
+    private function optimizeFile($path, $ext)
+    {
+        $imageExts = ['.jpg', '.jpeg', '.png', '.webp'];
+        
+        if (in_array(strtolower($ext), $imageExts)) {
+            $this->optimizeImage($path, $ext);
+        } elseif (strtolower($ext) === '.mp4') {
+            $this->optimizeVideo($path);
+        }
+    }
+
+    private function optimizeImage($path, $ext)
+    {
+        if (!function_exists('imagecreatefromjpeg') && !function_exists('imagecreatefrompng')) {
+            return;
+        }
+
+        $maxWidth = 1920;
+        $maxHeight = 1080;
+
+        $info = @getimagesize($path);
+        if (!$info) return;
+
+        $origWidth = $info[0];
+        $origHeight = $info[1];
+        $mime = $info['mime'];
+
+        if ($origWidth <= $maxWidth && $origHeight <= $maxHeight) {
+            return;
+        }
+
+        $ratio = min($maxWidth / $origWidth, $maxHeight / $origHeight);
+        $newWidth = (int)round($origWidth * $ratio);
+        $newHeight = (int)round($origHeight * $ratio);
+
+        $src = match($mime) {
+            'image/jpeg' => @imagecreatefromjpeg($path),
+            'image/png' => @imagecreatefrompng($path),
+            'image/webp' => @imagecreatefromwebp($path),
+            default => null,
+        };
+
+        if (!$src) return;
+
+        $dst = imagecreatetruecolor($newWidth, $newHeight);
+        imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+
+        $extLower = strtolower($ext);
+        if ($extLower === '.jpg' || $extLower === '.jpeg') {
+            imagejpeg($dst, $path, 82);
+        } elseif ($extLower === '.png') {
+            imagepng($dst, $path, 7);
+        } elseif ($extLower === '.webp') {
+            if (function_exists('imagewebp')) {
+                imagewebp($dst, $path, 82);
+            }
+        }
+
+        imagedestroy($src);
+        imagedestroy($dst);
+    }
+
+    private function optimizeVideo($path)
+    {
+        $ffmpeg = trim((string)shell_exec('which ffmpeg 2>/dev/null || where ffmpeg 2>nul'));
+        if (empty($ffmpeg) || !file_exists($path)) {
+            return;
+        }
+
+        $tmpPath = $path . '.tmp.mp4';
+        $cmd = sprintf(
+            'ffmpeg -i %s -c:v libx264 -crf 28 -preset fast -vf "scale=min(1280\\,iw):min(720\\,ih):force_original_aspect_ratio=decrease" -c:a aac -b:a 96k -movflags +faststart %s 2>&1',
+            escapeshellarg($path),
+            escapeshellarg($tmpPath)
+        );
+
+        shell_exec($cmd);
+
+        if (file_exists($tmpPath) && filesize($tmpPath) > 0) {
+            if (filesize($tmpPath) < filesize($path)) {
+                rename($tmpPath, $path);
+            } else {
+                unlink($tmpPath);
+            }
+        }
     }
 
     public function create()

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Image as ImageIcon, Plus, Search, Tag, Play, X, Trash2, CheckCircle2 } from 'lucide-react';
+import { Image as ImageIcon, Plus, Search, Tag, Play, X, Trash2, CheckCircle2, Loader2 } from 'lucide-react';
 import { apiFetch } from '../../lib/api';
+import { compressImage } from '../../lib/compress';
 
 interface Media {
   id: string;
@@ -114,7 +115,7 @@ export default function AgencyMedia() {
     }
   }, [uploadQueue]);
 
-  const uploadFile = (item: UploadItem) => {
+  const uploadFile = async (item: UploadItem) => {
     const token = localStorage.getItem('token');
     if (!token) {
       console.error('Token não encontrado!');
@@ -124,12 +125,20 @@ export default function AgencyMedia() {
       return;
     }
 
+    let fileToSend = item.file;
+    if (item.file.type.startsWith('image/') && item.file.type !== 'image/gif') {
+      try {
+        fileToSend = await compressImage(item.file);
+      } catch (e) {
+        console.warn('Falha ao comprimir imagem, enviando original:', e);
+      }
+    }
+
     const xhr = new XMLHttpRequest();
     const formData = new FormData();
     
-    formData.append('arquivo', item.file);
+    formData.append('arquivo', fileToSend);
     formData.append('titulo', item.file.name);
-    // Identificar tipo de midia baseado no mime type
     const tipo = item.file.type.startsWith('video/') ? 'video' : 'imagem';
     formData.append('tipo_midia', tipo);
 
