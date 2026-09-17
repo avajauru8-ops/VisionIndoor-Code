@@ -960,7 +960,7 @@ export default function AgencyTotemSettings() {
               <div className="mt-6 space-y-3 text-[11px] font-bold text-zinc-500 border-l-2 border-[#104a9e] pl-4">
                 {totem.ultima_informacao && totem.ultima_informacao.includes('Reproduzindo') && (
                   <div>
-                    <span className="text-zinc-500">Exibindo {totem.ultima_informacao.replace('Reproduzindo ', '')}:</span>
+                    <span className="text-zinc-500">Exibindo:</span>
                     <div className="flex items-center gap-1.5 mt-1 text-zinc-700">
                       <Image className="w-3.5 h-3.5 text-zinc-400" />
                       <span className="font-mono text-[10px]">{totem.ultima_informacao}</span>
