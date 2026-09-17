@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Image as ImageIcon, Plus, Search, Tag, Play, X, Trash2, CheckCircle2, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Image as ImageIcon, Plus, Search, Tag, Play, X, Trash2, CheckCircle2, Upload } from 'lucide-react';
 import { apiFetch } from '../../lib/api';
 import { compressImage } from '../../lib/compress';
 
@@ -32,6 +32,64 @@ export default function AgencyMedia() {
 
   // Selection State
   const [selectedMedia, setSelectedMedia] = useState<string[]>([]);
+
+  // Drag and Drop
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounter = useRef(0);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current = 0;
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length === 0) return;
+
+    const allowedExts = ['.jpg','.jpeg','.gif','.png','.mp4','.flv','.3gp','.avi','.m4v','.mkv','.mov','.mpg','.rm','.rmvb','.vob','.webm','.wmv'];
+    const validFiles = files.filter(f => {
+      const ext = '.' + f.name.split('.').pop()?.toLowerCase();
+      return allowedExts.includes(ext);
+    });
+
+    if (validFiles.length === 0) {
+      alert('Nenhum arquivo válido selecionado. Tipos aceitos: JPG, GIF, PNG, MP4, FLV, 3GP, AVI, M4V, MKV, MOV, MPG, RM, RMVB, VOB, WEBM, WMV.');
+      return;
+    }
+
+    const newItems: UploadItem[] = validFiles.map((file: File) => ({
+      id: Math.random().toString(36).substring(7),
+      file,
+      progress: 0,
+      status: 'pending',
+      previewUrl: URL.createObjectURL(file)
+    }));
+    setUploadQueue((prev: UploadItem[]) => [...prev, ...newItems]);
+    setShowUploader(true);
+  }, []);
 
   useEffect(() => {
     loadMedia();
@@ -189,7 +247,23 @@ export default function AgencyMedia() {
   const paginatedMedia = filteredMedia;
 
   return (
-    <div className="space-y-6 max-w-[1200px] mx-auto text-zinc-600 font-sans min-h-full pb-20 relative">
+    <div 
+      className="space-y-6 max-w-[1200px] mx-auto text-zinc-600 font-sans min-h-full pb-20 relative"
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Drag and Drop Overlay */}
+      {isDragging && (
+        <div className="fixed inset-0 z-40 bg-[#0066ff]/10 border-2 border-dashed border-[#0066ff] flex items-center justify-center backdrop-blur-sm pointer-events-none">
+          <div className="bg-white rounded-2xl shadow-2xl px-12 py-10 flex flex-col items-center gap-4 border-2 border-[#0066ff]">
+            <Upload className="w-12 h-12 text-[#0066ff]" />
+            <p className="text-lg font-bold text-[#0066ff] uppercase">Solte os arquivos aqui</p>
+            <p className="text-xs text-zinc-500">Imagens e vídeos serão enviados automaticamente</p>
+          </div>
+        </div>
+      )}
       {/* Header and Add Button */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
