@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { Tv, Plus, Search, Trash2, Camera, Play, Tag, ChevronDown, CheckSquare, Square, X, SkipForward } from 'lucide-react';
 
@@ -18,6 +18,7 @@ interface Totem {
 }
 
 export default function AgencyTotems() {
+  const navigate = useNavigate();
   const [totems, setTotems] = useState<Totem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -39,20 +40,25 @@ export default function AgencyTotems() {
 
   useEffect(() => {
     loadTotems();
+    const interval = setInterval(loadTotems, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
-      await apiFetch('/api/totems', {
+      const res = await apiFetch('/api/totems', {
         method: 'POST',
-        // The backend automatically generates a name if not provided
         body: JSON.stringify({ device_id: deviceId }),
       });
       setDeviceId('');
       setShowForm(false);
-      loadTotems();
+      if (res && res.id) {
+        navigate(`/agency/totems/${res.id}`);
+      } else {
+        loadTotems();
+      }
     } catch (err: any) {
       if (err.message === 'Limite de Telas atingido' || err.code === 'LIMIT_REACHED') {
         setShowForm(false);
@@ -74,10 +80,10 @@ export default function AgencyTotems() {
     }
   };
 
-  const getTotemStatusColor = (totem: Totem) => {
-    if (!totem.ultima_sincronizacao) return 'bg-[#e74c3c]';
+  const getTotemStatusInfo = (totem: Totem): { color: string; label: string } => {
+    if (!totem.ultima_sincronizacao) return { color: 'bg-[#e74c3c]', label: 'SEM COMUNICAÇÃO' };
     
-    const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T'));
+    const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T') + (totem.ultima_sincronizacao.includes('Z') || totem.ultima_sincronizacao.includes('+') ? '' : ''));
     const now = new Date();
     
     const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
@@ -86,8 +92,8 @@ export default function AgencyTotems() {
       || (totem.ultima_informacao && totem.ultima_informacao.startsWith('Reproduzindo'));
 
     if (diffMinutes > 15 || diffMinutes < -15) {
-      const hInicio = totem.horario_liga || totem.horario_inicio;
-      const hFim = totem.horario_desliga || totem.horario_fim;
+      const hInicio = totem.horario_inicio;
+      const hFim = totem.horario_fim;
       
       if (hInicio && hFim) {
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -105,21 +111,24 @@ export default function AgencyTotems() {
         }
 
         if (isOut) {
-          return 'bg-[#bdc3c7]';
+          return { color: 'bg-[#bdc3c7]', label: 'SEM COMUNICAÇÃO FORA DO HORÁRIO DE FUNCIONAMENTO' };
         }
       }
 
       if (isDeviceReportWorking) {
-        return 'bg-[#2ecc71]';
+        return { color: 'bg-[#2ecc71]', label: 'FUNCIONANDO CORRETAMENTE' };
       }
 
-      return 'bg-[#e74c3c]';
+      return { color: 'bg-[#e74c3c]', label: 'SEM COMUNICAÇÃO' };
     } else if (diffMinutes > 5) {
-      return 'bg-[#f1c40f]';
+      return { color: 'bg-[#f1c40f]', label: 'EM VERIFICAÇÃO' };
     } else {
-      return 'bg-[#2ecc71]';
+      return { color: 'bg-[#2ecc71]', label: 'FUNCIONANDO CORRETAMENTE' };
     }
   };
+
+  const getTotemStatusColor = (totem: Totem) => getTotemStatusInfo(totem).color;
+  const getTotemStatusLabel = (totem: Totem) => getTotemStatusInfo(totem).label;
 
   return (
     <div className="space-y-6 text-zinc-600 font-sans relative min-h-full">
@@ -222,6 +231,9 @@ export default function AgencyTotems() {
                         <Link to={`/agency/totems/${totem.id}`} className="font-semibold text-zinc-700 hover:text-[#104a9e] hover:underline whitespace-nowrap">
                           {totem.nome}
                         </Link>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded text-white whitespace-nowrap ${getTotemStatusColor(totem)}`}>
+                          {getTotemStatusLabel(totem)}
+                        </span>
                       </div>
                     </td>
                     <td className="px-4 py-4">
