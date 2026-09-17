@@ -2,11 +2,12 @@ name: Deploy Backend + Frontend
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
   deploy:
+    name: Deploy Backend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -18,28 +19,43 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: npm ci
 
       - name: Build frontend
         run: npm run build
 
-      - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          server: ${{ secrets.FTP_SERVER }}
+          php-version: '8.1'
+
+      - name: Install composer dependencies
+        run: composer install --optimize-autoloader
+        working-directory: ./backend
+
+      - name: Add vendor to git for FTP deploy
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git add -f backend/vendor/
+          git commit -m "Add vendor for deploy" || true
+
+      - name: Sync files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: 147.93.37.161
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: public_html/
-          local-dir: backend/
+          local-dir: ./backend/
+          server-dir: ./
           exclude: |
             **/.git*
+            **/.git*/**
             **/node_modules/**
-            **/.env
-            **/vendor/**
-            **/writable/**
             **/tests/**
+            **/writable/**
+            **/.env
             **/composer.lock
-            **/.htaccess
-          delete: false
+            **/phpunit.xml.dist
           dry-run: false
