@@ -38,6 +38,7 @@ interface Totem {
   horario_desliga?: string;
   horario_inicio?: string;
   horario_fim?: string;
+  data_hora_tv?: string;
 }
 
 export default function AgencyTotemSettings() {
@@ -1011,7 +1012,7 @@ export default function AgencyTotemSettings() {
                 </div>
                 <div className="flex justify-between">
                   <span>Data/Hora da Tela:</span>
-                  <span className="text-[#104a9e]">{totem.ultima_sincronizacao ? format(new Date(totem.ultima_sincronizacao.replace(' ','T')), 'dd/MM/yyyy HH:mm') : 'N/A'}</span>
+                  <span className="text-[#104a9e]">{totem.data_hora_tv ? totem.data_hora_tv : (totem.ultima_sincronizacao ? format(new Date(totem.ultima_sincronizacao.replace(' ','T')), 'dd/MM/yyyy HH:mm') : 'N/A')}</span>
                 </div>
               </div>
 
