@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 export default function WidgetVideoPlayer() {
   const [searchParams] = useSearchParams();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [rotation, setRotation] = useState(0);
 
   const url = searchParams.get('url') || '';
   const device_id = searchParams.get('device_id') || '';
@@ -42,6 +43,21 @@ export default function WidgetVideoPlayer() {
     return () => vid.removeEventListener('loadeddata', tryPlay);
   }, [url]);
 
+  const handleLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    const target = e.target as HTMLVideoElement;
+    const vW = target.videoWidth;
+    const vH = target.videoHeight;
+    const sW = window.innerWidth;
+    const sH = window.innerHeight;
+
+    // Se a tela for horizontal e o vídeo vertical, ou vice-versa, rotaciona a mídia em 90 graus
+    if ((vW < vH && sW > sH) || (vW > vH && sW < sH)) {
+      setRotation(90);
+    } else {
+      setRotation(0);
+    }
+  };
+
   if (!url) {
     return (
       <div style={{ width: '100vw', height: '100vh', backgroundColor: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -69,11 +85,14 @@ export default function WidgetVideoPlayer() {
         muted
         playsInline
         preload="auto"
+        onLoadedMetadata={handleLoadedMetadata}
         style={{
-          width: '100%',
-          height: '100%',
+          width: rotation ? '100vh' : '100vw',
+          height: rotation ? '100vw' : '100vh',
           objectFit: 'contain',
-          display: 'block'
+          display: 'block',
+          transform: `rotate(${rotation}deg)`,
+          transformOrigin: 'center center'
         }}
       />
     </div>
