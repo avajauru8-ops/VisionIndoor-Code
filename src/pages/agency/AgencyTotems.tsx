@@ -77,7 +77,7 @@ export default function AgencyTotems() {
     if (!totem.ultima_sincronizacao) return 'bg-[#e74c3c]'; // Sem Comunicação
     
     // Server sends UTC time, so we append Z to ensure the browser parses it correctly
-    const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T') + 'Z');
+    const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T'));
     const now = new Date();
     
     const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);

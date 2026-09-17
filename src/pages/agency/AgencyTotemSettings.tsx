@@ -172,7 +172,7 @@ export default function AgencyTotemSettings() {
       };
     }
 
-    const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T') + 'Z');
+    const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T'));
     const now = new Date();
     const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
 
@@ -931,7 +931,7 @@ export default function AgencyTotemSettings() {
                   <span>{totem.status === 'FUNCIONANDO CORRETAMENTE' ? 'Online a:' : 'Offline a:'}</span>
                   <span className="text-[#104a9e]">
                     {totem.ultima_sincronizacao ? (() => {
-                      const last = new Date(totem.ultima_sincronizacao.replace(' ', 'T') + 'Z');
+                      const last = new Date(totem.ultima_sincronizacao.replace(' ', 'T'));
                       const now = new Date();
                       const diffMs = now.getTime() - last.getTime();
                       const diffMin = Math.floor(diffMs / 60000);
