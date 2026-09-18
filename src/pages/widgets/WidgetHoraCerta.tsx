@@ -21,13 +21,13 @@ function getTimeInTimezone(tz: string): Date {
 
 function formatDate(date: Date): string {
   const days = ['Domingo', 'Segunda-Feira', 'Terça-Feira', 'Quarta-Feira', 'Quinta-Feira', 'Sexta-Feira', 'Sábado'];
-  const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
   
   const day = date.getDate();
   const month = months[date.getMonth()];
   const year = date.getFullYear();
   
-  return `${days[date.getDay()]} ${day} de ${month} de ${year}`;
+  return `${days[date.getDay()]}, ${day} de ${month} de ${year}`;
 }
 
 function getUrlParam(key: string): string | null {
@@ -132,6 +132,7 @@ export default function WidgetHoraCerta() {
         .whc-logo {
           max-width: 22vw;
           max-height: 14vh;
+          margin-top: 50px;
           margin-bottom: 4vh;
           object-fit: contain;
           filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
@@ -182,7 +183,7 @@ export default function WidgetHoraCerta() {
           .whc-seconds { font-size: 8vw; margin-left: 2vw; }
           .whc-date-box { margin-top: 6vw; padding: 3vw 6vw; }
           .whc-date-text { font-size: 4.5vw; }
-          .whc-logo { max-width: 35vw; max-height: 12vh; margin-bottom: 6vh; }
+          .whc-logo { max-width: 35vw; max-height: 12vh; margin-top: 50px; margin-bottom: 6vh; }
         }
         `}} />
 
