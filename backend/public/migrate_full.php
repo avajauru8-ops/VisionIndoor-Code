@@ -109,6 +109,21 @@ try {
         echo "- Widget 'Hora Certa' já existe.<br>";
     }
 
+    // 4. Playlist Itens: Adicionar coluna widget_config (TEXT)
+    echo "<br><b>4. Playlist Itens - Widget Config:</b><br>";
+    $query = $pdo->query("SHOW TABLES LIKE 'playlist_itens'");
+    if ($query->fetch()) {
+        $piColumns = $pdo->query("SHOW COLUMNS FROM playlist_itens")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('widget_config', $piColumns)) {
+            $pdo->exec("ALTER TABLE playlist_itens ADD COLUMN widget_config TEXT NULL AFTER widget_nome");
+            echo "- Coluna 'widget_config' adicionada em playlist_itens.<br>";
+        } else {
+            echo "- Coluna 'widget_config' já existe.<br>";
+        }
+    } else {
+        echo "- Tabela 'playlist_itens' não encontrada (ignorado).<br>";
+    }
+
     echo "<br><b style='color:green'>Migração concluída com sucesso!</b> Pode fechar esta tela.";
 } catch (Exception $e) {
     echo "<br><b style='color:red'>Erro:</b> " . $e->getMessage();

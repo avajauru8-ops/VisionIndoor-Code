@@ -32,6 +32,16 @@ function getUrlParam(key: string): string | null {
   return val && val.trim() !== '' ? val : null;
 }
 
+function getWidgetConfig(): Record<string, string> {
+  const encoded = getUrlParam('widget_config');
+  if (encoded) {
+    try {
+      return JSON.parse(atob(encoded));
+    } catch {}
+  }
+  return {};
+}
+
 function hexToRgba(hex: string, alpha: number): string {
   const h = hex.replace('#', '');
   if (h.length !== 6) return hex;
@@ -58,24 +68,25 @@ export default function WidgetHoraCerta() {
     return () => clearInterval(timer);
   }, []);
 
-  const timezone = getUrlParam('tz') || config.timezone || 'America/Sao_Paulo';
+  const wc = getWidgetConfig();
+  const timezone = wc.tz || getUrlParam('tz') || config.timezone || 'America/Sao_Paulo';
   const displayTime = getTimeInTimezone(timezone);
   const hours = displayTime.getHours().toString().padStart(2, '0');
   const minutes = displayTime.getMinutes().toString().padStart(2, '0');
   const seconds = displayTime.getSeconds().toString().padStart(2, '0');
 
-  const bgH = getUrlParam('bg_h') || config.imagem_fundo_horizontal || '';
-  const bgV = getUrlParam('bg_v') || config.imagem_fundo_vertical || '';
-  const logoUrl = getUrlParam('logo') || config.logo || '';
+  const bgH = wc.bg_h || getUrlParam('bg_h') || config.imagem_fundo_horizontal || '';
+  const bgV = wc.bg_v || getUrlParam('bg_v') || config.imagem_fundo_vertical || '';
+  const logoUrl = wc.logo || getUrlParam('logo') || config.logo || '';
   const hasImages = !!(bgH || bgV);
   const hasLogo = !!logoUrl;
   const bgColor = config.cor_fundo || '#050505';
 
-  const corHora = getUrlParam('cor_hora') || '#ffffff';
-  const corSeg = getUrlParam('cor_seg') || '#2d74ff';
-  const corData = getUrlParam('cor_data') || '#d0d0d0';
-  const corPill = getUrlParam('cor_pill') || '#ffffff';
-  const fontSizeData = getUrlParam('fonte_data') || config.fonte_data || '';
+  const corHora = wc.cor_hora || getUrlParam('cor_hora') || '#ffffff';
+  const corSeg = wc.cor_seg || getUrlParam('cor_seg') || '#2d74ff';
+  const corData = wc.cor_data || getUrlParam('cor_data') || '#d0d0d0';
+  const corPill = wc.cor_pill || getUrlParam('cor_pill') || '#ffffff';
+  const fontSizeData = wc.fonte_data || getUrlParam('fonte_data') || config.fonte_data || '';
 
   if (!configLoaded) {
     return (

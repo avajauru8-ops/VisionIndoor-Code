@@ -142,6 +142,16 @@ class Api extends ResourceController
                 // ignore
             }
 
+            // Adicionar coluna widget_config para configs por playlist
+            try {
+                $piCols = $db->getFieldNames('playlist_itens');
+                if (!in_array('widget_config', $piCols)) {
+                    $db->query("ALTER TABLE playlist_itens ADD COLUMN widget_config TEXT NULL AFTER widget_nome");
+                }
+            } catch (\Exception $e) {
+                // ignore
+            }
+
             try {
                 $existing = $db->table('widgets')->where('identificador', 'horacerta')->get()->getRowArray();
                 if (!$existing) {
@@ -300,7 +310,7 @@ class Api extends ResourceController
             if (!empty($totem['playlist_id'])) {
                 // Novo modelo: Traz os itens da Lista de Reprodução, mantendo a ordem
                 $itensLista = $db->table('playlist_itens pi')
-                    ->select('c.*, pi.tempo_exibicao as tempo_exibicao_lista, pi.widget_nome, pi.ordem')
+                    ->select('c.*, pi.tempo_exibicao as tempo_exibicao_lista, pi.widget_nome, pi.widget_config, pi.ordem')
                     ->join('campanhas c', 'c.id = pi.campanha_id', 'left')
                     ->where('pi.playlist_id', $totem['playlist_id'])
                     ->orderBy('pi.ordem', 'ASC')
@@ -312,6 +322,7 @@ class Api extends ResourceController
                             'id' => intval($totem['playlist_id'] . '0' . $item['ordem']),
                             'tipo_midia' => 'noticia',
                             'arquivo_url' => '/widget/' . $item['widget_nome'],
+                            'widget_config' => $item['widget_config'] ?? null,
                             'tempo_exibicao' => $item['tempo_exibicao_lista'],
                             'data_inicio' => null,
                             'data_fim' => null
@@ -337,6 +348,9 @@ class Api extends ResourceController
                     if (strpos($url, '/widget/') === 0) {
                         $separator = (strpos($url, '?') !== false) ? '&' : '?';
                         $url = rtrim(base_url(), '/') . $url . $separator . 'device_id=' . urlencode($device_id);
+                        if (!empty($c['widget_config'])) {
+                            $url .= '&widget_config=' . urlencode(base64_encode($c['widget_config']));
+                        }
                     } else {
                         $url = base_url('uploads/' . ltrim($url, '/'));
                     }

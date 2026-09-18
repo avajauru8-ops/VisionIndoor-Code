@@ -19,6 +19,7 @@ interface PlaylistItem {
   unique_id?: string;
   campanha_id?: string;
   widget_nome?: string;
+  widget_config?: string;
   tempo_exibicao: number;
   ordem: number;
   arquivo_titulo?: string;
@@ -132,38 +133,47 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
   const widgetNome = item.widget_nome || '';
   const questionIdx = widgetNome.indexOf('?');
   const widgetType = questionIdx >= 0 ? widgetNome.substring(0, questionIdx) : widgetNome;
-  const searchStr = questionIdx >= 0 ? widgetNome.substring(questionIdx) : '';
-  const currentParams = new URLSearchParams(searchStr);
 
-  const handleParamChange = (key: string, value: string) => {
-    currentParams.set(key, value);
-    const newWidgetNome = `${widgetType}?${currentParams.toString()}`;
-    onUpdate('widget_nome', newWidgetNome);
+  const getConfig = (): Record<string, string> => {
+    try {
+      return item.widget_config ? JSON.parse(item.widget_config) : {};
+    } catch {
+      return {};
+    }
   };
 
-  const getParam = (key: string) => currentParams.get(key) || '';
+  const setConfig = (key: string, value: string) => {
+    const cfg = getConfig();
+    if (value === '') {
+      delete cfg[key];
+    } else {
+      cfg[key] = value;
+    }
+    onUpdate('widget_config', JSON.stringify(cfg));
+  };
+
+  const getCfg = (key: string) => getConfig()[key] || '';
 
   if (widgetType === 'clima') {
     return (
       <div className="flex flex-col items-center w-full">
-        <div className="flex items-center justify-center gap-4 mt-2">
+        <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Celsius / Fahrenheit:</label>
           <div className="w-40">
-            <select value={getParam('unidade') || 'C'} onChange={e => handleParamChange('unidade', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+            <select value={getCfg('unidade') || 'C'} onChange={e => setConfig('unidade', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
               <option value="C">Celsius</option>
               <option value="F">Fahrenheit</option>
             </select>
           </div>
         </div>
         <CityAutocomplete 
-          cidade={getParam('cidade') || ''} 
-          estado={getParam('estado') || ''} 
+          cidade={getCfg('cidade') || ''} 
+          estado={getCfg('estado') || ''} 
           onChange={(cidade, estado) => {
-            const newParams = new URLSearchParams(parsedUrl.search);
-            newParams.set('cidade', cidade);
-            newParams.set('estado', estado);
-            const newWidgetNome = `${widgetType}?${newParams.toString()}`;
-            onUpdate('widget_nome', newWidgetNome);
+            const cfg = getConfig();
+            cfg['cidade'] = cidade;
+            cfg['estado'] = estado;
+            onUpdate('widget_config', JSON.stringify(cfg));
           }}
         />
       </div>
@@ -175,7 +185,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
       <div className="flex items-center justify-end gap-4">
         <label className="text-xs font-bold text-zinc-500 w-48 text-right">Tipo de Sorteio:</label>
         <div className="w-40">
-          <select value={getParam('tipo') || 'megasena'} onChange={e => handleParamChange('tipo', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+          <select value={getCfg('tipo') || 'megasena'} onChange={e => setConfig('tipo', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
             <option value="megasena">Mega-Sena</option>
             <option value="megavirada">Mega da Virada</option>
             <option value="lotofacil">Lotofácil</option>
@@ -206,12 +216,12 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
       const fd = new FormData();
       fd.append('file', file);
       const r = await apiFetch('/api/upload', { method: 'POST', body: fd, headers: {} });
-      if (r?.url) handleParamChange(key, r.url);
+      if (r?.url) setConfig(key, r.url);
     };
 
-    const ImageField = ({ label, paramKey }: { label: string, paramKey: string }) => {
+    const ImageField = ({ label, configKey }: { label: string, configKey: string }) => {
       const [uploading, setUploading] = useState(false);
-      const currentVal = getParam(paramKey);
+      const currentVal = getCfg(configKey);
       return (
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">{label}:</label>
@@ -226,11 +236,11 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
                       const f = e.target.files?.[0];
                       if (!f) return;
                       setUploading(true);
-                      await handleUpload(paramKey, f);
+                      await handleUpload(configKey, f);
                       setUploading(false);
                     }} />
                   </label>
-                  <button type="button" onClick={() => handleParamChange(paramKey, '')} className="px-2 py-1 bg-rose-500 text-white text-[10px] font-bold rounded hover:bg-rose-600">
+                  <button type="button" onClick={() => setConfig(configKey, '')} className="px-2 py-1 bg-rose-500 text-white text-[10px] font-bold rounded hover:bg-rose-600">
                     Remover
                   </button>
                 </div>
@@ -243,7 +253,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
                   const f = e.target.files?.[0];
                   if (!f) return;
                   setUploading(true);
-                  await handleUpload(paramKey, f);
+                  await handleUpload(configKey, f);
                   setUploading(false);
                 }} />
               </label>
@@ -253,8 +263,8 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
       );
     };
 
-    const ColorField = ({ label, paramKey, defaultColor }: { label: string, paramKey: string, defaultColor: string }) => {
-      const currentVal = getParam(paramKey);
+    const ColorField = ({ label, configKey, defaultColor }: { label: string, configKey: string, defaultColor: string }) => {
+      const currentVal = getCfg(configKey);
       return (
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">{label}:</label>
@@ -263,7 +273,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
               <input
                 type="color"
                 value={currentVal || defaultColor}
-                onChange={e => handleParamChange(paramKey, e.target.value)}
+                onChange={e => setConfig(configKey, e.target.value)}
                 className="w-10 h-10 rounded-lg border-2 border-zinc-200 cursor-pointer appearance-none bg-transparent"
                 style={{ padding: 0 }}
               />
@@ -271,12 +281,12 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
             <input
               type="text"
               value={currentVal}
-              onChange={e => handleParamChange(paramKey, e.target.value)}
+              onChange={e => setConfig(configKey, e.target.value)}
               placeholder={defaultColor}
               className="flex-1 h-10 border border-zinc-200 rounded-lg px-3 text-xs focus:outline-none focus:border-[#0066ff] bg-white font-mono"
             />
             {currentVal && (
-              <button type="button" onClick={() => handleParamChange(paramKey, '')} className="text-[9px] text-rose-500 hover:underline shrink-0">
+              <button type="button" onClick={() => setConfig(configKey, '')} className="text-[9px] text-rose-500 hover:underline shrink-0">
                 Padrão
               </button>
             )}
@@ -290,7 +300,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Fuso Horário:</label>
           <div className="w-64">
-            <select value={getParam('tz') || ''} onChange={e => handleParamChange('tz', e.target.value)} className="w-full h-10 border border-zinc-200 rounded-lg px-3 text-xs focus:outline-none focus:border-[#0066ff] bg-white">
+            <select value={getCfg('tz') || ''} onChange={e => setConfig('tz', e.target.value)} className="w-full h-10 border border-zinc-200 rounded-lg px-3 text-xs focus:outline-none focus:border-[#0066ff] bg-white">
               <option value="">Padrão do Admin</option>
               {TIMEZONES.map(tz => (
                 <option key={tz.value} value={tz.value}>{tz.label}</option>
@@ -298,17 +308,17 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
             </select>
           </div>
         </div>
-        <ImageField label="Imagem Fundo Horizontal" paramKey="bg_h" />
-        <ImageField label="Imagem Fundo Vertical" paramKey="bg_v" />
-        <ImageField label="Logo (topo)" paramKey="logo" />
-        <ColorField label="Cor Hora/Minutos" paramKey="cor_hora" defaultColor="#ffffff" />
-        <ColorField label="Cor Segundos" paramKey="cor_seg" defaultColor="#2d74ff" />
-        <ColorField label="Cor Texto Data" paramKey="cor_data" defaultColor="#d0d0d0" />
-        <ColorField label="Cor Pill Data" paramKey="cor_pill" defaultColor="#ffffff" />
+        <ImageField label="Imagem Fundo Horizontal" configKey="bg_h" />
+        <ImageField label="Imagem Fundo Vertical" configKey="bg_v" />
+        <ImageField label="Logo (topo)" configKey="logo" />
+        <ColorField label="Cor Hora/Minutos" configKey="cor_hora" defaultColor="#ffffff" />
+        <ColorField label="Cor Segundos" configKey="cor_seg" defaultColor="#2d74ff" />
+        <ColorField label="Cor Texto Data" configKey="cor_data" defaultColor="#d0d0d0" />
+        <ColorField label="Cor Pill Data" configKey="cor_pill" defaultColor="#ffffff" />
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Tamanho Fonte Data:</label>
           <div className="w-64">
-            <select value={getParam('fonte_data') || ''} onChange={e => handleParamChange('fonte_data', e.target.value)} className="w-full h-10 border border-zinc-200 rounded-lg px-3 text-xs focus:outline-none focus:border-[#0066ff] bg-white">
+            <select value={getCfg('fonte_data') || ''} onChange={e => setConfig('fonte_data', e.target.value)} className="w-full h-10 border border-zinc-200 rounded-lg px-3 text-xs focus:outline-none focus:border-[#0066ff] bg-white">
               <option value="">Padrão</option>
               <option value="2vh">Pequeno</option>
               <option value="3vh">Médio</option>
@@ -328,13 +338,13 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">URL do Vídeo:</label>
           <div className="w-40">
-            <input type="text" value={getParam('url') || ''} onChange={e => handleParamChange('url', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="https://youtube.com/..." />
+            <input type="text" value={getCfg('url') || ''} onChange={e => setConfig('url', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="https://youtube.com/..." />
           </div>
         </div>
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Repetir em Loop:</label>
           <div className="w-40">
-            <select value={getParam('loop') || '1'} onChange={e => handleParamChange('loop', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+            <select value={getCfg('loop') || '1'} onChange={e => setConfig('loop', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
               <option value="1">Sim</option>
               <option value="0">Não</option>
             </select>
@@ -343,7 +353,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Mudo (Obrigatório para Autoplay):</label>
           <div className="w-40">
-            <select value={getParam('mute') || '1'} onChange={e => handleParamChange('mute', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+            <select value={getCfg('mute') || '1'} onChange={e => setConfig('mute', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
               <option value="1">Sim</option>
               <option value="0">Não</option>
             </select>
@@ -352,7 +362,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Iniciar em (segundos):</label>
           <div className="w-40">
-            <input type="number" min="0" value={getParam('start') || '0'} onChange={e => handleParamChange('start', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="0" />
+            <input type="number" min="0" value={getCfg('start') || '0'} onChange={e => setConfig('start', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="0" />
           </div>
         </div>
       </>
@@ -365,7 +375,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Fonte de Notícias:</label>
           <div className="w-40">
-            <select value={getParam('feed') || 'noticias'} onChange={e => handleParamChange('feed', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+            <select value={getCfg('feed') || 'noticias'} onChange={e => setConfig('feed', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
               <option value="noticias">UOL Notícias</option>
               <option value="esporte">UOL Esporte</option>
               <option value="economia">UOL Economia</option>
@@ -384,7 +394,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Modo de Exibição:</label>
           <div className="w-40">
-            <select value={getParam('mode') || 'random'} onChange={e => handleParamChange('mode', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+            <select value={getCfg('mode') || 'random'} onChange={e => setConfig('mode', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
               <option value="random">Aleatório (Qualquer notícia)</option>
               <option value="latest3">Apenas as 3 mais recentes</option>
             </select>
@@ -605,18 +615,41 @@ export default function AgencyListaEdit() {
       const formattedItems = (listaData.itens || []).map((it: any) => {
         let titulo = it.arquivo_titulo;
         let tipo_midia = it.tipo_midia;
+        let widgetNome = it.widget_nome || '';
+        let widgetConfig = it.widget_config || '';
         
-        if (it.widget_nome) {
+        if (widgetNome) {
            tipo_midia = 'widget';
-           const baseName = it.widget_nome.split('?')[0];
+           const baseName = widgetNome.split('?')[0];
            const wType = WIDGETS_BASE.find(w => w.arquivo_url.split('?')[0] === baseName);
            if (wType) {
               titulo = wType.titulo;
+           }
+           
+           // Migrate URL params from widget_nome to widget_config
+           const qIdx = widgetNome.indexOf('?');
+           if (qIdx >= 0) {
+             const searchStr = widgetNome.substring(qIdx);
+             const params = new URLSearchParams(searchStr);
+             if (params.toString()) {
+               try {
+                 const existingCfg = widgetConfig ? JSON.parse(widgetConfig) : {};
+                 params.forEach((v, k) => { if (v) existingCfg[k] = v; });
+                 widgetConfig = JSON.stringify(existingCfg);
+               } catch {
+                 const cfg: Record<string, string> = {};
+                 params.forEach((v, k) => { if (v) cfg[k] = v; });
+                 widgetConfig = JSON.stringify(cfg);
+               }
+             }
+             widgetNome = baseName;
            }
         }
         
         return {
           ...it,
+          widget_nome: widgetNome,
+          widget_config: widgetConfig || undefined,
           tipo_midia,
           arquivo_titulo: titulo,
           unique_id: `item-${it.id || Math.random().toString(36).substr(2, 9)}`
@@ -642,6 +675,7 @@ export default function AgencyListaEdit() {
           itens: items.map(it => ({
             campanha_id: it.campanha_id,
             widget_nome: it.widget_nome,
+            widget_config: it.widget_config || null,
             tempo_exibicao: it.tempo_exibicao
           }))
         })
@@ -676,11 +710,21 @@ export default function AgencyListaEdit() {
 
     if (active.data.current?.type === 'library_item') {
       const media = active.data.current.media;
+      const qIdx = media.arquivo_url.indexOf('?');
+      const baseName = qIdx >= 0 ? media.arquivo_url.substring(0, qIdx) : media.arquivo_url;
+      let widgetCfg = '';
+      if (qIdx >= 0) {
+        const params = new URLSearchParams(media.arquivo_url.substring(qIdx));
+        const cfg: Record<string, string> = {};
+        params.forEach((v, k) => { cfg[k] = v; });
+        widgetCfg = JSON.stringify(cfg);
+      }
       const newItem: PlaylistItem = {
         id: '',
         unique_id: `new-${Math.random().toString(36).substr(2, 9)}`,
         campanha_id: media.tipo_midia === 'widget' ? undefined : media.id,
-        widget_nome: media.tipo_midia === 'widget' ? media.arquivo_url : undefined,
+        widget_nome: media.tipo_midia === 'widget' ? baseName : undefined,
+        widget_config: media.tipo_midia === 'widget' ? widgetCfg : undefined,
         arquivo_titulo: media.titulo,
         tipo_midia: media.tipo_midia,
         arquivo_url: media.arquivo_url,
@@ -709,11 +753,21 @@ export default function AgencyListaEdit() {
   };
 
   const handleAddItem = (media: Media) => {
+    const qIdx = media.arquivo_url.indexOf('?');
+    const baseName = qIdx >= 0 ? media.arquivo_url.substring(0, qIdx) : media.arquivo_url;
+    let widgetCfg = '';
+    if (qIdx >= 0) {
+      const params = new URLSearchParams(media.arquivo_url.substring(qIdx));
+      const cfg: Record<string, string> = {};
+      params.forEach((v, k) => { cfg[k] = v; });
+      widgetCfg = JSON.stringify(cfg);
+    }
     const newItem: PlaylistItem = {
       id: '',
       unique_id: `new-${Math.random().toString(36).substr(2, 9)}`,
       campanha_id: media.tipo_midia === 'widget' ? undefined : media.id,
-      widget_nome: media.tipo_midia === 'widget' ? media.arquivo_url : undefined,
+      widget_nome: media.tipo_midia === 'widget' ? baseName : undefined,
+      widget_config: media.tipo_midia === 'widget' ? widgetCfg : undefined,
       arquivo_titulo: media.titulo,
       tipo_midia: media.tipo_midia,
       arquivo_url: media.arquivo_url,
