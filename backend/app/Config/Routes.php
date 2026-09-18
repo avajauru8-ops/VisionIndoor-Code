@@ -18,6 +18,7 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
     $routes->get('clima', 'Api::clima');
     $routes->get('rss-uol', 'Api::rssUol');
     $routes->get('og-image', 'Api::ogImage');
+    $routes->get('widget-config/(:segment)', 'Api::widgetConfig/$1');
 
     // Autenticação
     $routes->post('auth/login', 'Auth::login');
@@ -46,6 +47,7 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
         $routes->get('', 'Widgets::index');
         $routes->get('(:segment)', 'Widgets::show/$1');
         $routes->put('(:segment)', 'Widgets::update/$1');
+        $routes->post('upload', 'Widgets::upload');
     });
 
     // Totems

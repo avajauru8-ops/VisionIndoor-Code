@@ -17,6 +17,31 @@ class Api extends ResourceController
         }
     }
 
+    public function widgetConfig($identificador = null)
+    {
+        try {
+            $db = \Config\Database::connect();
+            $query = $db->query("SHOW TABLES LIKE 'widgets'");
+            if (!$query->getRow()) {
+                return $this->respond([]);
+            }
+            
+            $widget = $db->table('widgets')->where('identificador', $identificador)->get()->getRowArray();
+            if (!$widget) {
+                return $this->respond([]);
+            }
+            
+            $config = [];
+            if (isset($widget['config']) && !empty($widget['config'])) {
+                $config = is_string($widget['config']) ? json_decode($widget['config'], true) ?? [] : $widget['config'];
+            }
+            
+            return $this->respond($config);
+        } catch (\Exception $e) {
+            return $this->respond([]);
+        }
+    }
+
     public function migrateNow()
     {
         try {

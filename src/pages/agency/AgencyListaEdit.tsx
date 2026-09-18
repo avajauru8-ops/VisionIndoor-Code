@@ -32,7 +32,7 @@ const WIDGETS_BASE: Media[] = [
   { id: 'w-noticias', titulo: 'Widget de Notícias (RSS)', tipo_midia: 'widget', arquivo_url: 'noticias?feed=noticias' },
   { id: 'w-youtube', titulo: 'Widget do YouTube', tipo_midia: 'widget', arquivo_url: 'youtube?url=&loop=1&mute=1' },
   { id: 'w-frases', titulo: 'Widget de Frases e Pensamentos', tipo_midia: 'widget', arquivo_url: 'frases' },
-  { id: 'w-horacerta', titulo: 'Widget de Hora Certa', tipo_midia: 'widget', arquivo_url: 'horacerta' },
+  { id: 'w-horacerta', titulo: 'Widget de Hora Certa', tipo_midia: 'widget', arquivo_url: 'horacerta?tz=America/Sao_Paulo' },
 ];
 
 const getUFTimezone = (uf: string) => {
@@ -177,6 +177,35 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
             <option value="megavirada">Mega da Virada</option>
             <option value="lotofacil">Lotofácil</option>
             <option value="quina">Quina</option>
+          </select>
+        </div>
+      </div>
+    );
+  }
+
+  if (widgetType === 'horacerta') {
+    const TIMEZONES = [
+      { value: 'America/Noronha', label: 'Fernando de Noronha (UTC-02)' },
+      { value: 'America/Belem', label: 'Belém (UTC-03)' },
+      { value: 'America/Fortaleza', label: 'Fortaleza (UTC-03)' },
+      { value: 'America/Recife', label: 'Recife (UTC-03)' },
+      { value: 'America/Bahia', label: 'Salvador (UTC-03)' },
+      { value: 'America/Sao_Paulo', label: 'São Paulo (UTC-03)' },
+      { value: 'America/Campo_Grande', label: 'Campo Grande (UTC-04)' },
+      { value: 'America/Cuiaba', label: 'Cuiabá (UTC-04)' },
+      { value: 'America/Manaus', label: 'Manaus (UTC-04)' },
+      { value: 'America/Porto_Velho', label: 'Porto Velho (UTC-04)' },
+      { value: 'America/Boa_Vista', label: 'Boa Vista (UTC-04)' },
+      { value: 'America/Rio_Branco', label: 'Rio Branco (UTC-05)' },
+    ];
+    return (
+      <div className="flex items-center justify-end gap-4">
+        <label className="text-xs font-bold text-zinc-500 w-48 text-right">Fuso Horário:</label>
+        <div className="w-40">
+          <select value={params.get('tz') || 'America/Sao_Paulo'} onChange={e => handleParamChange('tz', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+            {TIMEZONES.map(tz => (
+              <option key={tz.value} value={tz.value}>{tz.label}</option>
+            ))}
           </select>
         </div>
       </div>

@@ -54,20 +54,59 @@ try {
             api_key VARCHAR(255) NULL,
             ativo BOOLEAN DEFAULT TRUE,
             em_manutencao BOOLEAN DEFAULT FALSE,
+            config JSON NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )");
         echo "- Tabela 'widgets' criada com sucesso.<br>";
 
         // Inserir os defaults
-        $pdo->exec("INSERT INTO widgets (nome, identificador, api_url, api_key, ativo, em_manutencao) VALUES 
-            ('Clima e Tempo', 'clima', 'https://api.openweathermap.org/data/2.5/weather', '', 1, 0),
-            ('Loterias Caixa', 'loteria', 'https://servicebus2.caixa.gov.br/portaldeloterias/api', '', 1, 0),
-            ('Notícias RSS', 'noticias', 'https://rss.uol.com.br/feed', '', 1, 0)
+        $defaultConfigHC = json_encode([
+            'timezone' => 'America/Sao_Paulo',
+            'cor_fundo' => '',
+            'imagem_fundo_horizontal' => '',
+            'imagem_fundo_vertical' => '',
+            'logo' => ''
+        ]);
+        $pdo->exec("INSERT INTO widgets (nome, identificador, api_url, api_key, ativo, em_manutencao, config) VALUES 
+            ('Clima e Tempo', 'clima', 'https://api.openweathermap.org/data/2.5/weather', '', 1, 0, NULL),
+            ('Loterias Caixa', 'loteria', 'https://servicebus2.caixa.gov.br/portaldeloterias/api', '', 1, 0, NULL),
+            ('Notícias RSS', 'noticias', 'https://rss.uol.com.br/feed', '', 1, 0, NULL),
+            ('Hora Certa', 'horacerta', '', '', 1, 0, '$defaultConfigHC')
         ");
         echo "- Widgets padrão inseridos.<br>";
     } else {
         echo "- Tabela 'widgets' já existe.<br>";
+    }
+
+    // 3. Widgets: Adicionar coluna config (JSON)
+    echo "<br><b>3. Widgets Config:</b><br>";
+    $query = $pdo->query("SHOW COLUMNS FROM widgets");
+    $widgetColumns = $query->fetchAll(PDO::FETCH_COLUMN);
+    
+    if (!in_array('config', $widgetColumns)) {
+        $pdo->exec("ALTER TABLE widgets ADD COLUMN config JSON NULL");
+        echo "- Coluna 'config' adicionada em widgets.<br>";
+    } else {
+        echo "- Coluna 'config' já existe.<br>";
+    }
+
+    // Inserir widget Hora Certa se não existir
+    $stmt = $pdo->query("SELECT id FROM widgets WHERE identificador = 'horacerta'");
+    if (!$stmt->fetch()) {
+        $defaultConfig = json_encode([
+            'timezone' => 'America/Sao_Paulo',
+            'cor_fundo' => '',
+            'imagem_fundo_horizontal' => '',
+            'imagem_fundo_vertical' => '',
+            'logo' => ''
+        ]);
+        $pdo->exec("INSERT INTO widgets (nome, identificador, api_url, api_key, ativo, em_manutencao, config) VALUES 
+            ('Hora Certa', 'horacerta', '', '', 1, 0, '$defaultConfig')
+        ");
+        echo "- Widget 'Hora Certa' inserido.<br>";
+    } else {
+        echo "- Widget 'Hora Certa' já existe.<br>";
     }
 
     echo "<br><b style='color:green'>Migração concluída com sucesso!</b> Pode fechar esta tela.";

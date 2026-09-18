@@ -1,34 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 
+interface WidgetConfig {
+  timezone?: string;
+  cor_fundo?: string;
+  imagem_fundo_horizontal?: string;
+  imagem_fundo_vertical?: string;
+  logo?: string;
+}
+
+function getTimeInTimezone(tz: string): Date {
+  try {
+    const now = new Date();
+    const str = now.toLocaleString('en-US', { timeZone: tz });
+    return new Date(str);
+  } catch {
+    return new Date();
+  }
+}
+
+function formatDateDDMMYYYY(date: Date): string {
+  const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+  const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${days[date.getDay()]}, ${day} de ${months[date.getMonth()]} de ${year}`;
+}
+
+function getUrlParam(key: string): string | null {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(key);
+}
+
 export default function WidgetHoraCerta() {
   const [time, setTime] = useState(new Date());
+  const [config, setConfig] = useState<WidgetConfig>({});
+  const [configLoaded, setConfigLoaded] = useState(false);
 
   useEffect(() => {
-    // Sincronização offline: apenas usamos o setInterval com o Date do dispositivo
-    // O JavaScript/Navegador/WebView já pega a hora do SO (que é precisa se conectada ou a melhor possível offline)
+    fetch('/api/widget-config/horacerta')
+      .then(res => res.json())
+      .then(data => {
+        setConfig(data || {});
+        setConfigLoaded(true);
+      })
+      .catch(() => {
+        setConfig({});
+        setConfigLoaded(true);
+      });
+  }, []);
+
+  useEffect(() => {
     const timer = setInterval(() => {
       setTime(new Date());
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
-  const formatTime = (date: Date) => {
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const seconds = date.getSeconds().toString().padStart(2, '0');
-    return { hours, minutes, seconds };
-  };
+  const urlTimezone = getUrlParam('tz');
+  const timezone = urlTimezone || config.timezone || 'America/Sao_Paulo';
+  const displayTime = getTimeInTimezone(timezone);
 
-  const formatDate = (date: Date) => {
-    const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-    const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const hours = displayTime.getHours().toString().padStart(2, '0');
+  const minutes = displayTime.getMinutes().toString().padStart(2, '0');
+  const seconds = displayTime.getSeconds().toString().padStart(2, '0');
 
-    return `${days[date.getDay()]}, ${date.getDate()} de ${months[date.getMonth()]} de ${date.getFullYear()}`;
-  };
+  const hasImages = !!(config.imagem_fundo_horizontal || config.imagem_fundo_vertical);
+  const hasLogo = !!config.logo;
+  const bgColor = config.cor_fundo || '#050505';
 
-  const { hours, minutes, seconds } = formatTime(time);
+  if (!configLoaded) {
+    return (
+      <div style={{ width: '100%', height: '100%', background: '#050505', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#666', fontSize: '3vh' }}>Carregando...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="whc-container">
@@ -41,7 +91,7 @@ export default function WidgetHoraCerta() {
         }
         html, body, #root {
           width: 100%; height: 100%;
-          background-color: #050505;
+          background-color: ${bgColor};
           overflow: hidden;
         }
         .whc-container {
@@ -51,7 +101,17 @@ export default function WidgetHoraCerta() {
           display: flex; flex-direction: column;
           align-items: center; justify-content: center;
           color: white; overflow: hidden;
-          background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+          background-color: ${bgColor};
+          ${hasImages ? '' : `background: radial-gradient(circle at center, #1a1a1a 0%, ${bgColor} 100%);`}
+        }
+        .whc-bg-image {
+          position: absolute;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          pointer-events: none;
         }
         .whc-bg-glow {
           position: absolute;
@@ -60,6 +120,20 @@ export default function WidgetHoraCerta() {
           top: 50%; left: 50%;
           transform: translate(-50%, -50%);
           pointer-events: none;
+        }
+        .whc-content {
+          position: relative;
+          z-index: 10;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .whc-logo {
+          max-width: 20vw;
+          max-height: 12vh;
+          margin-bottom: 3vh;
+          object-fit: contain;
+          filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
         }
         .whc-clock-box {
           display: flex; flex-direction: column; align-items: center; z-index: 10;
@@ -107,24 +181,46 @@ export default function WidgetHoraCerta() {
           .whc-seconds { font-size: 8vw; margin-left: 2vw; }
           .whc-date-box { margin-top: 6vw; padding: 3vw 6vw; }
           .whc-date-text { font-size: 5vw; }
+          .whc-logo { max-width: 30vw; max-height: 10vh; }
         }
-      `}} />
+        `}} />
 
-      <div className="whc-bg-glow" />
+      {/* Background Image */}
+      {hasImages && (
+        <>
+          <div 
+            className="whc-bg-image hidden md:block"
+            style={{ backgroundImage: `url(${config.imagem_fundo_horizontal})` }}
+          />
+          <div 
+            className="whc-bg-image block md:hidden"
+            style={{ backgroundImage: `url(${config.imagem_fundo_vertical || config.imagem_fundo_horizontal})` }}
+          />
+        </>
+      )}
 
-      <div className="whc-clock-box">
-        <div className="whc-header">
-          <Clock className="whc-header-icon" />
-          <h2 className="whc-header-title">Hora Certa</h2>
-        </div>
+      {!hasImages && <div className="whc-bg-glow" />}
 
-        <div className="whc-time">
-          <span className="whc-hours-mins">{hours}:{minutes}</span>
-          <span className="whc-seconds">{seconds}</span>
-        </div>
+      <div className="whc-content">
+        {/* Logo */}
+        {hasLogo && (
+          <img src={config.logo} alt="Logo" className="whc-logo" />
+        )}
 
-        <div className="whc-date-box">
-          <p className="whc-date-text">{formatDate(time)}</p>
+        <div className="whc-clock-box">
+          <div className="whc-header">
+            <Clock className="whc-header-icon" />
+            <h2 className="whc-header-title">Hora Certa</h2>
+          </div>
+
+          <div className="whc-time">
+            <span className="whc-hours-mins">{hours}:{minutes}</span>
+            <span className="whc-seconds">{seconds}</span>
+          </div>
+
+          <div className="whc-date-box">
+            <p className="whc-date-text">{formatDateDDMMYYYY(displayTime)}</p>
+          </div>
         </div>
       </div>
     </div>
