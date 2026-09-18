@@ -19,15 +19,15 @@ function getTimeInTimezone(tz: string): Date {
   }
 }
 
-function formatDateDDMMYYYY(date: Date): string {
-  const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-  const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+function formatDate(date: Date): string {
+  const days = ['Domingo', 'Segunda-Feira', 'Terça-Feira', 'Quarta-Feira', 'Quinta-Feira', 'Sexta-Feira', 'Sábado'];
+  const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
   
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate();
+  const month = months[date.getMonth()];
   const year = date.getFullYear();
   
-  return `${days[date.getDay()]}, ${day} de ${months[date.getMonth()]} de ${year}`;
+  return `${days[date.getDay()]} ${day} de ${month} de ${year}`;
 }
 
 function getUrlParam(key: string): string | null {
@@ -112,6 +112,7 @@ export default function WidgetHoraCerta() {
           background-position: center;
           background-repeat: no-repeat;
           pointer-events: none;
+          z-index: 1;
         }
         .whc-bg-glow {
           position: absolute;
@@ -129,9 +130,9 @@ export default function WidgetHoraCerta() {
           align-items: center;
         }
         .whc-logo {
-          max-width: 20vw;
-          max-height: 12vh;
-          margin-bottom: 3vh;
+          max-width: 22vw;
+          max-height: 14vh;
+          margin-bottom: 4vh;
           object-fit: contain;
           filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
         }
@@ -139,14 +140,14 @@ export default function WidgetHoraCerta() {
           display: flex; flex-direction: column; align-items: center; z-index: 10;
         }
         .whc-header {
-          display: flex; align-items: center; gap: 1vw; margin-bottom: 2vh;
+          display: flex; align-items: center; gap: 1vw; margin-bottom: 3vh;
           opacity: 0.8;
         }
         .whc-header-icon {
-          width: 4vh; height: 4vh; color: #2d74ff;
+          width: 3.5vh; height: 3.5vh; color: #2d74ff;
         }
         .whc-header-title {
-          font-size: 3vh; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2em;
+          font-size: 3vh; font-weight: 600; text-transform: uppercase; letter-spacing: 0.25em;
           color: #a0a0a0;
         }
         .whc-time {
@@ -161,27 +162,27 @@ export default function WidgetHoraCerta() {
           font-size: 10vh; font-weight: 300; color: #2d74ff; margin-left: 2vw;
         }
         .whc-date-box {
-          margin-top: 4vh; background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255,255,255,0.05);
-          padding: 2vh 4vw; border-radius: 999px;
+          margin-top: 4vh; background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255,255,255,0.08);
+          padding: 1.8vh 4vw; border-radius: 999px;
           backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          box-shadow: 0 4px 6px rgba(0,0,0,0.15);
         }
         .whc-date-text {
-          font-size: 4vh; font-weight: 400; color: #d0d0d0;
-          text-transform: capitalize; letter-spacing: 0.05em;
+          font-size: 3.2vh; font-weight: 500; color: #d0d0d0;
+          letter-spacing: 0.04em;
         }
 
-        /* Portrait overrides */
+        /* Portrait / Vertical overrides */
         @media (orientation: portrait) {
           .whc-bg-glow { width: 100vw; height: 100vw; }
-          .whc-header-icon { width: 6vw; height: 6vw; }
-          .whc-header-title { font-size: 5vw; }
-          .whc-hours-mins { font-size: 20vw; }
+          .whc-header-icon { width: 5vw; height: 5vw; }
+          .whc-header-title { font-size: 4.5vw; }
+          .whc-hours-mins { font-size: 22vw; }
           .whc-seconds { font-size: 8vw; margin-left: 2vw; }
           .whc-date-box { margin-top: 6vw; padding: 3vw 6vw; }
-          .whc-date-text { font-size: 5vw; }
-          .whc-logo { max-width: 30vw; max-height: 10vh; }
+          .whc-date-text { font-size: 4.5vw; }
+          .whc-logo { max-width: 35vw; max-height: 12vh; margin-bottom: 6vh; }
         }
         `}} />
 
@@ -219,7 +220,7 @@ export default function WidgetHoraCerta() {
           </div>
 
           <div className="whc-date-box">
-            <p className="whc-date-text">{formatDateDDMMYYYY(displayTime)}</p>
+            <p className="whc-date-text">{formatDate(displayTime)}</p>
           </div>
         </div>
       </div>
