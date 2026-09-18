@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
-import { Tv, Plus, Search, Trash2, Camera, Play, Tag, ChevronDown, CheckSquare, Square, X, SkipForward } from 'lucide-react';
+import { Tv, Plus, Search, Trash2, Camera, Play, Tag, ChevronDown, Square, X, SkipForward, ListVideo, AlertCircle } from 'lucide-react';
+
+interface Agendamento {
+  id: string;
+  tipo: string;
+  playlist_id: string;
+  data_inicio: string;
+  data_fim: string;
+  hora_inicio: string;
+  hora_fim: string;
+  dia_semana: string;
+  dia_mes: string;
+  mes: string;
+}
 
 interface Totem {
   id: number;
@@ -15,7 +28,162 @@ interface Totem {
   horario_desliga?: string;
   horario_inicio?: string;
   horario_fim?: string;
+  playlist_id?: string | null;
+  fuso_horario?: string;
+  agendamentos?: Agendamento[] | string | null;
 }
+
+// ──────────────────────────────────────────────────────────────
+// Helpers: fuso horário e verificação de horário de funcionamento
+// ──────────────────────────────────────────────────────────────
+
+/** Retorna os minutos do dia atual no fuso horário do dispositivo */
+function getCurrentMinutesInTz(fusoHorario?: string): number {
+  const tz = fusoHorario || 'America/Sao_Paulo';
+  try {
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: tz,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(now);
+    const h = parseInt(parts.find(p => p.type === 'hour')?.value ?? '0', 10);
+    const m = parseInt(parts.find(p => p.type === 'minute')?.value ?? '0', 10);
+    return h * 60 + m;
+  } catch {
+    const now = new Date();
+    return now.getHours() * 60 + now.getMinutes();
+  }
+}
+
+/** Verifica se agora está fora do horário de funcionamento */
+function isOutsideWorkingHours(totem: Totem): boolean {
+  const hInicio = totem.horario_inicio || totem.horario_liga;
+  const hFim = totem.horario_fim || totem.horario_desliga;
+  if (!hInicio || !hFim) return false;
+
+  const currentMinutes = getCurrentMinutesInTz(totem.fuso_horario);
+  const [startH, startM] = hInicio.split(':').map(Number);
+  const [endH, endM] = hFim.split(':').map(Number);
+  const startMinutes = startH * 60 + (startM || 0);
+  const endMinutes = endH * 60 + (endM || 0);
+
+  if (startMinutes <= endMinutes) {
+    return currentMinutes < startMinutes || currentMinutes > endMinutes;
+  } else {
+    // Horário que cruza meia-noite
+    return currentMinutes < startMinutes && currentMinutes > endMinutes;
+  }
+}
+
+/** Normaliza agendamentos (podem vir como string JSON do PHP) */
+function parseAgendamentos(raw: Agendamento[] | string | null | undefined): Agendamento[] {
+  if (!raw) return [];
+  if (typeof raw === 'string') {
+    try { return JSON.parse(raw) ?? []; } catch { return []; }
+  }
+  return Array.isArray(raw) ? raw : [];
+}
+
+/** Verifica se existe agendamento ativo agora (considerando fuso do dispositivo) */
+function hasActiveScheduleNow(totem: Totem): boolean {
+  const agendamentos = parseAgendamentos(totem.agendamentos);
+  if (agendamentos.length === 0) return false;
+
+  const now = new Date();
+  const currentMinutes = getCurrentMinutesInTz(totem.fuso_horario);
+
+  for (const ag of agendamentos) {
+    if (!ag.tipo || !ag.playlist_id) continue;
+
+    // Período de datas
+    if (ag.data_inicio && ag.data_fim) {
+      const start = new Date(ag.data_inicio.replace(' ', 'T'));
+      const end = new Date(ag.data_fim.replace(' ', 'T'));
+      if (now < start || now > end) continue;
+    }
+
+    // Horário do dia
+    if (ag.hora_inicio && ag.hora_fim) {
+      const [sh, sm] = ag.hora_inicio.split(':').map(Number);
+      const [eh, em] = ag.hora_fim.split(':').map(Number);
+      const startM = sh * 60 + (sm || 0);
+      const endM = eh * 60 + (em || 0);
+      if (currentMinutes < startM || currentMinutes > endM) continue;
+    }
+
+    // Dia da semana
+    if (ag.tipo === 'dia_semana' && ag.dia_semana !== '') {
+      if (now.getDay().toString() !== ag.dia_semana) continue;
+    }
+
+    // Dia do mês
+    if (ag.tipo === 'dia_mes' && ag.dia_mes !== '') {
+      if (now.getDate().toString() !== ag.dia_mes) continue;
+    }
+
+    // Mês
+    if (ag.tipo === 'mes' && ag.mes !== '') {
+      if ((now.getMonth() + 1).toString() !== ag.mes) continue;
+    }
+
+    return true;
+  }
+  return false;
+}
+
+// ──────────────────────────────────────────────────────────────
+// Lógica principal de status da tela
+// ──────────────────────────────────────────────────────────────
+const getTotemStatusInfo = (totem: Totem): { color: string; label: string } => {
+  // Sem comunicação alguma
+  if (!totem.ultima_sincronizacao) {
+    if (isOutsideWorkingHours(totem)) {
+      return { color: 'bg-[#bdc3c7]', label: 'SEM COMUNICAÇÃO FORA DO HORÁRIO DE FUNCIONAMENTO' };
+    }
+    return { color: 'bg-[#e74c3c]', label: 'SEM COMUNICAÇÃO' };
+  }
+
+  const lastSync = new Date(
+    totem.ultima_sincronizacao.replace(' ', 'T') +
+    (totem.ultima_sincronizacao.includes('Z') || totem.ultima_sincronizacao.includes('+') ? '' : '')
+  );
+  const now = new Date();
+  const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
+
+  const isDeviceReportWorking =
+    totem.status === 'FUNCIONANDO CORRETAMENTE' ||
+    !!(totem.ultima_informacao && totem.ultima_informacao.startsWith('Reproduzindo'));
+
+  if (diffMinutes > 15 || diffMinutes < -15) {
+    // Dispositivo offline — verifica se é por horário ou agendamento
+    if (isOutsideWorkingHours(totem)) {
+      return { color: 'bg-[#bdc3c7]', label: 'SEM COMUNICAÇÃO FORA DO HORÁRIO DE FUNCIONAMENTO' };
+    }
+    // Agendamentos de descanso: tem horário de funcionamento mas não há agendamento ativo
+    const agendamentos = parseAgendamentos(totem.agendamentos);
+    if (agendamentos.length > 0 && !hasActiveScheduleNow(totem)) {
+      return { color: 'bg-[#bdc3c7]', label: 'SEM COMUNICAÇÃO FORA DO HORÁRIO DE FUNCIONAMENTO' };
+    }
+
+    if (isDeviceReportWorking) {
+      return { color: 'bg-[#2ecc71]', label: 'FUNCIONANDO CORRETAMENTE' };
+    }
+    return { color: 'bg-[#e74c3c]', label: 'SEM COMUNICAÇÃO' };
+  } else if (diffMinutes > 5) {
+    return { color: 'bg-[#f1c40f]', label: 'EM VERIFICAÇÃO' };
+  } else {
+    // Online — mas sem lista de reprodução → Em Verificação
+    if (!totem.playlist_id) {
+      return { color: 'bg-[#f1c40f]', label: 'EM VERIFICAÇÃO' };
+    }
+    return { color: 'bg-[#2ecc71]', label: 'FUNCIONANDO CORRETAMENTE' };
+  }
+};
+
+const getTotemStatusColor = (totem: Totem) => getTotemStatusInfo(totem).color;
+const getTotemStatusLabel = (totem: Totem) => getTotemStatusInfo(totem).label;
 
 export default function AgencyTotems() {
   const navigate = useNavigate();
@@ -23,14 +191,22 @@ export default function AgencyTotems() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
-  
+  const [searchTerm, setSearchTerm] = useState('');
+
   const [deviceId, setDeviceId] = useState('');
   const [error, setError] = useState('');
 
   const loadTotems = async () => {
     try {
       const data = await apiFetch('/api/totems');
-      setTotems(data);
+      // Normaliza agendamentos (PHP retorna string JSON)
+      const normalized = (data as Totem[]).map((t: Totem) => {
+        if (typeof t.agendamentos === 'string') {
+          try { t.agendamentos = JSON.parse(t.agendamentos) ?? []; } catch { t.agendamentos = []; }
+        }
+        return t;
+      });
+      setTotems(normalized);
     } catch (err) {
       console.error(err);
     } finally {
@@ -80,55 +256,11 @@ export default function AgencyTotems() {
     }
   };
 
-  const getTotemStatusInfo = (totem: Totem): { color: string; label: string } => {
-    if (!totem.ultima_sincronizacao) return { color: 'bg-[#e74c3c]', label: 'SEM COMUNICAÇÃO' };
-    
-    const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T') + (totem.ultima_sincronizacao.includes('Z') || totem.ultima_sincronizacao.includes('+') ? '' : ''));
-    const now = new Date();
-    
-    const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
-
-    const isDeviceReportWorking = totem.status === 'FUNCIONANDO CORRETAMENTE'
-      || (totem.ultima_informacao && totem.ultima_informacao.startsWith('Reproduzindo'));
-
-    if (diffMinutes > 15 || diffMinutes < -15) {
-      const hInicio = totem.horario_inicio;
-      const hFim = totem.horario_fim;
-      
-      if (hInicio && hFim) {
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        const [startH, startM] = hInicio.split(':').map(Number);
-        const [endH, endM] = hFim.split(':').map(Number);
-        
-        const startMinutes = startH * 60 + (startM || 0);
-        const endMinutes = endH * 60 + (endM || 0);
-
-        let isOut = false;
-        if (startMinutes <= endMinutes) {
-          isOut = currentMinutes < startMinutes || currentMinutes > endMinutes;
-        } else {
-          isOut = currentMinutes < startMinutes && currentMinutes > endMinutes;
-        }
-
-        if (isOut) {
-          return { color: 'bg-[#bdc3c7]', label: 'SEM COMUNICAÇÃO FORA DO HORÁRIO DE FUNCIONAMENTO' };
-        }
-      }
-
-      if (isDeviceReportWorking) {
-        return { color: 'bg-[#2ecc71]', label: 'FUNCIONANDO CORRETAMENTE' };
-      }
-
-      return { color: 'bg-[#e74c3c]', label: 'SEM COMUNICAÇÃO' };
-    } else if (diffMinutes > 5) {
-      return { color: 'bg-[#f1c40f]', label: 'EM VERIFICAÇÃO' };
-    } else {
-      return { color: 'bg-[#2ecc71]', label: 'FUNCIONANDO CORRETAMENTE' };
-    }
-  };
-
-  const getTotemStatusColor = (totem: Totem) => getTotemStatusInfo(totem).color;
-  const getTotemStatusLabel = (totem: Totem) => getTotemStatusInfo(totem).label;
+  // Filtro de pesquisa
+  const filteredTotems = totems.filter(t =>
+    t.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.device_id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6 text-zinc-600 font-sans relative min-h-full">
@@ -156,6 +288,8 @@ export default function AgencyTotems() {
           <input 
             type="text" 
             placeholder="PESQUISAR" 
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
             className="w-full border-b border-zinc-200 bg-transparent py-2 pl-10 pr-4 text-xs font-bold text-[#104a9e] uppercase placeholder-[#104a9e] focus:outline-none focus:border-[#104a9e] transition-colors"
           />
         </div>
@@ -195,12 +329,26 @@ export default function AgencyTotems() {
               </tr>
             </thead>
             <tbody>
-              {totems.length === 0 && !loading ? (
+              {loading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-zinc-400">Nenhuma Tela cadastrada.</td>
+                  <td colSpan={4} className="px-6 py-12 text-center text-zinc-400">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-zinc-300 border-t-[#104a9e] rounded-full animate-spin" />
+                      Carregando telas...
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredTotems.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-zinc-400">
+                    {searchTerm ? 'Nenhuma Tela encontrada para a pesquisa.' : 'Nenhuma Tela cadastrada.'}
+                  </td>
                 </tr>
               ) : (
-                totems.map(totem => (
+                filteredTotems.map(totem => {
+                  const statusInfo = getTotemStatusInfo(totem);
+                  const hasPlaylist = !!totem.playlist_id;
+                  return (
                   <tr key={totem.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors group">
                     <td className="px-4 py-4 text-center">
                       <Square className="w-4 h-4 inline-block text-zinc-300" />
@@ -209,20 +357,19 @@ export default function AgencyTotems() {
                       <div className="flex items-center gap-3">
                         <Link to={`/agency/totems/${totem.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                           {/* Play Icon Box */}
-                          <div className={`w-8 h-8 rounded ${getTotemStatusColor(totem)} flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300`}>
+                          <div className={`w-8 h-8 rounded ${statusInfo.color} flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300`}>
                             <Play className="w-4 h-4 text-white ml-0.5" />
                           </div>
                         </Link>
                         
-                        {/* New Icon Button here */}
+                        {/* Botão de aviso sobre auto-start Android */}
                         <Link 
                           to="/agency/help/autostart"
-                          className="w-7 h-7 rounded border border-orange-200 bg-orange-50 text-orange-400 flex items-center justify-center hover:bg-orange-100 transition-colors relative group shrink-0"
+                          className="w-7 h-7 rounded border border-orange-200 bg-orange-50 text-orange-400 flex items-center justify-center hover:bg-orange-100 transition-colors relative group/tip shrink-0"
                         >
                           <SkipForward className="w-3.5 h-3.5" />
-                          
                           {/* Tooltip */}
-                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2 bg-[#2d2d2d] text-white text-[11px] font-normal normal-case rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none text-center">
+                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2 bg-[#2d2d2d] text-white text-[11px] font-normal normal-case rounded shadow-xl opacity-0 invisible group-hover/tip:opacity-100 group-hover/tip:visible transition-all z-10 pointer-events-none text-center">
                             O app não iniciará automaticamente até que seja liberado a permissão de "sobreposição sobre outros apps" no Android.
                             <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#2d2d2d]"></div>
                           </div>
@@ -231,19 +378,29 @@ export default function AgencyTotems() {
                         <Link to={`/agency/totems/${totem.id}`} className="font-semibold text-zinc-700 hover:text-[#104a9e] hover:underline whitespace-nowrap">
                           {totem.nome}
                         </Link>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded text-white whitespace-nowrap ${getTotemStatusColor(totem)}`}>
-                          {getTotemStatusLabel(totem)}
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded text-white whitespace-nowrap ${statusInfo.color}`}>
+                          {statusInfo.label}
                         </span>
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      {/* Link to Settings page */}
-                      <Link to={`/agency/totems/${totem.id}`} className="inline-block bg-[#e74c3c] hover:bg-[#c0392b] text-white text-[10px] font-bold px-3 py-1.5 rounded transition-colors uppercase">
-                        Selecione uma lista de reprodução para essa Tela!
-                      </Link>
+                      {hasPlaylist ? (
+                        <PlaylistBadge totemId={totem.id} playlistId={totem.playlist_id!} />
+                      ) : (
+                        <Link
+                          to={`/agency/totems/${totem.id}`}
+                          className="inline-block bg-[#e74c3c] hover:bg-[#c0392b] text-white text-[10px] font-bold px-3 py-1.5 rounded transition-colors uppercase"
+                        >
+                          Selecione uma lista de reprodução para essa Tela!
+                        </Link>
+                      )}
                     </td>
                     <td className="px-4 py-4 text-center relative">
-                      <button className="w-8 h-8 rounded bg-[#9b59b6] flex items-center justify-center text-white mx-auto hover:bg-[#8e44ad] transition-colors">
+                      <button
+                        onClick={() => handleCaptureScreen(totem.id)}
+                        className="w-8 h-8 rounded bg-[#9b59b6] flex items-center justify-center text-white mx-auto hover:bg-[#8e44ad] transition-colors"
+                        title="Capturar tela"
+                      >
                         <Camera className="w-4 h-4" />
                       </button>
                       <button 
@@ -255,7 +412,8 @@ export default function AgencyTotems() {
                       </button>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -264,7 +422,7 @@ export default function AgencyTotems() {
 
       {/* Pagination Footer */}
       <div className="text-[10px] text-zinc-500 uppercase tracking-wide">
-        Mostrando de 1 a {totems.length} de {totems.length} TELA{totems.length !== 1 ? 'S' : ''}
+        Mostrando de 1 a {filteredTotems.length} de {filteredTotems.length} TELA{filteredTotems.length !== 1 ? 'S' : ''}
       </div>
 
       {/* Legends */}
@@ -366,4 +524,45 @@ export default function AgencyTotems() {
       )}
     </div>
   );
+}
+
+// ──────────────────────────────────────────────────────────────
+// Sub-componente: badge da playlist configurada
+// Busca o nome da playlist via API e exibe como badge verde
+// ──────────────────────────────────────────────────────────────
+function PlaylistBadge({ totemId, playlistId }: { totemId: number; playlistId: string }) {
+  const [playlistNome, setPlaylistNome] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!playlistId) return;
+    apiFetch(`/api/listas/${playlistId}`)
+      .then((data: any) => setPlaylistNome(data?.nome ?? null))
+      .catch(() => setPlaylistNome(null));
+  }, [playlistId]);
+
+  return (
+    <Link
+      to={`/agency/totems/${totemId}`}
+      className="inline-flex items-center gap-1.5 bg-[#2ecc71] hover:bg-[#27ae60] text-white text-[10px] font-bold px-3 py-1.5 rounded transition-colors uppercase max-w-[220px]"
+      title={playlistNome ?? 'Lista configurada'}
+    >
+      <ListVideo className="w-3.5 h-3.5 shrink-0" />
+      <span className="truncate">{playlistNome ?? 'Lista configurada'}</span>
+    </Link>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
+// Função: envia comando de captura de tela para o dispositivo
+// ──────────────────────────────────────────────────────────────
+async function handleCaptureScreen(id: number) {
+  try {
+    await apiFetch(`/api/totems/${id}/comando`, {
+      method: 'POST',
+      body: JSON.stringify({ comando: 'capturar_tela' }),
+    });
+    alert('Comando de captura de tela enviado! A imagem aparecerá em breve nas configurações da Tela.');
+  } catch (err: any) {
+    alert('Erro ao enviar comando: ' + err.message);
+  }
 }
