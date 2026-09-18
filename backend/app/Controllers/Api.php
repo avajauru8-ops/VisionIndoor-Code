@@ -42,6 +42,24 @@ class Api extends ResourceController
         }
     }
 
+    public function uploadImage()
+    {
+        try {
+            $file = $this->request->getFile('file');
+            if (!$file || !$file->isValid()) {
+                return $this->failValidationErrors('Nenhum arquivo enviado ou arquivo inválido');
+            }
+
+            $newName = time() . '_widget_' . preg_replace('/[^a-zA-Z0-9.-]/', '_', $file->getName());
+            $file->move(ROOTPATH . 'public/uploads', $newName);
+            
+            $url = base_url('uploads/' . $newName);
+            return $this->respond(['url' => $url]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['error' => 'Erro no upload: ' . $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
     public function migrateNow()
     {
         try {

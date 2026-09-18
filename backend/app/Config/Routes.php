@@ -85,6 +85,7 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
     $routes->get('config', 'Api::config');
     $routes->get('migrate-now', 'Api::migrateNow');
     $routes->post('blob/upload', 'Api::blobUpload');
+    $routes->post('upload', 'Api::uploadImage', ['filter' => 'auth']);
     $routes->get('totem/generate_id', 'Api::generateId');
 });
 

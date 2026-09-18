@@ -198,12 +198,96 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
       { value: 'America/Boa_Vista', label: 'Boa Vista (UTC-04)' },
       { value: 'America/Rio_Branco', label: 'Rio Branco (UTC-05)' },
     ];
+
+    const handleUpload = async (key: string, file: File) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await apiFetch('/api/upload', { method: 'POST', body: fd, headers: {} });
+      if (r?.url) handleParamChange(key, r.url);
+    };
+
+    const ImageField = ({ label, paramKey }: { label: string, paramKey: string }) => {
+      const [uploading, setUploading] = useState(false);
+      const currentVal = params.get(paramKey) || '';
+      return (
+        <div className="flex items-center justify-end gap-4">
+          <label className="text-xs font-bold text-zinc-500 w-48 text-right">{label}:</label>
+          <div className="w-64">
+            {currentVal ? (
+              <div className="relative group">
+                <img src={currentVal} alt="" className="w-full h-20 object-cover rounded-lg border border-zinc-200" />
+                <div className="absolute inset-0 bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <label className="px-2 py-1 bg-white text-zinc-700 text-[10px] font-bold rounded cursor-pointer hover:bg-zinc-100">
+                    {uploading ? 'Enviando...' : 'Alterar'}
+                    <input type="file" accept="image/*" className="hidden" onChange={async e => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      setUploading(true);
+                      await handleUpload(paramKey, f);
+                      setUploading(false);
+                    }} />
+                  </label>
+                  <button type="button" onClick={() => handleParamChange(paramKey, '')} className="px-2 py-1 bg-rose-500 text-white text-[10px] font-bold rounded hover:bg-rose-600">
+                    Remover
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <label className="flex items-center justify-center gap-1.5 bg-zinc-100 border border-dashed border-zinc-300 rounded-lg px-3 py-3 text-[10px] text-zinc-500 hover:border-[#0066ff] hover:text-[#0066ff] cursor-pointer transition-all">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                {uploading ? 'Enviando...' : 'Selecionar imagem'}
+                <input type="file" accept="image/*" className="hidden" onChange={async e => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  setUploading(true);
+                  await handleUpload(paramKey, f);
+                  setUploading(false);
+                }} />
+              </label>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const ColorField = ({ label, paramKey, defaultColor }: { label: string, paramKey: string, defaultColor: string }) => {
+      const currentVal = params.get(paramKey) || '';
+      return (
+        <div className="flex items-center justify-end gap-4">
+          <label className="text-xs font-bold text-zinc-500 w-48 text-right">{label}:</label>
+          <div className="w-64 flex items-center gap-2">
+            <div className="relative">
+              <input
+                type="color"
+                value={currentVal || defaultColor}
+                onChange={e => handleParamChange(paramKey, e.target.value)}
+                className="w-10 h-10 rounded-lg border-2 border-zinc-200 cursor-pointer appearance-none bg-transparent"
+                style={{ padding: 0 }}
+              />
+            </div>
+            <input
+              type="text"
+              value={currentVal}
+              onChange={e => handleParamChange(paramKey, e.target.value)}
+              placeholder={defaultColor}
+              className="flex-1 h-10 border border-zinc-200 rounded-lg px-3 text-xs focus:outline-none focus:border-[#0066ff] bg-white font-mono"
+            />
+            {currentVal && (
+              <button type="button" onClick={() => handleParamChange(paramKey, '')} className="text-[9px] text-rose-500 hover:underline shrink-0">
+                Padrão
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    };
+
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Fuso Horário:</label>
-          <div className="w-40">
-            <select value={params.get('tz') || ''} onChange={e => handleParamChange('tz', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+          <div className="w-64">
+            <select value={params.get('tz') || ''} onChange={e => handleParamChange('tz', e.target.value)} className="w-full h-10 border border-zinc-200 rounded-lg px-3 text-xs focus:outline-none focus:border-[#0066ff] bg-white">
               <option value="">Padrão do Admin</option>
               {TIMEZONES.map(tz => (
                 <option key={tz.value} value={tz.value}>{tz.label}</option>
@@ -211,85 +295,13 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
             </select>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-4">
-          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Imagem Fundo Horizontal:</label>
-          <div className="w-40">
-            <label className="flex items-center justify-center gap-1 bg-zinc-100 border border-dashed border-zinc-300 rounded px-2 py-1.5 text-[10px] text-zinc-500 hover:border-[#0066ff] hover:text-[#0066ff] cursor-pointer transition-all">
-              {params.get('bg_h') ? 'Alterar imagem' : 'Selecionar imagem'}
-              <input type="file" accept="image/*" className="hidden" onChange={async e => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const fd = new FormData();
-                fd.append('file', file);
-                const r = await apiFetch('/api/admin/widgets/upload', { method: 'POST', body: fd, headers: {} });
-                if (r?.url) handleParamChange('bg_h', r.url);
-              }} />
-            </label>
-            {params.get('bg_h') && <button type="button" onClick={() => handleParamChange('bg_h', '')} className="text-[9px] text-rose-500 mt-1 hover:underline">Remover</button>}
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-4">
-          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Imagem Fundo Vertical:</label>
-          <div className="w-40">
-            <label className="flex items-center justify-center gap-1 bg-zinc-100 border border-dashed border-zinc-300 rounded px-2 py-1.5 text-[10px] text-zinc-500 hover:border-[#0066ff] hover:text-[#0066ff] cursor-pointer transition-all">
-              {params.get('bg_v') ? 'Alterar imagem' : 'Selecionar imagem'}
-              <input type="file" accept="image/*" className="hidden" onChange={async e => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const fd = new FormData();
-                fd.append('file', file);
-                const r = await apiFetch('/api/admin/widgets/upload', { method: 'POST', body: fd, headers: {} });
-                if (r?.url) handleParamChange('bg_v', r.url);
-              }} />
-            </label>
-            {params.get('bg_v') && <button type="button" onClick={() => handleParamChange('bg_v', '')} className="text-[9px] text-rose-500 mt-1 hover:underline">Remover</button>}
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-4">
-          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Logo (topo):</label>
-          <div className="w-40">
-            <label className="flex items-center justify-center gap-1 bg-zinc-100 border border-dashed border-zinc-300 rounded px-2 py-1.5 text-[10px] text-zinc-500 hover:border-[#0066ff] hover:text-[#0066ff] cursor-pointer transition-all">
-              {params.get('logo') ? 'Alterar logo' : 'Selecionar logo'}
-              <input type="file" accept="image/*" className="hidden" onChange={async e => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const fd = new FormData();
-                fd.append('file', file);
-                const r = await apiFetch('/api/admin/widgets/upload', { method: 'POST', body: fd, headers: {} });
-                if (r?.url) handleParamChange('logo', r.url);
-              }} />
-            </label>
-            {params.get('logo') && <button type="button" onClick={() => handleParamChange('logo', '')} className="text-[9px] text-rose-500 mt-1 hover:underline">Remover</button>}
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-4">
-          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Cor Hora/Minutos:</label>
-          <div className="w-40 flex items-center gap-2">
-            <input type="color" value={params.get('cor_hora') || '#ffffff'} onChange={e => handleParamChange('cor_hora', e.target.value)} className="w-8 h-8 rounded border border-zinc-200 cursor-pointer" />
-            <input type="text" value={params.get('cor_hora') || ''} onChange={e => handleParamChange('cor_hora', e.target.value)} placeholder="padrão" className="flex-1 h-8 border border-zinc-200 rounded px-2 text-[10px] focus:outline-none bg-white font-mono" />
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-4">
-          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Cor Segundos:</label>
-          <div className="w-40 flex items-center gap-2">
-            <input type="color" value={params.get('cor_seg') || '#2d74ff'} onChange={e => handleParamChange('cor_seg', e.target.value)} className="w-8 h-8 rounded border border-zinc-200 cursor-pointer" />
-            <input type="text" value={params.get('cor_seg') || ''} onChange={e => handleParamChange('cor_seg', e.target.value)} placeholder="padrão" className="flex-1 h-8 border border-zinc-200 rounded px-2 text-[10px] focus:outline-none bg-white font-mono" />
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-4">
-          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Cor Texto Data:</label>
-          <div className="w-40 flex items-center gap-2">
-            <input type="color" value={params.get('cor_data') || '#d0d0d0'} onChange={e => handleParamChange('cor_data', e.target.value)} className="w-8 h-8 rounded border border-zinc-200 cursor-pointer" />
-            <input type="text" value={params.get('cor_data') || ''} onChange={e => handleParamChange('cor_data', e.target.value)} placeholder="padrão" className="flex-1 h-8 border border-zinc-200 rounded px-2 text-[10px] focus:outline-none bg-white font-mono" />
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-4">
-          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Cor Pill Data:</label>
-          <div className="w-40 flex items-center gap-2">
-            <input type="color" value={params.get('cor_pill') || '#ffffff'} onChange={e => handleParamChange('cor_pill', e.target.value)} className="w-8 h-8 rounded border border-zinc-200 cursor-pointer" />
-            <input type="text" value={params.get('cor_pill') || ''} onChange={e => handleParamChange('cor_pill', e.target.value)} placeholder="padrão" className="flex-1 h-8 border border-zinc-200 rounded px-2 text-[10px] focus:outline-none bg-white font-mono" />
-          </div>
-        </div>
+        <ImageField label="Imagem Fundo Horizontal" paramKey="bg_h" />
+        <ImageField label="Imagem Fundo Vertical" paramKey="bg_v" />
+        <ImageField label="Logo (topo)" paramKey="logo" />
+        <ColorField label="Cor Hora/Minutos" paramKey="cor_hora" defaultColor="#ffffff" />
+        <ColorField label="Cor Segundos" paramKey="cor_seg" defaultColor="#2d74ff" />
+        <ColorField label="Cor Texto Data" paramKey="cor_data" defaultColor="#d0d0d0" />
+        <ColorField label="Cor Pill Data" paramKey="cor_pill" defaultColor="#ffffff" />
       </div>
     );
   }
