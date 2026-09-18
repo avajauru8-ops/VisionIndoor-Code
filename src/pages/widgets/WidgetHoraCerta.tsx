@@ -32,7 +32,16 @@ function formatDate(date: Date): string {
 
 function getUrlParam(key: string): string | null {
   const params = new URLSearchParams(window.location.search);
-  return params.get(key);
+  const val = params.get(key);
+  return val && val.trim() !== '' ? val : null;
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 export default function WidgetHoraCerta() {
@@ -68,9 +77,19 @@ export default function WidgetHoraCerta() {
   const minutes = displayTime.getMinutes().toString().padStart(2, '0');
   const seconds = displayTime.getSeconds().toString().padStart(2, '0');
 
-  const hasImages = !!(config.imagem_fundo_horizontal || config.imagem_fundo_vertical);
-  const hasLogo = !!config.logo;
+  // URL params override admin config
+  const bgH = getUrlParam('bg_h') || config.imagem_fundo_horizontal || '';
+  const bgV = getUrlParam('bg_v') || config.imagem_fundo_vertical || '';
+  const logo = getUrlParam('logo') || config.logo || '';
+  const hasImages = !!(bgH || bgV);
+  const hasLogo = !!logo;
   const bgColor = config.cor_fundo || '#050505';
+
+  // Colors: URL params override, fallback to admin/default
+  const corHora = getUrlParam('cor_hora') || '#ffffff';
+  const corSeg = getUrlParam('cor_seg') || '#2d74ff';
+  const corData = getUrlParam('cor_data') || '#d0d0d0';
+  const corPill = getUrlParam('cor_pill') || '#ffffff';
 
   if (!configLoaded) {
     return (
@@ -145,7 +164,7 @@ export default function WidgetHoraCerta() {
           opacity: 0.8;
         }
         .whc-header-icon {
-          width: 3.5vh; height: 3.5vh; color: #2d74ff;
+          width: 3.5vh; height: 3.5vh; color: ${corSeg};
         }
         .whc-header-title {
           font-size: 3vh; font-weight: 600; text-transform: uppercase; letter-spacing: 0.25em;
@@ -158,19 +177,22 @@ export default function WidgetHoraCerta() {
         }
         .whc-hours-mins {
           font-size: 28vh; font-weight: 700; letter-spacing: -0.02em;
+          color: ${corHora};
         }
         .whc-seconds {
-          font-size: 10vh; font-weight: 300; color: #2d74ff; margin-left: 2vw;
+          font-size: 10vh; font-weight: 300; color: ${corSeg}; margin-left: 2vw;
         }
         .whc-date-box {
-          margin-top: 4vh; background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255,255,255,0.08);
+          margin-top: 4vh;
+          background: ${hexToRgba(corPill, 0.08)};
+          border: 1px solid ${hexToRgba(corPill, 0.15)};
           padding: 1.8vh 4vw; border-radius: 999px;
           backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
           box-shadow: 0 4px 6px rgba(0,0,0,0.15);
         }
         .whc-date-text {
-          font-size: 3.2vh; font-weight: 500; color: #d0d0d0;
+          font-size: 3.2vh; font-weight: 500;
+          color: ${corData};
           letter-spacing: 0.04em;
         }
 
@@ -192,11 +214,11 @@ export default function WidgetHoraCerta() {
         <>
           <div 
             className="whc-bg-image hidden md:block"
-            style={{ backgroundImage: `url(${config.imagem_fundo_horizontal})` }}
+            style={{ backgroundImage: `url(${bgH})` }}
           />
           <div 
             className="whc-bg-image block md:hidden"
-            style={{ backgroundImage: `url(${config.imagem_fundo_vertical || config.imagem_fundo_horizontal})` }}
+            style={{ backgroundImage: `url(${bgV || bgH})` }}
           />
         </>
       )}
@@ -206,7 +228,7 @@ export default function WidgetHoraCerta() {
       <div className="whc-content">
         {/* Logo */}
         {hasLogo && (
-          <img src={config.logo} alt="Logo" className="whc-logo" />
+          <img src={logo} alt="Logo" className="whc-logo" />
         )}
 
         <div className="whc-clock-box">
