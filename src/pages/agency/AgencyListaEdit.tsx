@@ -129,16 +129,19 @@ const CityAutocomplete = ({ cidade, estado, onChange }: { cidade: string, estado
 
 
 const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key: string, value: string) => void }) => {
-  const parsedUrl = new URL(item.widget_nome || '', 'http://localhost');
-  const params = parsedUrl.searchParams;
-  const widgetType = parsedUrl.pathname.replace('/', '');
+  const widgetNome = item.widget_nome || '';
+  const questionIdx = widgetNome.indexOf('?');
+  const widgetType = questionIdx >= 0 ? widgetNome.substring(0, questionIdx) : widgetNome;
+  const searchStr = questionIdx >= 0 ? widgetNome.substring(questionIdx) : '';
+  const currentParams = new URLSearchParams(searchStr);
 
   const handleParamChange = (key: string, value: string) => {
-    const newParams = new URLSearchParams(parsedUrl.search);
-    newParams.set(key, value);
-    const newWidgetNome = `${widgetType}?${newParams.toString()}`;
+    currentParams.set(key, value);
+    const newWidgetNome = `${widgetType}?${currentParams.toString()}`;
     onUpdate('widget_nome', newWidgetNome);
   };
+
+  const getParam = (key: string) => currentParams.get(key) || '';
 
   if (widgetType === 'clima') {
     return (
@@ -146,15 +149,15 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="flex items-center justify-center gap-4 mt-2">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Celsius / Fahrenheit:</label>
           <div className="w-40">
-            <select value={params.get('unidade') || 'C'} onChange={e => handleParamChange('unidade', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+            <select value={getParam('unidade') || 'C'} onChange={e => handleParamChange('unidade', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
               <option value="C">Celsius</option>
               <option value="F">Fahrenheit</option>
             </select>
           </div>
         </div>
         <CityAutocomplete 
-          cidade={params.get('cidade') || ''} 
-          estado={params.get('estado') || ''} 
+          cidade={getParam('cidade') || ''} 
+          estado={getParam('estado') || ''} 
           onChange={(cidade, estado) => {
             const newParams = new URLSearchParams(parsedUrl.search);
             newParams.set('cidade', cidade);
@@ -172,7 +175,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
       <div className="flex items-center justify-end gap-4">
         <label className="text-xs font-bold text-zinc-500 w-48 text-right">Tipo de Sorteio:</label>
         <div className="w-40">
-          <select value={params.get('tipo') || 'megasena'} onChange={e => handleParamChange('tipo', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+          <select value={getParam('tipo') || 'megasena'} onChange={e => handleParamChange('tipo', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
             <option value="megasena">Mega-Sena</option>
             <option value="megavirada">Mega da Virada</option>
             <option value="lotofacil">Lotofácil</option>
@@ -208,7 +211,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
 
     const ImageField = ({ label, paramKey }: { label: string, paramKey: string }) => {
       const [uploading, setUploading] = useState(false);
-      const currentVal = params.get(paramKey) || '';
+      const currentVal = getParam(paramKey);
       return (
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">{label}:</label>
@@ -251,7 +254,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
     };
 
     const ColorField = ({ label, paramKey, defaultColor }: { label: string, paramKey: string, defaultColor: string }) => {
-      const currentVal = params.get(paramKey) || '';
+      const currentVal = getParam(paramKey);
       return (
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">{label}:</label>
@@ -287,7 +290,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Fuso Horário:</label>
           <div className="w-64">
-            <select value={params.get('tz') || ''} onChange={e => handleParamChange('tz', e.target.value)} className="w-full h-10 border border-zinc-200 rounded-lg px-3 text-xs focus:outline-none focus:border-[#0066ff] bg-white">
+            <select value={getParam('tz') || ''} onChange={e => handleParamChange('tz', e.target.value)} className="w-full h-10 border border-zinc-200 rounded-lg px-3 text-xs focus:outline-none focus:border-[#0066ff] bg-white">
               <option value="">Padrão do Admin</option>
               {TIMEZONES.map(tz => (
                 <option key={tz.value} value={tz.value}>{tz.label}</option>
@@ -312,13 +315,13 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">URL do Vídeo:</label>
           <div className="w-40">
-            <input type="text" value={params.get('url') || ''} onChange={e => handleParamChange('url', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="https://youtube.com/..." />
+            <input type="text" value={getParam('url') || ''} onChange={e => handleParamChange('url', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="https://youtube.com/..." />
           </div>
         </div>
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Repetir em Loop:</label>
           <div className="w-40">
-            <select value={params.get('loop') || '1'} onChange={e => handleParamChange('loop', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+            <select value={getParam('loop') || '1'} onChange={e => handleParamChange('loop', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
               <option value="1">Sim</option>
               <option value="0">Não</option>
             </select>
@@ -327,7 +330,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Mudo (Obrigatório para Autoplay):</label>
           <div className="w-40">
-            <select value={params.get('mute') || '1'} onChange={e => handleParamChange('mute', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+            <select value={getParam('mute') || '1'} onChange={e => handleParamChange('mute', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
               <option value="1">Sim</option>
               <option value="0">Não</option>
             </select>
@@ -336,7 +339,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Iniciar em (segundos):</label>
           <div className="w-40">
-            <input type="number" min="0" value={params.get('start') || '0'} onChange={e => handleParamChange('start', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="0" />
+            <input type="number" min="0" value={getParam('start') || '0'} onChange={e => handleParamChange('start', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white" placeholder="0" />
           </div>
         </div>
       </>
@@ -349,7 +352,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Fonte de Notícias:</label>
           <div className="w-40">
-            <select value={params.get('feed') || 'noticias'} onChange={e => handleParamChange('feed', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+            <select value={getParam('feed') || 'noticias'} onChange={e => handleParamChange('feed', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
               <option value="noticias">UOL Notícias</option>
               <option value="esporte">UOL Esporte</option>
               <option value="economia">UOL Economia</option>
@@ -368,7 +371,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <div className="flex items-center justify-end gap-4">
           <label className="text-xs font-bold text-zinc-500 w-48 text-right">Modo de Exibição:</label>
           <div className="w-40">
-            <select value={params.get('mode') || 'random'} onChange={e => handleParamChange('mode', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
+            <select value={getParam('mode') || 'random'} onChange={e => handleParamChange('mode', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
               <option value="random">Aleatório (Qualquer notícia)</option>
               <option value="latest3">Apenas as 3 mais recentes</option>
             </select>

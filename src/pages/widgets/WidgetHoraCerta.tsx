@@ -38,16 +38,22 @@ function getUrlParam(key: string): string | null {
 
 function hexToRgba(hex: string, alpha: number): string {
   const h = hex.replace('#', '');
+  if (h.length !== 6) return hex;
   const r = parseInt(h.substring(0, 2), 16);
   const g = parseInt(h.substring(2, 4), 16);
   const b = parseInt(h.substring(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+function isPortrait() {
+  return window.innerHeight > window.innerWidth;
+}
+
 export default function WidgetHoraCerta() {
   const [time, setTime] = useState(new Date());
   const [config, setConfig] = useState<WidgetConfig>({});
   const [configLoaded, setConfigLoaded] = useState(false);
+  const [portrait, setPortrait] = useState(isPortrait());
 
   useEffect(() => {
     fetch('/api/widget-config/horacerta')
@@ -63,10 +69,14 @@ export default function WidgetHoraCerta() {
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
+    const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => setPortrait(isPortrait());
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const urlTimezone = getUrlParam('tz');
@@ -77,7 +87,6 @@ export default function WidgetHoraCerta() {
   const minutes = displayTime.getMinutes().toString().padStart(2, '0');
   const seconds = displayTime.getSeconds().toString().padStart(2, '0');
 
-  // URL params override admin config
   const bgH = getUrlParam('bg_h') || config.imagem_fundo_horizontal || '';
   const bgV = getUrlParam('bg_v') || config.imagem_fundo_vertical || '';
   const logo = getUrlParam('logo') || config.logo || '';
@@ -85,7 +94,6 @@ export default function WidgetHoraCerta() {
   const hasLogo = !!logo;
   const bgColor = config.cor_fundo || '#050505';
 
-  // Colors: URL params override, fallback to admin/default
   const corHora = getUrlParam('cor_hora') || '#ffffff';
   const corSeg = getUrlParam('cor_seg') || '#2d74ff';
   const corData = getUrlParam('cor_data') || '#d0d0d0';
@@ -99,152 +107,93 @@ export default function WidgetHoraCerta() {
     );
   }
 
+  const p = portrait;
+
   return (
-    <div className="whc-container">
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-        }
-        html, body, #root {
-          width: 100%; height: 100%;
-          background-color: ${bgColor};
-          overflow: hidden;
-        }
-        .whc-container {
-          position: absolute;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          display: flex; flex-direction: column;
-          align-items: center; justify-content: center;
-          color: white; overflow: hidden;
-          background-color: ${bgColor};
-          ${hasImages ? '' : `background: radial-gradient(circle at center, #1a1a1a 0%, ${bgColor} 100%);`}
-        }
-        .whc-bg-image {
-          position: absolute;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          pointer-events: none;
-          z-index: 1;
-        }
-        .whc-bg-glow {
-          position: absolute;
-          width: 60vw; height: 60vw;
-          background: radial-gradient(circle, rgba(45, 116, 255, 0.15) 0%, transparent 70%);
-          top: 50%; left: 50%;
-          transform: translate(-50%, -50%);
-          pointer-events: none;
-        }
-        .whc-content {
-          position: relative;
-          z-index: 10;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-        .whc-logo {
-          max-width: 22vw;
-          max-height: 14vh;
-          margin-top: 50px;
-          margin-bottom: 4vh;
-          object-fit: contain;
-          filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-        }
-        .whc-clock-box {
-          display: flex; flex-direction: column; align-items: center; z-index: 10;
-        }
-        .whc-header {
-          display: flex; align-items: center; gap: 1vw; margin-bottom: 3vh;
-          opacity: 0.8;
-        }
-        .whc-header-icon {
-          width: 3.5vh; height: 3.5vh; color: ${corSeg};
-        }
-        .whc-header-title {
-          font-size: 3vh; font-weight: 600; text-transform: uppercase; letter-spacing: 0.25em;
-          color: #a0a0a0;
-        }
-        .whc-time {
-          display: flex; align-items: baseline; justify-content: center;
-          font-family: 'JetBrains Mono', monospace;
-          line-height: 1; text-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .whc-hours-mins {
-          font-size: 28vh; font-weight: 700; letter-spacing: -0.02em;
-          color: ${corHora};
-        }
-        .whc-seconds {
-          font-size: 10vh; font-weight: 300; color: ${corSeg}; margin-left: 2vw;
-        }
-        .whc-date-box {
-          margin-top: 4vh;
-          background: ${hexToRgba(corPill, 0.08)};
-          border: 1px solid ${hexToRgba(corPill, 0.15)};
-          padding: 1.8vh 4vw; border-radius: 999px;
-          backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-          box-shadow: 0 4px 6px rgba(0,0,0,0.15);
-        }
-        .whc-date-text {
-          font-size: 3.2vh; font-weight: 500;
-          color: ${corData};
-          letter-spacing: 0.04em;
-        }
-
-        /* Portrait / Vertical overrides */
-        @media (orientation: portrait) {
-          .whc-bg-glow { width: 100vw; height: 100vw; }
-          .whc-header-icon { width: 5vw; height: 5vw; }
-          .whc-header-title { font-size: 4.5vw; }
-          .whc-hours-mins { font-size: 22vw; }
-          .whc-seconds { font-size: 8vw; margin-left: 2vw; }
-          .whc-date-box { margin-top: 6vw; padding: 3vw 6vw; }
-          .whc-date-text { font-size: 4.5vw; }
-          .whc-logo { max-width: 35vw; max-height: 12vh; margin-top: 50px; margin-bottom: 6vh; }
-        }
-        `}} />
-
+    <div style={{
+      position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+      background: bgColor, overflow: 'hidden', color: 'white',
+      fontFamily: "'JetBrains Mono', monospace",
+    }}>
       {/* Background Image */}
       {hasImages && (
         <>
-          <div 
-            className="whc-bg-image hidden md:block"
-            style={{ backgroundImage: `url(${bgH})` }}
-          />
-          <div 
-            className="whc-bg-image block md:hidden"
-            style={{ backgroundImage: `url(${bgV || bgH})` }}
-          />
+          <div style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+            backgroundImage: `url(${bgH})`, backgroundSize: 'cover', backgroundPosition: 'center',
+            zIndex: 1, display: p ? 'none' : 'block',
+          }} />
+          <div style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+            backgroundImage: `url(${bgV || bgH})`, backgroundSize: 'cover', backgroundPosition: 'center',
+            zIndex: 1, display: p ? 'block' : 'none',
+          }} />
         </>
       )}
 
-      {!hasImages && <div className="whc-bg-glow" />}
+      {!hasImages && (
+        <div style={{
+          position: 'absolute', width: p ? '100vw' : '60vw', height: p ? '100vw' : '60vw',
+          background: 'radial-gradient(circle, rgba(45, 116, 255, 0.15) 0%, transparent 70%)',
+          top: '50%', left: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none', zIndex: 1,
+        }} />
+      )}
 
-      <div className="whc-content">
+      {/* Content */}
+      <div style={{
+        position: 'relative', zIndex: 10, width: '100%', height: '100%',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      }}>
         {/* Logo */}
         {hasLogo && (
-          <img src={logo} alt="Logo" className="whc-logo" />
+          <img src={logo} alt="Logo" style={{
+            maxWidth: p ? '35vw' : '22vw',
+            maxHeight: p ? '12vh' : '14vh',
+            marginTop: 50,
+            marginBottom: p ? '6vh' : '4vh',
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
+          }} />
         )}
 
-        <div className="whc-clock-box">
-          <div className="whc-header">
-            <Clock className="whc-header-icon" />
-            <h2 className="whc-header-title">Hora Certa</h2>
-          </div>
+        {/* Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: p ? '2vw' : '1vw',
+          marginBottom: p ? '3vh' : '3vh', opacity: 0.8,
+        }}>
+          <Clock style={{ width: p ? '5vw' : '3.5vh', height: p ? '5vw' : '3.5vh', color: corSeg }} />
+          <h2 style={{
+            fontSize: p ? '4.5vw' : '3vh', fontWeight: 600,
+            textTransform: 'uppercase', letterSpacing: '0.25em', color: '#a0a0a0',
+          }}>Hora Certa</h2>
+        </div>
 
-          <div className="whc-time">
-            <span className="whc-hours-mins">{hours}:{minutes}</span>
-            <span className="whc-seconds">{seconds}</span>
-          </div>
+        {/* Time */}
+        <div style={{
+          display: 'flex', alignItems: 'baseline', justifyContent: 'center',
+          lineHeight: 1, textShadow: '0 10px 30px rgba(0,0,0,0.5)',
+        }}>
+          <span style={{
+            fontSize: p ? '22vw' : '28vh', fontWeight: 700, letterSpacing: '-0.02em', color: corHora,
+          }}>{hours}:{minutes}</span>
+          <span style={{
+            fontSize: p ? '8vw' : '10vh', fontWeight: 300, color: corSeg, marginLeft: '2vw',
+          }}>{seconds}</span>
+        </div>
 
-          <div className="whc-date-box">
-            <p className="whc-date-text">{formatDate(displayTime)}</p>
-          </div>
+        {/* Date Pill */}
+        <div style={{
+          marginTop: p ? '6vh' : '4vh',
+          background: hexToRgba(corPill, 0.08),
+          border: `1px solid ${hexToRgba(corPill, 0.15)}`,
+          padding: p ? '3vw 6vw' : '1.8vh 4vw',
+          borderRadius: 999,
+          backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.15)',
+        }}>
+          <p style={{
+            fontSize: p ? '4.5vw' : '3.2vh', fontWeight: 500, color: corData, letterSpacing: '0.04em',
+          }}>{formatDate(displayTime)}</p>
         </div>
       </div>
     </div>
