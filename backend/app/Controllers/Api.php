@@ -107,6 +107,40 @@ class Api extends ResourceController
                 // Column already exists, ignore
             }
 
+            // Widgets: adicionar coluna config e widget Hora Certa
+            try {
+                $query = $db->query("SHOW COLUMNS FROM widgets LIKE 'config'");
+                if (!$query->getRow()) {
+                    $db->query("ALTER TABLE widgets ADD COLUMN config JSON NULL");
+                }
+            } catch (\Exception $e) {
+                // ignore
+            }
+
+            try {
+                $existing = $db->table('widgets')->where('identificador', 'horacerta')->get()->getRowArray();
+                if (!$existing) {
+                    $defaultConfig = json_encode([
+                        'timezone' => 'America/Sao_Paulo',
+                        'cor_fundo' => '',
+                        'imagem_fundo_horizontal' => '',
+                        'imagem_fundo_vertical' => '',
+                        'logo' => ''
+                    ]);
+                    $db->table('widgets')->insert([
+                        'nome' => 'Hora Certa',
+                        'identificador' => 'horacerta',
+                        'api_url' => '',
+                        'api_key' => '',
+                        'ativo' => 1,
+                        'em_manutencao' => 0,
+                        'config' => $defaultConfig
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // ignore
+            }
+
             if (count($errors) > 0) {
                 return $this->respond(['success' => false, 'errors' => $errors, 'msg' => 'Migração parcial (colunas já existentes)']);
             }
