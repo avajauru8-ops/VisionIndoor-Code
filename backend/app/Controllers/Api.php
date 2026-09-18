@@ -135,6 +135,13 @@ class Api extends ResourceController
                 // ignore
             }
 
+            // Aumentar widget_nome para TEXT (URLs de imagens ficam grandes)
+            try {
+                $db->query("ALTER TABLE playlist_itens MODIFY COLUMN widget_nome TEXT NULL");
+            } catch (\Exception $e) {
+                // ignore
+            }
+
             try {
                 $existing = $db->table('widgets')->where('identificador', 'horacerta')->get()->getRowArray();
                 if (!$existing) {

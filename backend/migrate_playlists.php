@@ -27,7 +27,7 @@ try {
             id INT AUTO_INCREMENT PRIMARY KEY,
             playlist_id INT NOT NULL,
             campanha_id INT NULL,
-            widget_nome VARCHAR(100) NULL,
+            widget_nome TEXT NULL,
             tempo_exibicao INT DEFAULT 15,
             ordem INT NOT NULL,
             criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
