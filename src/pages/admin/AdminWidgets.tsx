@@ -24,6 +24,7 @@ interface WidgetConfig {
   imagem_fundo_horizontal?: string;
   imagem_fundo_vertical?: string;
   logo?: string;
+  fonte_data?: string;
 }
 
 export default function AdminWidgets() {

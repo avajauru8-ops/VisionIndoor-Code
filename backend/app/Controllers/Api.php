@@ -150,7 +150,8 @@ class Api extends ResourceController
                         'cor_fundo' => '',
                         'imagem_fundo_horizontal' => '',
                         'imagem_fundo_vertical' => '',
-                        'logo' => ''
+                        'logo' => '',
+                        'fonte_data' => ''
                     ]);
                     $db->table('widgets')->insert([
                         'nome' => 'Hora Certa',

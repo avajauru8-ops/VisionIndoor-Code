@@ -305,6 +305,19 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <ColorField label="Cor Segundos" paramKey="cor_seg" defaultColor="#2d74ff" />
         <ColorField label="Cor Texto Data" paramKey="cor_data" defaultColor="#d0d0d0" />
         <ColorField label="Cor Pill Data" paramKey="cor_pill" defaultColor="#ffffff" />
+        <div className="flex items-center justify-end gap-4">
+          <label className="text-xs font-bold text-zinc-500 w-48 text-right">Tamanho Fonte Data:</label>
+          <div className="w-64">
+            <select value={getParam('fonte_data') || ''} onChange={e => handleParamChange('fonte_data', e.target.value)} className="w-full h-10 border border-zinc-200 rounded-lg px-3 text-xs focus:outline-none focus:border-[#0066ff] bg-white">
+              <option value="">Padrão</option>
+              <option value="2vh">Pequeno</option>
+              <option value="3vh">Médio</option>
+              <option value="4vh">Grande</option>
+              <option value="5vh">Muito Grande</option>
+              <option value="6vh">Enorme</option>
+            </select>
+          </div>
+        </div>
       </div>
     );
   }
@@ -384,7 +397,7 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
   return null;
 }
 
-const SortableItem = ({ id, item, onRemove, onDuplicate, onTimeChange, onUpdateField }: { id: string, item: PlaylistItem, onRemove: () => void, onDuplicate: () => void, onTimeChange: (val: number) => void, onUpdateField: (key: string, value: string) => void }) => {
+const SortableItem = ({ id, item, onRemove, onDuplicate, onTimeChange, onUpdateField, onSaveWidget }: { id: string, item: PlaylistItem, onRemove: () => void, onDuplicate: () => void, onTimeChange: (val: number) => void, onUpdateField: (key: string, value: string) => void, onSaveWidget?: () => void }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { type: 'playlist_item', item } });
   
@@ -489,7 +502,17 @@ const SortableItem = ({ id, item, onRemove, onDuplicate, onTimeChange, onUpdateF
             </div>
           </div>
         ) : item.tipo_midia === 'widget' ? (
-          <WidgetSettings item={item} onUpdate={onUpdateField} />
+          <>
+            <WidgetSettings item={item} onUpdate={onUpdateField} />
+            {item.widget_nome?.startsWith('horacerta') && onSaveWidget && (
+              <div className="flex justify-end pt-2 border-t border-zinc-200 mt-3">
+                <button onClick={onSaveWidget} className="px-4 py-2 bg-[#0066ff] hover:bg-[#0052cc] text-white text-[10px] font-bold rounded-lg transition-colors uppercase flex items-center gap-1.5">
+                  <Save className="w-3.5 h-3.5" />
+                  Salvar Configurações do Widget
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="flex items-center justify-end gap-4">
             <label className="text-xs font-bold text-zinc-500 w-48 text-right">Preenchimento:</label>
@@ -884,6 +907,7 @@ export default function AgencyListaEdit() {
                               onDuplicate={() => handleDuplicateItem(item)}
                               onTimeChange={(val) => handleChangeTime(item.unique_id!, val)}
                               onUpdateField={(key, val) => handleUpdateField(item.unique_id!, key, val)}
+                              onSaveWidget={handleSave}
                             />
                           ))}
                         </SortableContext>
