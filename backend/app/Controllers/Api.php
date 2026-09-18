@@ -308,9 +308,14 @@ class Api extends ResourceController
             $campanhas = [];
 
             if (!empty($totem['playlist_id'])) {
+                // Verifica se a coluna widget_config existe
+                $piCols = $db->getFieldNames('playlist_itens');
+                $hasWcCol = in_array('widget_config', $piCols);
+                $wcSelect = $hasWcCol ? ', pi.widget_config' : '';
+
                 // Novo modelo: Traz os itens da Lista de Reprodução, mantendo a ordem
                 $itensLista = $db->table('playlist_itens pi')
-                    ->select('c.*, pi.tempo_exibicao as tempo_exibicao_lista, pi.widget_nome, pi.widget_config, pi.ordem')
+                    ->select("c.*, pi.tempo_exibicao as tempo_exibicao_lista, pi.widget_nome{$wcSelect}, pi.ordem")
                     ->join('campanhas c', 'c.id = pi.campanha_id', 'left')
                     ->where('pi.playlist_id', $totem['playlist_id'])
                     ->orderBy('pi.ordem', 'ASC')
@@ -322,7 +327,7 @@ class Api extends ResourceController
                             'id' => intval($totem['playlist_id'] . '0' . $item['ordem']),
                             'tipo_midia' => 'noticia',
                             'arquivo_url' => '/widget/' . $item['widget_nome'],
-                            'widget_config' => $item['widget_config'] ?? null,
+                            'widget_config' => $hasWcCol ? ($item['widget_config'] ?? null) : null,
                             'tempo_exibicao' => $item['tempo_exibicao_lista'],
                             'data_inicio' => null,
                             'data_fim' => null

@@ -113,19 +113,26 @@ class Listas extends ResourceController
             }
             
             if (isset($json->itens) && is_array($json->itens)) {
+                // Verifica se a coluna widget_config existe
+                $piCols = $db->getFieldNames('playlist_itens');
+                $hasWcCol = in_array('widget_config', $piCols);
+
                 // Remove existing items
                 $db->table('playlist_itens')->where('playlist_id', $id)->delete();
                 
                 // Insert new items
                 foreach ($json->itens as $index => $item) {
-                    $db->table('playlist_itens')->insert([
+                    $row = [
                         'playlist_id' => $id,
                         'campanha_id' => isset($item->campanha_id) ? $item->campanha_id : null,
                         'widget_nome' => isset($item->widget_nome) ? $item->widget_nome : null,
-                        'widget_config' => isset($item->widget_config) ? $item->widget_config : null,
                         'tempo_exibicao' => isset($item->tempo_exibicao) ? $item->tempo_exibicao : 15,
                         'ordem' => $index + 1
-                    ]);
+                    ];
+                    if ($hasWcCol) {
+                        $row['widget_config'] = isset($item->widget_config) ? $item->widget_config : null;
+                    }
+                    $db->table('playlist_itens')->insert($row);
                 }
             }
             
