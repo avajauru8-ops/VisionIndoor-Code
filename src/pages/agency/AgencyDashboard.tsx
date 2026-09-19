@@ -53,7 +53,7 @@ function getStatusStyle(status: string) {
 export default function AgencyDashboard() {
   const { user } = useAuth();
   const [totems, setTotems] = useState<Totem[]>([]);
-  const [playlistsCount, setPlaylistsCount] = useState(0);
+  const [activePlaylistsCount, setActivePlaylistsCount] = useState(0);
   const [stats, setStats] = useState({ online: 0, offline: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   
@@ -65,13 +65,18 @@ export default function AgencyDashboard() {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const [totemsData, playlistsData] = await Promise.all([
+        const [totemsData, listasData] = await Promise.all([
           apiFetch('/api/totems'),
-          apiFetch('/api/playlists')
+          apiFetch('/api/listas')
         ]);
         
         setTotems(totemsData);
-        setPlaylistsCount(playlistsData.length);
+
+        // Count only playlists assigned to at least one totem (active in playback)
+        const activePlaylists = Array.isArray(listasData)
+          ? listasData.filter((l: any) => l.totens_vinculados > 0)
+          : [];
+        setActivePlaylistsCount(activePlaylists.length);
         
         let online = 0;
         let offline = 0;
@@ -203,7 +208,7 @@ export default function AgencyDashboard() {
           </div>
         </div>
 
-        {/* Card 4: Playlists Ativas */}
+        {/* Card 4: Playlists em Reprodução */}
         <div className="bg-white border border-[#e8edf2] p-6 rounded-[24px] shadow-sm flex flex-col justify-between min-h-[140px] group hover:-translate-y-1 transition-all duration-300">
           <div className="flex justify-between items-start">
             <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#8b9aa5]">Playlists</span>
@@ -212,12 +217,12 @@ export default function AgencyDashboard() {
             </span>
           </div>
           <div className="mt-4">
-            <h3 className="text-4xl font-extrabold tracking-tight text-zinc-800">{playlistsCount}</h3>
+            <h3 className="text-4xl font-extrabold tracking-tight text-zinc-800">{activePlaylistsCount}</h3>
             <div className="flex items-center gap-1.5 mt-2">
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-[#eef2f6] text-zinc-600">
-                Ativas
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-[#e8f5ed] text-emerald-600">
+                Em reprodução
               </span>
-              <span className="text-[10px] text-[#8b9aa5]">Arquivos rodando</span>
+              <span className="text-[10px] text-[#8b9aa5]">Listas ativas nas telas</span>
             </div>
           </div>
         </div>

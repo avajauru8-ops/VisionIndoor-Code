@@ -23,7 +23,8 @@ import {
   ChevronRight,
   Image as ImageIcon,
   List,
-  HelpCircle
+  HelpCircle,
+  Home
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -80,6 +81,7 @@ export default function Layout() {
   ];
 
   const agencyLinks: MenuItem[] = [
+    { name: 'Início', path: '/agency', icon: Home, category: 'MENU' },
     { name: 'Telas', path: '/agency/totems', icon: Tv, category: 'MENU' },
     { name: 'Arquivos', path: '/agency/arquivos', icon: ImageIcon, category: 'MENU' },
     { name: 'Lista de Reprodução', path: '/agency/listas', icon: List, category: 'MENU' },
