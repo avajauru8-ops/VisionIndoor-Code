@@ -378,9 +378,7 @@ export default function AgencyTotems() {
                         <Link to={`/agency/totems/${totem.id}`} className="font-semibold text-zinc-700 hover:text-[#104a9e] hover:underline whitespace-nowrap">
                           {totem.nome}
                         </Link>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded text-white whitespace-nowrap ${statusInfo.color}`}>
-                          {statusInfo.label}
-                        </span>
+
                       </div>
                     </td>
                     <td className="px-4 py-4">
