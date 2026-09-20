@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
+import { getTotemStatus } from '../../lib/totemStatus';
 import { Tv, Edit, Trash2, Search, CheckCircle, XCircle, Calendar, User, Info, AlertTriangle, X } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -141,22 +142,11 @@ export default function AdminTotems() {
                     </td>
                     <td className="px-6 py-4">
                       {(() => {
-                        const isOnline = totem.ultima_sincronizacao && (new Date().getTime() - new Date(totem.ultima_sincronizacao).getTime() < 5 * 60000); // 5 minutes
+                        const st = getTotemStatus(totem);
                         return (
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            isOnline ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-zinc-100 text-zinc-400 border border-zinc-200'
-                          }`}>
-                            {isOnline ? (
-                              <>
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                Online
-                              </>
-                            ) : (
-                              <>
-                                <span className="w-1.5 h-1.5 rounded-full bg-zinc-300"></span>
-                                Offline
-                              </>
-                            )}
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${st.color}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`}></span>
+                            {st.label}
                           </span>
                         );
                       })()}
