@@ -88,13 +88,18 @@ export default function AgencyDashboard() {
   };
 
   // Calculated network health percentage
-  const networkHealth = stats.total > 0 ? Math.round((stats.online / stats.total) * 100) : 100;
+  const networkHealth = stats.total > 0 ? Math.round((stats.online / stats.total) * 100) : 0;
 
   // Pie chart data for Health gauge
-  const healthPieData = [
-    { name: 'Online', value: stats.online || 1, color: '#10b981' },
-    { name: 'Offline', value: stats.offline, color: '#f3f4f6' }
-  ];
+  const healthPieData = stats.total > 0
+    ? [
+        { name: 'Online', value: stats.online || 0, color: '#10b981' },
+        { name: 'Offline', value: stats.offline || 0, color: '#f3f4f6' }
+      ]
+    : [
+        { name: 'Online', value: 0, color: '#10b981' },
+        { name: 'Offline', value: 1, color: '#f3f4f6' }
+      ];
 
   return (
     <div className="space-y-8 pb-12">
