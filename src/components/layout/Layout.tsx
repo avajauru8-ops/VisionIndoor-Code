@@ -15,7 +15,6 @@ import {
   Smartphone, 
   Search, 
   LayoutTemplate,
-  Mail, 
   Bell,
   Menu,
   X,
@@ -355,10 +354,6 @@ export default function Layout() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-6">
-            <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-50 border border-[#e8edf2] flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all relative">
-              <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full"></span>
-            </button>
             
             {/* Notification Bell */}
             <div className="relative">
