@@ -92,6 +92,12 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
         $routes->post('read-all', 'Notificacoes::markAllRead');
     });
 
+    // Relatórios
+    $routes->group('relatorios', ['filter' => 'auth'], static function ($routes) {
+        $routes->get('/', 'Relatorios::index');
+        $routes->get('', 'Relatorios::index');
+    });
+
     $routes->get('config', 'Api::config');
     $routes->get('migrate-now', 'Api::migrateNow');
     $routes->post('blob/upload', 'Api::blobUpload');

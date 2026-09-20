@@ -23,7 +23,8 @@ import {
   Image as ImageIcon,
   List,
   HelpCircle,
-  Home
+  Home,
+  BarChart3
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -115,6 +116,7 @@ export default function Layout() {
     { name: 'Telas', path: '/agency/totems', icon: Tv, category: 'MENU' },
     { name: 'Arquivos', path: '/agency/arquivos', icon: ImageIcon, category: 'MENU' },
     { name: 'Lista de Reprodução', path: '/agency/listas', icon: List, category: 'MENU' },
+    { name: 'Relatórios', path: '/agency/relatorios', icon: BarChart3, category: 'MENU' },
   ];
 
   const rawLinks = isAgency ? agencyLinks : adminLinks;
