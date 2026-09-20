@@ -177,6 +177,23 @@ class Api extends ResourceController
                 // ignore
             }
 
+            // Tabela de notificações
+            try {
+                $db->query("CREATE TABLE IF NOT EXISTS notificacoes (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    usuario_id INT NOT NULL,
+                    titulo VARCHAR(255) NOT NULL,
+                    mensagem TEXT NOT NULL,
+                    tipo VARCHAR(50) NOT NULL DEFAULT 'info',
+                    lida TINYINT(1) DEFAULT 0,
+                    totem_id INT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+                )");
+            } catch (\Exception $e) {
+                // ignore
+            }
+
             if (count($errors) > 0) {
                 return $this->respond(['success' => false, 'errors' => $errors, 'msg' => 'Migração parcial (colunas já existentes)']);
             }

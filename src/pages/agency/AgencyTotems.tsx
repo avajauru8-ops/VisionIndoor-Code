@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { getTotemStatus } from '../../lib/totemStatus';
@@ -150,6 +150,7 @@ export default function AgencyTotems() {
   const [showForm, setShowForm] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const prevStatusRef = useRef<Record<string, string>>({});
 
   const [deviceId, setDeviceId] = useState('');
   const [error, setError] = useState('');
@@ -164,6 +165,29 @@ export default function AgencyTotems() {
         }
         return t;
       });
+
+      // Detectar mudanças de status e criar notificações
+      normalized.forEach((t: Totem) => {
+        const st = getTotemStatus(t);
+        const currentStatus = st.label;
+        const key = String(t.id);
+        const prevStatus = prevStatusRef.current[key];
+
+        if (prevStatus && prevStatus !== currentStatus) {
+          const isOnline = currentStatus === 'Online';
+          apiFetch('/api/notificacoes', {
+            method: 'POST',
+            body: JSON.stringify({
+              titulo: isOnline ? 'Tela Online' : 'Tela Offline',
+              mensagem: `${t.nome} está ${isOnline ? 'online' : 'offline'}.`,
+              tipo: isOnline ? 'success' : 'warning',
+              totem_id: t.id
+            })
+          }).catch(() => {});
+        }
+        prevStatusRef.current[key] = currentStatus;
+      });
+
       setTotems(normalized);
     } catch (err) {
       console.error(err);

@@ -82,6 +82,16 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
         $routes->delete('(:segment)', 'Listas::delete/$1');
     });
 
+    // Notificações
+    $routes->group('notificacoes', ['filter' => 'auth'], static function ($routes) {
+        $routes->get('/', 'Notificacoes::index');
+        $routes->get('', 'Notificacoes::index');
+        $routes->get('unread-count', 'Notificacoes::unreadCount');
+        $routes->post('', 'Notificacoes::create');
+        $routes->post('(:segment)/read', 'Notificacoes::markRead/$1');
+        $routes->post('read-all', 'Notificacoes::markAllRead');
+    });
+
     $routes->get('config', 'Api::config');
     $routes->get('migrate-now', 'Api::migrateNow');
     $routes->post('blob/upload', 'Api::blobUpload');

@@ -47,6 +47,9 @@ export default function Layout() {
     apk_banner_btn_text: 'Instalar Player',
     apk_file_url: ''
   });
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -61,6 +64,34 @@ export default function Layout() {
       loadSettings();
     }
   }, [isAuthenticated]);
+
+  // Poll notifications
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const loadNotifications = async () => {
+      try {
+        const [notifs, unread] = await Promise.all([
+          apiFetch('/api/notificacoes'),
+          apiFetch('/api/notificacoes/unread-count')
+        ]);
+        setNotifications(Array.isArray(notifs) ? notifs : []);
+        setUnreadCount(unread?.count || 0);
+      } catch (err) {
+        // silent
+      }
+    };
+    loadNotifications();
+    const interval = setInterval(loadNotifications, 10000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
+  const markAllRead = async () => {
+    try {
+      await apiFetch('/api/notificacoes/read-all', { method: 'POST' });
+      setUnreadCount(0);
+      setNotifications(prev => prev.map(n => ({ ...n, lida: true })));
+    } catch (err) {}
+  };
 
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
@@ -328,10 +359,60 @@ export default function Layout() {
               <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full"></span>
             </button>
-            <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-50 border border-[#e8edf2] flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all relative">
-              <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full"></span>
-            </button>
+            
+            {/* Notification Bell */}
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-50 border border-[#e8edf2] flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all relative"
+              >
+                <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full text-[8px] font-bold text-white flex items-center justify-center border border-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              
+              {showNotifications && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-[#e8edf2] rounded-2xl shadow-xl z-50 overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-[#e8edf2]">
+                      <span className="text-xs font-bold text-zinc-800 uppercase">Notificações</span>
+                      {unreadCount > 0 && (
+                        <button onClick={markAllRead} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700">
+                          Marcar todas como lidas
+                        </button>
+                      )}
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="p-6 text-center text-zinc-400 text-xs">
+                          Nenhuma notificação
+                        </div>
+                      ) : (
+                        notifications.slice(0, 20).map((notif) => (
+                          <div key={notif.id} className={`px-4 py-3 border-b border-[#e8edf2] last:border-0 ${!notif.lida ? 'bg-emerald-50/50' : ''}`}>
+                            <div className="flex items-start gap-2">
+                              <span className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${notif.tipo === 'success' ? 'bg-emerald-500' : notif.tipo === 'warning' ? 'bg-amber-500' : 'bg-blue-500'}`}></span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[11px] font-bold text-zinc-800">{notif.titulo}</p>
+                                <p className="text-[10px] text-zinc-500 mt-0.5 truncate">{notif.mensagem}</p>
+                                <p className="text-[9px] text-zinc-400 mt-1">{notif.totem_nome && `${notif.totem_nome} · `}{new Date(notif.created_at).toLocaleString('pt-BR')}</p>
+                              </div>
+                              {!notif.lida && (
+                                <span className="w-2 h-2 bg-emerald-500 rounded-full shrink-0 mt-1"></span>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
 
             <div className="h-6 w-px bg-zinc-200" />
 
