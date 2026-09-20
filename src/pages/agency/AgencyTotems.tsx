@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
+import { getTotemStatus } from '../../lib/totemStatus';
 import { Tv, Plus, Search, Trash2, Camera, Play, Tag, ChevronDown, Square, X, SkipForward, ListVideo, AlertCircle } from 'lucide-react';
 
 interface Agendamento {
@@ -133,55 +134,12 @@ function hasActiveScheduleNow(totem: Totem): boolean {
   return false;
 }
 
-// ──────────────────────────────────────────────────────────────
-// Lógica principal de status da tela
-// ──────────────────────────────────────────────────────────────
 const getTotemStatusInfo = (totem: Totem): { color: string; label: string } => {
-  // Sem comunicação alguma
-  if (!totem.ultima_sincronizacao) {
-    if (isOutsideWorkingHours(totem)) {
-      return { color: 'bg-[#bdc3c7]', label: 'SEM COMUNICAÇÃO FORA DO HORÁRIO DE FUNCIONAMENTO' };
-    }
-    return { color: 'bg-[#e74c3c]', label: 'SEM COMUNICAÇÃO' };
-  }
-
-  const lastSync = new Date(
-    totem.ultima_sincronizacao.replace(' ', 'T') +
-    (totem.ultima_sincronizacao.includes('Z') || totem.ultima_sincronizacao.includes('+') ? '' : '')
-  );
-  const now = new Date();
-  const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
-
-  const isDeviceReportWorking =
-    totem.status === 'FUNCIONANDO CORRETAMENTE' ||
-    !!(totem.ultima_informacao && totem.ultima_informacao.startsWith('Reproduzindo'));
-
-  if (diffMinutes > 15 || diffMinutes < -15) {
-    // Dispositivo offline — verifica se é por horário ou agendamento
-    if (isOutsideWorkingHours(totem)) {
-      return { color: 'bg-[#bdc3c7]', label: 'SEM COMUNICAÇÃO FORA DO HORÁRIO DE FUNCIONAMENTO' };
-    }
-    // Agendamentos de descanso: tem horário de funcionamento mas não há agendamento ativo
-    const agendamentos = parseAgendamentos(totem.agendamentos);
-    if (agendamentos.length > 0 && !hasActiveScheduleNow(totem)) {
-      return { color: 'bg-[#bdc3c7]', label: 'SEM COMUNICAÇÃO FORA DO HORÁRIO DE FUNCIONAMENTO' };
-    }
-
-    if (isDeviceReportWorking) {
-      return { color: 'bg-[#2ecc71]', label: 'FUNCIONANDO CORRETAMENTE' };
-    }
-    return { color: 'bg-[#e74c3c]', label: 'SEM COMUNICAÇÃO' };
-  } else if (diffMinutes > 5) {
-    return { color: 'bg-[#f1c40f]', label: 'EM VERIFICAÇÃO' };
-  } else {
-    // Online — mas sem lista de reprodução → Em Verificação
-    if (!totem.playlist_id) {
-      return { color: 'bg-[#f1c40f]', label: 'EM VERIFICAÇÃO' };
-    }
-    return { color: 'bg-[#2ecc71]', label: 'FUNCIONANDO CORRETAMENTE' };
-  }
+  const st = getTotemStatus(totem);
+  return { color: st.iconBg, label: st.label };
 };
 
+// Legacy stubs kept for compatibility
 const getTotemStatusColor = (totem: Totem) => getTotemStatusInfo(totem).color;
 const getTotemStatusLabel = (totem: Totem) => getTotemStatusInfo(totem).label;
 

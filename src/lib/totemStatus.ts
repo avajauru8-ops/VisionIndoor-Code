@@ -91,12 +91,12 @@ function hasActiveScheduleNow(totem: TotemStatusData): boolean {
   return false;
 }
 
-export function getTotemStatus(totem: TotemStatusData): { color: string; label: string; dotClass: string } {
+export function getTotemStatus(totem: TotemStatusData): { color: string; label: string; dotClass: string; iconBg: string } {
   if (!totem.ultima_sincronizacao) {
     if (isOutsideWorkingHours(totem)) {
-      return { color: 'bg-zinc-100 text-zinc-400 border border-zinc-200', label: 'Offline', dotClass: 'bg-zinc-300' };
+      return { color: 'bg-zinc-100 text-zinc-400 border border-zinc-200', label: 'Offline', dotClass: 'bg-zinc-300', iconBg: 'bg-[#bdc3c7]' };
     }
-    return { color: 'bg-rose-50 text-rose-600 border border-rose-100', label: 'Sem Comunicação', dotClass: 'bg-rose-500' };
+    return { color: 'bg-rose-50 text-rose-600 border border-rose-100', label: 'Sem Comunicação', dotClass: 'bg-rose-500', iconBg: 'bg-[#e74c3c]' };
   }
 
   const lastSync = new Date(
@@ -106,28 +106,21 @@ export function getTotemStatus(totem: TotemStatusData): { color: string; label: 
   const now = new Date();
   const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
 
-  const isDeviceReportWorking =
-    totem.status === 'FUNCIONANDO CORRETAMENTE' ||
-    !!(totem.ultima_informacao && totem.ultima_informacao.startsWith('Reproduzindo'));
-
-  if (diffMinutes > 15 || diffMinutes < -15) {
+  // Se nao sincronizou nos ultimos 5 minutos, esta offline
+  if (diffMinutes > 5 || diffMinutes < -5) {
     if (isOutsideWorkingHours(totem)) {
-      return { color: 'bg-zinc-100 text-zinc-400 border border-zinc-200', label: 'Offline', dotClass: 'bg-zinc-300' };
+      return { color: 'bg-zinc-100 text-zinc-400 border border-zinc-200', label: 'Offline', dotClass: 'bg-zinc-300', iconBg: 'bg-[#bdc3c7]' };
     }
     const agendamentos = parseAgendamentos(totem.agendamentos);
     if (agendamentos.length > 0 && !hasActiveScheduleNow(totem)) {
-      return { color: 'bg-zinc-100 text-zinc-400 border border-zinc-200', label: 'Offline', dotClass: 'bg-zinc-300' };
+      return { color: 'bg-zinc-100 text-zinc-400 border border-zinc-200', label: 'Offline', dotClass: 'bg-zinc-300', iconBg: 'bg-[#bdc3c7]' };
     }
-    if (isDeviceReportWorking) {
-      return { color: 'bg-emerald-50 text-emerald-600 border border-emerald-100', label: 'Online', dotClass: 'bg-emerald-500 animate-pulse' };
-    }
-    return { color: 'bg-rose-50 text-rose-600 border border-rose-100', label: 'Sem Comunicação', dotClass: 'bg-rose-500' };
-  } else if (diffMinutes > 5) {
-    return { color: 'bg-amber-50 text-amber-600 border border-amber-100', label: 'Em Verificação', dotClass: 'bg-amber-400' };
-  } else {
-    if (!totem.playlist_id) {
-      return { color: 'bg-amber-50 text-amber-600 border border-amber-100', label: 'Em Verificação', dotClass: 'bg-amber-400' };
-    }
-    return { color: 'bg-emerald-50 text-emerald-600 border border-emerald-100', label: 'Online', dotClass: 'bg-emerald-500 animate-pulse' };
+    return { color: 'bg-rose-50 text-rose-600 border border-rose-100', label: 'Sem Comunicação', dotClass: 'bg-rose-500', iconBg: 'bg-[#e74c3c]' };
   }
+
+  // Sincronizou nos ultimos 5 minutos - esta online
+  if (!totem.playlist_id) {
+    return { color: 'bg-amber-50 text-amber-600 border border-amber-100', label: 'Em Verificação', dotClass: 'bg-amber-400', iconBg: 'bg-[#f1c40f]' };
+  }
+  return { color: 'bg-emerald-50 text-emerald-600 border border-emerald-100', label: 'Online', dotClass: 'bg-emerald-500 animate-pulse', iconBg: 'bg-[#2ecc71]' };
 }
