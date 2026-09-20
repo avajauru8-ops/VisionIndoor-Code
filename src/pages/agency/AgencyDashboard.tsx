@@ -21,38 +21,11 @@ import {
   Sparkles
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-interface Totem {
-  id: number;
-  nome: string;
-  device_id: string;
-  status: string;
-  ultima_sincronizacao: string | null;
-}
-
-function getStatusStyle(status: string) {
-  switch (status) {
-    case 'FUNCIONANDO CORRETAMENTE':
-    case 'online':
-      return { dot: 'bg-emerald-500 animate-pulse', bg: 'bg-[#e8f5ed] text-emerald-600', icon: 'bg-[#e8f5ed] text-emerald-600', label: 'FUNCIONANDO CORRETAMENTE' };
-    case 'EM VERIFICACAO':
-    case 'EM VERIFICAÇÃO':
-      return { dot: 'bg-yellow-400', bg: 'bg-yellow-50 text-yellow-600', icon: 'bg-yellow-50 text-yellow-600', label: 'EM VERIFICAÇÃO' };
-    case 'SEM COMUNICACAO':
-    case 'SEM COMUNICAÇÃO':
-    case 'offline':
-      return { dot: 'bg-rose-500', bg: 'bg-rose-50 text-rose-600', icon: 'bg-rose-50 text-rose-600', label: 'SEM COMUNICAÇÃO' };
-    case 'SEM COMUNICACAO FORA DO HORARIO DE FUNCIONAMENTO':
-    case 'SEM COMUNICAÇÃO FORA DO HORÁRIO DE FUNCIONAMENTO':
-      return { dot: 'bg-zinc-400', bg: 'bg-zinc-100 text-zinc-500', icon: 'bg-zinc-100 text-zinc-500', label: 'SEM COMUNICAÇÃO FORA DO HORÁRIO' };
-    default:
-      return { dot: 'bg-zinc-300', bg: 'bg-zinc-100 text-zinc-500', icon: 'bg-zinc-100 text-zinc-500', label: status || 'DESCONHECIDO' };
-  }
-}
+import { getTotemStatus } from '../../lib/totemStatus';
 
 export default function AgencyDashboard() {
   const { user } = useAuth();
-  const [totems, setTotems] = useState<Totem[]>([]);
+  const [totems, setTotems] = useState<any[]>([]);
   const [activePlaylistsCount, setActivePlaylistsCount] = useState(0);
   const [stats, setStats] = useState({ online: 0, offline: 0, total: 0 });
   const [loading, setLoading] = useState(true);
@@ -81,7 +54,8 @@ export default function AgencyDashboard() {
         let online = 0;
         let offline = 0;
         totemsData.forEach((t: any) => {
-          if (t.status === 'online' || t.status === 'FUNCIONANDO CORRETAMENTE') online++;
+          const st = getTotemStatus(t);
+          if (st.label === 'Online') online++;
           else offline++;
         });
         setStats({ online, offline, total: totemsData.length });
@@ -280,11 +254,11 @@ export default function AgencyDashboard() {
 
           <div className="mt-4 space-y-3 flex-1 overflow-y-auto max-h-[190px] pr-1">
             {totems.slice(0, 3).map((totem) => {
-              const st = getStatusStyle(totem.status);
+              const st = getTotemStatus(totem);
               return (
               <div key={totem.id} className="flex items-center justify-between p-3 rounded-xl border border-zinc-50 hover:bg-zinc-50 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${st.icon}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${st.iconBg}`}>
                     <Tv className="w-4 h-4" />
                   </div>
                   <div>
@@ -293,7 +267,7 @@ export default function AgencyDashboard() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`w-2.5 h-2.5 rounded-full ${st.dot}`}></span>
+                  <span className={`w-2.5 h-2.5 rounded-full ${st.dotClass}`}></span>
                   <span className="text-[9px] font-bold uppercase text-zinc-400">{st.label}</span>
                 </div>
               </div>
