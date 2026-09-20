@@ -14,3 +14,18 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --font-serif: "Playfair Display", ui-serif, Georgia, serif;
 }
+
+@media print {
+  .no-print,
+  nav,
+  header,
+  aside {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  main {
+    overflow: visible !important;
+  }
+}

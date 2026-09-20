@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { apiFetch } from '../../lib/api';
-import { BarChart3, MonitorPlay, Tv, Image, Music, Film, Calendar, Download, TrendingUp, Clock, Filter } from 'lucide-react';
+import { BarChart3, MonitorPlay, Tv, Image, Music, Film, Calendar, Download, TrendingUp, Clock, Filter, Printer } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 interface RelatorioData {
@@ -33,6 +33,7 @@ function getMediaIcon(tipo: string) {
 export default function AgencyReports() {
   const [data, setData] = useState<RelatorioData | null>(null);
   const [loading, setLoading] = useState(true);
+  const reportRef = useRef<HTMLDivElement>(null);
   const [dataInicio, setDataInicio] = useState(() => {
     const d = new Date();
     d.setDate(1);
@@ -56,6 +57,26 @@ export default function AgencyReports() {
     loadReport();
   }, []);
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleExportPDF = async () => {
+    const html2pdf = (await import('html2pdf.js')).default;
+    const element = reportRef.current;
+    if (!element) return;
+
+    const opt = {
+      margin: [10, 10, 10, 10],
+      filename: `relatorio-${dataInicio}-${dataFim}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' as const }
+    };
+
+    html2pdf().set(opt).from(element).save();
+  };
+
   if (loading && !data) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -78,7 +99,7 @@ export default function AgencyReports() {
   }));
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12" ref={reportRef}>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -89,6 +110,20 @@ export default function AgencyReports() {
           <p className="text-xs text-[#8b9aa5] font-medium mt-1">
             Análise de exibição de mídias e desempenho das telas.
           </p>
+        </div>
+        <div className="flex items-center gap-2 no-print">
+          <button
+            onClick={handlePrint}
+            className="px-4 py-2.5 rounded-full bg-white border border-[#e8edf2] text-xs font-bold text-[#0b462c] hover:bg-zinc-50 transition-all flex items-center gap-2 shadow-sm"
+          >
+            <Printer className="w-4 h-4" /> Imprimir
+          </button>
+          <button
+            onClick={handleExportPDF}
+            className="px-4 py-2.5 rounded-full bg-[#0b462c] hover:bg-[#082a1b] text-xs font-bold text-white transition-all flex items-center gap-2 shadow-md"
+          >
+            <Download className="w-4 h-4" /> Salvar PDF
+          </button>
         </div>
       </div>
 
