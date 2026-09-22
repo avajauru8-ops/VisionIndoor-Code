@@ -468,7 +468,7 @@ export default function Layout() {
             {showProfileMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-[#e8edf2] rounded-2xl shadow-xl z-50 overflow-hidden">
+                <div className="fixed top-20 right-8 w-64 bg-white border border-[#e8edf2] rounded-2xl shadow-xl z-50 overflow-hidden">
                   <div className="p-4 border-b border-[#e8edf2] bg-gradient-to-r from-emerald-50 to-white">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-[#0b462c] flex items-center justify-center text-sm font-extrabold text-white shadow-sm">
