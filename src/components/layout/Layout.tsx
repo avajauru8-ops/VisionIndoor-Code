@@ -50,6 +50,26 @@ export default function Layout() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  // Auto-logout after 5 minutes of inactivity
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let timeout: ReturnType<typeof setTimeout>;
+    const resetTimer = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        logout();
+      }, 5 * 60 * 1000); // 5 minutes
+    };
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
+    events.forEach(e => document.addEventListener(e, resetTimer));
+    resetTimer();
+    return () => {
+      clearTimeout(timeout);
+      events.forEach(e => document.removeEventListener(e, resetTimer));
+    };
+  }, [isAuthenticated, logout]);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -423,7 +443,7 @@ export default function Layout() {
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
               </div>
               <button
-                onClick={logout}
+                onClick={() => setShowLogoutConfirm(true)}
                 className="p-1 sm:p-1.5 text-zinc-400 hover:text-rose-500 transition-all rounded-lg hover:bg-rose-50 shrink-0"
                 title="Sair"
               >
@@ -438,6 +458,37 @@ export default function Layout() {
           <Outlet />
         </div>
       </main>
+
+      {/* Modal Confirmação de Logout */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-[20px] border border-[#e8edf2] max-w-sm w-full p-6 shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center shrink-0">
+                <LogOut className="w-5 h-5 text-rose-500" />
+              </div>
+              <h3 className="text-sm font-extrabold text-zinc-800">Sair da conta?</h3>
+            </div>
+            <p className="text-xs text-zinc-500 mb-6 leading-relaxed">
+              Tem certeza que deseja sair do painel? Você precisará fazer login novamente para acessar.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="px-4 py-2 text-xs font-bold text-zinc-500 hover:bg-zinc-100 rounded-xl transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={logout}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition-all"
+              >
+                Sair
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
