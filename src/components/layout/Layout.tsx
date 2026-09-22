@@ -14,7 +14,6 @@ import {
   FileText, 
   Newspaper, 
   Smartphone, 
-  Search, 
   LayoutTemplate,
   Bell,
   Menu,
@@ -362,19 +361,6 @@ export default function Layout() {
               <Menu className="w-5 h-5" />
             </button>
 
-            <div className="relative w-40 sm:w-60 md:w-80">
-              <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <Search className="w-4 h-4 text-zinc-400" />
-              </span>
-              <input 
-                type="text" 
-                placeholder="Buscar..." 
-                className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-full pl-9 pr-10 py-2 text-xs text-[#0b462c] placeholder-zinc-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-sans" 
-              />
-              <span className="hidden sm:inline absolute right-3 top-1/2 -translate-y-1/2 bg-white border border-zinc-200 rounded px-1.5 py-0.5 text-[9px] font-mono text-zinc-400 shadow-sm pointer-none">
-                ⌘ F
-              </span>
-            </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-6">
