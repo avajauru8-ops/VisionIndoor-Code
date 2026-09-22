@@ -5,6 +5,7 @@ import { apiFetch } from '../../lib/api';
 import { 
   LayoutDashboard, 
   Users, 
+  User,
   Settings, 
   LogOut, 
   MonitorPlay, 
@@ -51,6 +52,7 @@ export default function Layout() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   // Auto-logout after 5 minutes of inactivity
   useEffect(() => {
@@ -433,15 +435,26 @@ export default function Layout() {
 
             <div className="h-6 w-px bg-zinc-200" />
 
-            <div className="flex items-center gap-1.5 sm:gap-3">
-              <div className="text-right hidden md:block">
-                <p className="text-xs font-bold text-zinc-800 leading-none">Olá, {user?.nome}</p>
-                <p className="text-[10px] text-zinc-400 mt-1 leading-none truncate max-w-[120px]">{user?.email}</p>
-              </div>
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-emerald-500 to-[#0b462c] flex items-center justify-center text-xs font-extrabold text-white shadow-sm border border-emerald-100 relative shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-3 relative">
+              <button 
+                onClick={() => { setShowProfileMenu(!showProfileMenu); setShowNotifications(false); }}
+                className="hidden md:flex items-center gap-2 hover:bg-zinc-50 rounded-xl px-2 py-1.5 transition-colors cursor-pointer"
+              >
+                <div className="text-right">
+                  <p className="text-xs font-bold text-zinc-800 leading-none">Olá, {user?.nome}</p>
+                  <p className="text-[10px] text-zinc-400 mt-1 leading-none truncate max-w-[120px]">{user?.email}</p>
+                </div>
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-emerald-500 to-[#0b462c] flex items-center justify-center text-xs font-extrabold text-white shadow-sm border border-emerald-100 relative shrink-0">
+                  {user?.nome.substring(0, 2).toUpperCase()}
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+                </div>
+              </button>
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="lg:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-emerald-500 to-[#0b462c] flex items-center justify-center text-xs font-extrabold text-white shadow-sm border border-emerald-100 relative shrink-0"
+              >
                 {user?.nome.substring(0, 2).toUpperCase()}
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
-              </div>
+              </button>
               <button
                 onClick={() => setShowLogoutConfirm(true)}
                 className="p-1 sm:p-1.5 text-zinc-400 hover:text-rose-500 transition-all rounded-lg hover:bg-rose-50 shrink-0"
@@ -450,6 +463,52 @@ export default function Layout() {
                 <LogOut className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
               </button>
             </div>
+
+            {/* Profile Dropdown */}
+            {showProfileMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-[#e8edf2] rounded-2xl shadow-xl z-50 overflow-hidden">
+                  <div className="p-4 border-b border-[#e8edf2] bg-gradient-to-r from-emerald-50 to-white">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-[#0b462c] flex items-center justify-center text-sm font-extrabold text-white shadow-sm">
+                        {user?.nome.substring(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-zinc-800">{user?.nome}</p>
+                        <p className="text-[10px] text-zinc-400 truncate max-w-[140px]">{user?.email}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="py-1">
+                    <Link
+                      to="/agency/profile"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-600 hover:bg-zinc-50 transition-colors"
+                    >
+                      <User className="w-4 h-4 text-zinc-400" />
+                      Meu Perfil
+                    </Link>
+                    <Link
+                      to={isAgency ? "/agency" : "/admin"}
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-600 hover:bg-zinc-50 transition-colors"
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-zinc-400" />
+                      Dashboard
+                    </Link>
+                    <div className="border-t border-[#e8edf2] my-1"></div>
+                    <button
+                      onClick={() => { setShowProfileMenu(false); setShowLogoutConfirm(true); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-rose-600 hover:bg-rose-50 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sair da conta
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </header>
 
