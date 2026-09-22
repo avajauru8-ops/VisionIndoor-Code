@@ -1,11 +1,15 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { apiFetch } from '../lib/api';
 
-interface User {
+export interface User {
   id: number;
   nome: string;
   email: string;
   nivel: 'admin' | 'agencia';
+  plano?: 'gratis' | 'pago';
+  limite_tvs?: number;
+  status_licenca?: 'ativa' | 'expirada';
+  validade_licenca?: string;
 }
 
 interface AuthContextType {
@@ -13,6 +17,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string, user: User) => void;
   logout: () => void;
+  fetchProfile: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -31,6 +36,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return localStorage.getItem('token');
   });
 
+  const fetchProfile = useCallback(async () => {
+    try {
+      const data = await apiFetch('/api/auth/me');
+      if (data && !data.error) {
+        setUser(prev => {
+          const updated = { ...prev, ...data } as User;
+          localStorage.setItem('user', JSON.stringify(updated));
+          return updated;
+        });
+      }
+    } catch (err) {
+      console.error('Erro ao buscar perfil:', err);
+    }
+  }, []);
+
   const login = (newToken: string, newUser: User) => {
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
@@ -45,8 +65,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
+  useEffect(() => {
+    if (token) {
+      fetchProfile();
+    }
+  }, [token, fetchProfile]);
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, token, login, logout, fetchProfile, isAuthenticated: !!token }}>
       {children}
     </AuthContext.Provider>
   );

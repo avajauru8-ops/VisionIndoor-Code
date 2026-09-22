@@ -60,6 +60,31 @@ class Auth extends ResourceController
         }
     }
 
+    public function me()
+    {
+        $userId = $this->request->getHeaderLine('X-User-Id');
+        if (empty($userId)) {
+            return $this->response->setJSON(['error' => 'Não autenticado'])->setStatusCode(401);
+        }
+
+        $db = \Config\Database::connect();
+        $user = $db->table('usuarios')->where('id', $userId)->get()->getRowArray();
+
+        if (!$user) {
+            return $this->response->setJSON(['error' => 'Usuário não encontrado'])->setStatusCode(404);
+        }
+
+        unset($user['senha']);
+        $user['id'] = (string)$user['id'];
+        $user['cpf'] = $user['cpf'] ?? '';
+        $user['status_licenca'] = $user['status_licenca'] ?? 'ativa';
+        $user['validade_licenca'] = $user['validade_licenca'] ?? '2099-12-31 23:59:59';
+        $user['plano'] = $user['plano'] ?? 'gratis';
+        $user['limite_tvs'] = $user['limite_tvs'] ?? 1;
+
+        return $this->response->setJSON($user);
+    }
+
     public function refresh()
     {
         try {

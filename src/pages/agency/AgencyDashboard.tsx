@@ -15,10 +15,9 @@ import {
   CheckCircle2, 
   ArrowUpRight, 
   Plus, 
-  Play, 
-  Pause, 
-  Clock,
-  Sparkles
+  Shield,
+  Monitor,
+  CalendarDays
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getTotemStatus } from '../../lib/totemStatus';
@@ -29,10 +28,6 @@ export default function AgencyDashboard() {
   const [activePlaylistsCount, setActivePlaylistsCount] = useState(0);
   const [stats, setStats] = useState({ online: 0, offline: 0, total: 0 });
   const [loading, setLoading] = useState(true);
-  
-  // Time Tracker State
-  const [time, setTime] = useState(new Date());
-  const [isRunning, setIsRunning] = useState(true);
 
   // Load dashboard data
   useEffect(() => {
@@ -67,25 +62,6 @@ export default function AgencyDashboard() {
     };
     loadStats();
   }, []);
-
-  // Clock tick effect
-  useEffect(() => {
-    if (!isRunning) return;
-    const timer = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [isRunning]);
-
-  // Format clock
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    });
-  };
 
   // Calculated network health percentage
   const networkHealth = stats.total > 0 ? Math.round((stats.online / stats.total) * 100) : 0;
@@ -336,46 +312,59 @@ export default function AgencyDashboard() {
           </div>
         </div>
 
-        {/* Time Tracker Widget */}
+        {/* Plan Info Widget */}
         <div className="bg-gradient-to-br from-[#0b462c] to-[#082a1b] text-white rounded-[24px] p-6 shadow-md min-h-[280px] flex flex-col justify-between relative overflow-hidden group">
-          {/* Waves and decorative grid */}
           <div className="absolute inset-0 opacity-15 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-200 via-transparent to-transparent pointer-events-none"></div>
           
           <div className="flex justify-between items-start relative z-10">
             <div>
-              <h4 className="text-sm font-extrabold uppercase tracking-widest text-emerald-200">Tempo de Atividade</h4>
-              <p className="text-[10px] text-emerald-300 mt-1">Monitoramento de transmissão</p>
+              <h4 className="text-sm font-extrabold uppercase tracking-widest text-emerald-200">Meu Plano</h4>
+              <p className="text-[10px] text-emerald-300 mt-1">Informações da assinatura</p>
             </div>
             <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-xs">
-              <Sparkles className="w-4 h-4 text-emerald-200" />
+              <Shield className="w-4 h-4 text-emerald-200" />
             </span>
           </div>
 
-          {/* Time display */}
-          <div className="text-center my-4 relative z-10">
-            <span className="text-4xl font-extrabold font-mono tracking-tight text-white">{formatTime(time)}</span>
-            <div className="flex items-center justify-center gap-1 mt-1 text-[10px] text-emerald-300">
-              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span>
-              <span>Servidor Ativo</span>
+          <div className="space-y-4 my-4 relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                <Shield className="w-5 h-5 text-emerald-300" />
+              </div>
+              <div>
+                <p className="text-[10px] text-emerald-300 uppercase tracking-wider font-bold">Plano</p>
+                <p className="text-lg font-extrabold text-white capitalize">{user?.plano === 'pago' ? 'Pago' : 'Gratuito'}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                <Monitor className="w-5 h-5 text-emerald-300" />
+              </div>
+              <div>
+                <p className="text-[10px] text-emerald-300 uppercase tracking-wider font-bold">Limite de Telas</p>
+                <p className="text-lg font-extrabold text-white">{user?.limite_tvs ?? 1} {Number(user?.limite_tvs ?? 1) === 1 ? 'tela' : 'telas'}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                <CalendarDays className="w-5 h-5 text-emerald-300" />
+              </div>
+              <div>
+                <p className="text-[10px] text-emerald-300 uppercase tracking-wider font-bold">Vencimento</p>
+                <p className="text-lg font-extrabold text-white">
+                  {user?.validade_licenca ? new Date(user.validade_licenca).toLocaleDateString('pt-BR') : 'Sem prazo'}
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Controller buttons */}
-          <div className="flex items-center justify-center gap-4 relative z-10">
-            <button 
-              onClick={() => setIsRunning(!isRunning)}
-              className="w-10 h-10 rounded-full bg-white text-[#0b462c] hover:bg-emerald-100 transition-all flex items-center justify-center shadow-md cursor-pointer active:scale-95"
-              title={isRunning ? "Pausar" : "Iniciar"}
-            >
-              {isRunning ? <Pause className="w-4.5 h-4.5 fill-current" /> : <Play className="w-4.5 h-4.5 fill-current ml-0.5" />}
-            </button>
-            <button 
-              onClick={() => setTime(new Date())}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-all flex items-center justify-center text-white cursor-pointer active:scale-95"
-              title="Resetar"
-            >
-              <Clock className="w-4.5 h-4.5" />
-            </button>
+          <div className="flex items-center gap-2 relative z-10">
+            <span className={`w-2.5 h-2.5 rounded-full ${user?.status_licenca === 'ativa' ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`}></span>
+            <span className={`text-[11px] font-bold uppercase tracking-wider ${user?.status_licenca === 'ativa' ? 'text-emerald-300' : 'text-rose-300'}`}>
+              {user?.status_licenca === 'ativa' ? 'Licença Ativa' : 'Licença Expirada'}
+            </span>
           </div>
         </div>
       </div>

@@ -24,7 +24,10 @@ import {
   List,
   HelpCircle,
   Home,
-  BarChart3
+  BarChart3,
+  Shield,
+  Monitor,
+  CalendarDays
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -325,6 +328,51 @@ export default function Layout() {
                   {sysSettings.apk_banner_btn_text || 'Instalar Player'}
                 </Link>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Plan Card (Bottom of Sidebar) */}
+      {user && (
+        <div className="px-4 py-3 shrink-0 border-t border-[#e8edf2]">
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-zinc-50 to-white border border-[#e8edf2]">
+            <div className="flex items-center gap-2.5 mb-2.5">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-[#0b462c] flex items-center justify-center text-[10px] font-extrabold text-white shrink-0">
+                {user.nome.substring(0, 2).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold text-zinc-800 truncate">{user.nome}</p>
+                <p className="text-[9px] text-zinc-400 truncate">{user.email}</p>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <Shield className="w-3 h-3 text-emerald-600 shrink-0" />
+                <span className="text-[10px] font-bold text-zinc-600">
+                  Plano: <span className="text-emerald-700 capitalize">{user.plano === 'pago' ? 'Pago' : 'Gratuito'}</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Monitor className="w-3 h-3 text-emerald-600 shrink-0" />
+                <span className="text-[10px] font-bold text-zinc-600">
+                  Telas: <span className="text-emerald-700">{user.limite_tvs ?? 1}</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CalendarDays className="w-3 h-3 text-emerald-600 shrink-0" />
+                <span className="text-[10px] font-bold text-zinc-600">
+                  Vencimento: <span className="text-emerald-700">
+                    {user.validade_licenca ? new Date(user.validade_licenca).toLocaleDateString('pt-BR') : 'Sem prazo'}
+                  </span>
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${user.status_licenca === 'ativa' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                <span className={`text-[10px] font-bold ${user.status_licenca === 'ativa' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {user.status_licenca === 'ativa' ? 'Licença Ativa' : 'Licença Expirada'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
