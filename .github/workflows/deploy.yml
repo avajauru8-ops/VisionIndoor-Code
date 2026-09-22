@@ -34,7 +34,7 @@ jobs:
     - name: Build Frontend
       run: npm run build
 
-    - name: Sync files via FTP
+    - name: Sync Backend via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: 147.93.37.161
