@@ -1,92 +1,46 @@
-name: Deploy Backend + Frontend
+name: Deploy to cPanel via FTP
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Deploy environment'
-        required: true
-        default: 'production'
-        type: choice
-        options:
-          - production
-          - development
 
 jobs:
-  deploy:
-    name: Deploy Backend (${{ github.event.inputs.environment || 'production' }})
+  web-deploy:
+    name: Deploy Backend
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    - name: Get latest code
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
 
-      - name: Install frontend dependencies
-        run: npm ci
+    - name: Install Dependencies
+      run: composer install --optimize-autoloader
+      working-directory: ./backend
+      
+    - name: Sync files via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: 147.93.37.161
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./backend/
+        server-dir: ./
+        exclude: |
+          **/.git*
+          **/.git*/**
+          node_modules/**
+          src/**
+          vite.config.ts
+          package.json
+          package-lock.json
+          README.md
+          dist.zip
+          .github/**
+          .env
+          backend/.env
 
-      - name: Build frontend
-        run: npm run build
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.1'
-
-      - name: Install composer dependencies
-        run: composer install --optimize-autoloader
-        working-directory: ./backend
-
-      - name: Add vendor to git for FTP deploy
-        run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
-          git add -f backend/vendor/
-          git commit -m "Add vendor for deploy" || true
-
-      - name: Sync files via FTP (Production)
-        if: ${{ github.event.inputs.environment == 'production' || github.event_name == 'push' }}
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: 147.93.37.161
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./backend/
-          server-dir: ./
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/tests/**
-            **/writable/**
-            **/.env
-            **/composer.lock
-            **/phpunit.xml.dist
-          dry-run: false
-
-      - name: Sync files via FTP (Development)
-        if: ${{ github.event.inputs.environment == 'development' }}
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: 147.93.37.161
-          username: ${{ secrets.FTP_DEV_USERNAME }}
-          password: ${{ secrets.FTP_DEV_PASSWORD }}
-          local-dir: ./backend/
-          server-dir: public_html/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/tests/**
-            **/writable/**
-            **/.env
-            **/composer.lock
-            **/phpunit.xml.dist
-          dry-run: false
