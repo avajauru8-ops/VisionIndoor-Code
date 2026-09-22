@@ -7,7 +7,7 @@ on:
 
 jobs:
   web-deploy:
-    name: Deploy Backend
+    name: Deploy Fullstack
     runs-on: ubuntu-latest
     steps:
     - name: Get latest code
@@ -18,10 +18,22 @@ jobs:
       with:
         php-version: '8.1'
 
-    - name: Install Dependencies
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install PHP Dependencies
       run: composer install --optimize-autoloader
       working-directory: ./backend
-      
+
+    - name: Install Frontend Dependencies
+      run: npm ci
+
+    - name: Build Frontend
+      run: npm run build
+
     - name: Sync files via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
@@ -43,4 +55,3 @@ jobs:
           .github/**
           .env
           backend/.env
-
