@@ -158,7 +158,12 @@ export default function Layout() {
         <div className="p-6 flex items-center justify-between relative border-b border-[#e8edf2]">
           <div className="flex items-center gap-2">
             {sysSettings.logo_url ? (
-              <img src={sysSettings.logo_url} alt="Logo" className="h-16 max-w-[180px] object-contain shrink-0" />
+              <div className="flex flex-col">
+                <img src={sysSettings.logo_url} alt="Logo" className="h-10 max-w-[140px] object-contain shrink-0" />
+                <p className="text-[9px] text-[#8b9aa5] uppercase tracking-widest font-bold mt-0.5">
+                  {isAgency ? 'Agência' : 'Administrador'}
+                </p>
+              </div>
             ) : (
               <>
                 <div className="w-8 h-8 rounded-full bg-emerald-50 border-2 border-emerald-600 flex items-center justify-center shadow-sm">
