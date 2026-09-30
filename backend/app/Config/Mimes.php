@@ -412,6 +412,23 @@ class Mimes
             'video/x-ms-wmv',
             'video/x-ms-asf',
         ],
+        'mkv'  => [
+            'video/x-matroska',
+            'video/mkv',
+        ],
+        'm4v'  => [
+            'video/x-m4v',
+        ],
+        'vob'  => [
+            'video/x-ms-vob',
+            'video/vob',
+            'video/mpeg',
+        ],
+        'rmvb' => [
+            'application/vnd.rn-realmedia-vbr',
+            'video/x-pn-realmedia-vbr',
+            'application/vnd.rn-realmedia',
+        ],
         'au'   => 'audio/x-au',
         'ac3'  => 'audio/ac3',
         'flac' => 'audio/x-flac',
@@ -520,6 +537,13 @@ class Mimes
             && in_array($type, (array) static::$mimes[$proposedExtension], true)
         ) {
             // The detected mime type matches with the proposed extension.
+            return $proposedExtension;
+        }
+
+        if ($proposedExtension !== '' && $type === 'application/octet-stream') {
+            // Conteúdo genérico não identifica o tipo: mantém a extensão informada
+            // no nome do arquivo. Caso contrário a busca reversa devolve "bin" e
+            // vídeos .avi/.mkv/.mp4/etc seriam rejeitados como ".bin".
             return $proposedExtension;
         }
 

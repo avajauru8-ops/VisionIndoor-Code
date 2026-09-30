@@ -51,18 +51,45 @@ class Playlists extends ResourceController
         if (!$file->isValid() || $file->hasMoved()) {
             return null;
         }
-        
-        $ext = '.' . $file->getExtension();
-        if (!in_array(strtolower($ext), $allowedExtensions)) {
-            throw new \Exception("Tipo de arquivo não permitido: $ext");
+
+        // Usa a extensão original do arquivo. getExtension() adivinha pelo MIME e
+        // devolve .bin/.mpeg/.qt para vários vídeos, o que bloqueava o upload.
+        $clientExt  = strtolower($file->getClientExtension());
+        $guessedExt = strtolower($file->guessExtension());
+
+        if ($clientExt !== '' && in_array('.' . $clientExt, $allowedExtensions, true)) {
+            $ext = '.' . $clientExt;
+        } elseif ($guessedExt !== '' && in_array('.' . $guessedExt, $allowedExtensions, true)) {
+            $ext = '.' . $guessedExt;
+        } else {
+            throw new \RuntimeException('Tipo de arquivo não permitido: ' . ($clientExt !== '' ? '.' . $clientExt : '(sem extensão)'));
         }
-        
-        $newName = time() . '_' . preg_replace('/[^a-zA-Z0-9.-]/', '_', $file->getName());
+
+        $baseName = preg_replace('/[^a-zA-Z0-9_-]+/', '_', pathinfo($file->getName(), PATHINFO_FILENAME)) ?: 'arquivo';
+        $newName  = time() . '_' . $baseName . $ext;
+
         $file->move(ROOTPATH . 'public/uploads', $newName);
-        
+
         $this->optimizeFile(ROOTPATH . 'public/uploads/' . $newName, $ext);
-        
+
         return $newName;
+    }
+
+    private function uploadErrorMessage($file): string
+    {
+        $maxUpload = ini_get('upload_max_filesize') ?: 'desconhecido';
+        $maxPost   = ini_get('post_max_size') ?: 'desconhecido';
+
+        return match ($file->getError()) {
+            UPLOAD_ERR_INI_SIZE   => "O arquivo excede o limite do servidor (upload_max_filesize = $maxUpload).",
+            UPLOAD_ERR_FORM_SIZE  => 'O arquivo excede o limite permitido no formulário.',
+            UPLOAD_ERR_PARTIAL    => 'O arquivo foi enviado incompleto. Tente novamente.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Falha no servidor: diretório temporário ausente.',
+            UPLOAD_ERR_CANT_WRITE => 'Falha no servidor: não foi possível gravar o arquivo.',
+            UPLOAD_ERR_EXTENSION  => 'Upload interrompido por uma extensão do servidor.',
+            UPLOAD_ERR_NO_FILE    => 'Nenhum arquivo foi enviado.',
+            default               => 'Erro no arquivo: ' . $file->getErrorString(),
+        };
     }
 
     private function optimizeFile($path, $ext)
@@ -129,26 +156,43 @@ class Playlists extends ResourceController
 
     private function optimizeVideo($path)
     {
-        $ffmpeg = trim((string)shell_exec('which ffmpeg 2>/dev/null || where ffmpeg 2>nul'));
-        if (empty($ffmpeg) || !file_exists($path)) {
+        if (!file_exists($path)) {
             return;
         }
 
-        $tmpPath = $path . '.tmp.mp4';
-        $cmd = sprintf(
-            'ffmpeg -i %s -c:v libx264 -crf 28 -preset fast -vf "scale=min(1280\\,iw):min(720\\,ih):force_original_aspect_ratio=decrease" -c:a aac -b:a 96k -movflags +faststart %s 2>&1',
-            escapeshellarg($path),
-            escapeshellarg($tmpPath)
-        );
+        // Otimização é opcional. Em hospedagem compartilhada shell_exec/exec podem
+        // estar desabilitados e uma Error aqui derrubava todo upload de vídeo.
+        if (!function_exists('shell_exec') || !function_exists('exec')) {
+            return;
+        }
 
-        shell_exec($cmd);
+        try {
+            $ffmpeg = trim((string) @shell_exec('which ffmpeg 2>/dev/null || where ffmpeg 2>nul'));
+            if (empty($ffmpeg)) {
+                return;
+            }
 
-        if (file_exists($tmpPath) && filesize($tmpPath) > 0) {
-            if (filesize($tmpPath) < filesize($path)) {
-                rename($tmpPath, $path);
-            } else {
+            $tmpPath = $path . '.tmp.mp4';
+            $cmd = sprintf(
+                'ffmpeg -y -nostdin -i %s -c:v libx264 -crf 28 -preset fast -vf %s -c:a aac -b:a 96k -movflags +faststart %s 2>&1',
+                escapeshellarg($path),
+                escapeshellarg('scale=min(1280\,iw):min(720\,ih):force_original_aspect_ratio=decrease'),
+                escapeshellarg($tmpPath)
+            );
+
+            @shell_exec($cmd);
+
+            if (file_exists($tmpPath) && filesize($tmpPath) > 0) {
+                if (filesize($tmpPath) < filesize($path)) {
+                    rename($tmpPath, $path);
+                } else {
+                    unlink($tmpPath);
+                }
+            } elseif (file_exists($tmpPath)) {
                 unlink($tmpPath);
             }
+        } catch (\Throwable $e) {
+            // Ignora: o arquivo já está salvo, só a otimização falhou.
         }
     }
 
@@ -175,11 +219,15 @@ class Playlists extends ResourceController
             $file = $this->request->getFile('arquivo');
             if ($file && $file->isValid()) {
                 $finalUrl = $this->handleFileUpload($file, ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.mp4', '.webm', '.avi', '.mov', '.flv', '.3gp', '.m4v', '.mkv', '.mpg', '.rm', '.rmvb', '.vob', '.wmv']);
-            } else if ($file && !$file->isValid()) {
-                return $this->response->setJSON(['error' => 'Erro no arquivo: ' . $file->getErrorString()])->setStatusCode(400);
+            } else if ($file && !$file->isValid() && $file->getError() !== UPLOAD_ERR_NO_FILE) {
+                return $this->response->setJSON(['error' => $this->uploadErrorMessage($file)])->setStatusCode(400);
             }
             
             if (empty($finalUrl)) {
+                if (str_contains($this->request->getHeaderLine('Content-Type'), 'multipart/form-data') && empty($_FILES)) {
+                    $maxPost = ini_get('post_max_size') ?: 'desconhecido';
+                    return $this->response->setJSON(['error' => "O envio excede o limite do servidor (post_max_size = $maxPost)."])->setStatusCode(413);
+                }
                 return $this->response->setJSON(['error' => 'Você precisa enviar um arquivo de mídia ou uma URL.'])->setStatusCode(400);
             }
             
@@ -201,8 +249,10 @@ class Playlists extends ResourceController
             
             $db->table('campanhas')->insert($data);
             return $this->respondCreated(['message' => 'Mídia adicionada', 'id' => (string)$db->insertID()]);
-        } catch (\Exception $e) {
-            return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
+        } catch (\Throwable $e) {
+            $status = str_starts_with($e->getMessage(), 'Tipo de arquivo não permitido') ? 400 : 500;
+            $prefix = $status === 400 ? '' : 'Erro DB/PHP: ';
+            return $this->response->setJSON(['error' => $prefix . $e->getMessage()])->setStatusCode($status);
         }
     }
 
@@ -228,8 +278,8 @@ class Playlists extends ResourceController
             $file = $this->request->getFile('arquivo');
             if ($file && $file->isValid()) {
                 $finalUrl = $this->handleFileUpload($file, ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.mp4', '.webm', '.avi', '.mov', '.flv', '.3gp', '.m4v', '.mkv', '.mpg', '.rm', '.rmvb', '.vob', '.wmv']);
-            } else if ($file && !$file->isValid()) {
-                return $this->response->setJSON(['error' => 'Erro no arquivo: ' . $file->getErrorString()])->setStatusCode(400);
+            } else if ($file && !$file->isValid() && $file->getError() !== UPLOAD_ERR_NO_FILE) {
+                return $this->response->setJSON(['error' => $this->uploadErrorMessage($file)])->setStatusCode(400);
             }
             
             $tId = !empty($totem_id) ? $totem_id : null;
@@ -252,8 +302,10 @@ class Playlists extends ResourceController
             
             $db->table('campanhas')->where('id', $id)->update($data);
             return $this->respond(['success' => true]);
-        } catch (\Exception $e) {
-            return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
+        } catch (\Throwable $e) {
+            $status = str_starts_with($e->getMessage(), 'Tipo de arquivo não permitido') ? 400 : 500;
+            $prefix = $status === 400 ? '' : 'Erro DB/PHP: ';
+            return $this->response->setJSON(['error' => $prefix . $e->getMessage()])->setStatusCode($status);
         }
     }
 

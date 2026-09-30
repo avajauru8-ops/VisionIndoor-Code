@@ -15,8 +15,30 @@ interface UploadItem {
   file: File;
   progress: number;
   status: 'pending' | 'uploading' | 'done' | 'error';
+  error?: string;
   previewUrl: string;
 }
+
+const VIDEO_EXTS = ['.mp4', '.flv', '.3gp', '.avi', '.m4v', '.mkv', '.mov', '.mpg', '.rm', '.rmvb', '.vob', '.webm', '.wmv'];
+const IMAGE_EXTS = ['.jpg', '.jpeg', '.gif', '.png'];
+const ACCEPTED_EXTS = [...IMAGE_EXTS, ...VIDEO_EXTS];
+
+const fileExt = (name: string) => '.' + (name.split('.').pop() || '').toLowerCase();
+
+const isVideoFile = (file: File) =>
+  file.type.startsWith('video/') || VIDEO_EXTS.includes(fileExt(file.name));
+
+const parseUploadError = (xhr: XMLHttpRequest): string => {
+  try {
+    const data = JSON.parse(xhr.responseText);
+    if (data && (data.error || data.message)) return data.error || data.message;
+  } catch {
+    // resposta não é JSON (ex.: página de erro do servidor)
+  }
+  if (xhr.status === 0) return 'Falha de conexão com o servidor.';
+  if (xhr.status === 413) return 'Arquivo maior que o limite do servidor.';
+  return `Erro no servidor (HTTP ${xhr.status}).`;
+};
 
 export default function AgencyMedia() {
   const [media, setMedia] = useState<Media[]>([]);
@@ -71,14 +93,10 @@ export default function AgencyMedia() {
     const files = Array.from(e.dataTransfer.files);
     if (files.length === 0) return;
 
-    const allowedExts = ['.jpg','.jpeg','.gif','.png','.mp4','.flv','.3gp','.avi','.m4v','.mkv','.mov','.mpg','.rm','.rmvb','.vob','.webm','.wmv'];
-    const validFiles = files.filter(f => {
-      const ext = '.' + f.name.split('.').pop()?.toLowerCase();
-      return allowedExts.includes(ext);
-    });
+    const validFiles = files.filter(f => ACCEPTED_EXTS.includes(fileExt(f.name)));
 
     if (validFiles.length === 0) {
-      alert('Nenhum arquivo válido selecionado. Tipos aceitos: JPG, GIF, PNG, MP4, FLV, 3GP, AVI, M4V, MKV, MOV, MPG, RM, RMVB, VOB, WEBM, WMV.');
+      alert('Nenhum arquivo válido selecionado. Tipos aceitos: JPG, JPEG, GIF, PNG, MP4, FLV, 3GP, AVI, M4V, MKV, MOV, MPG, RM, RMVB, VOB, WEBM, WMV.');
       return;
     }
 
@@ -180,13 +198,13 @@ export default function AgencyMedia() {
     if (!token) {
       console.error('Token não encontrado!');
       setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) => 
-        q.id === item.id ? { ...q, status: 'error' } : q
+        q.id === item.id ? { ...q, status: 'error', error: 'Sessão expirada. Faça login novamente.' } : q
       ));
       return;
     }
 
     let fileToSend = item.file;
-    if (item.file.type.startsWith('image/') && item.file.type !== 'image/gif') {
+    if (!isVideoFile(item.file)) {
       try {
         fileToSend = await compressImage(item.file);
       } catch (e) {
@@ -199,8 +217,7 @@ export default function AgencyMedia() {
     
     formData.append('arquivo', fileToSend);
     formData.append('titulo', item.file.name);
-    const tipo = item.file.type.startsWith('video/') ? 'video' : 'imagem';
-    formData.append('tipo_midia', tipo);
+    formData.append('tipo_midia', isVideoFile(item.file) ? 'video' : 'imagem');
 
     xhr.upload.addEventListener('progress', (e: ProgressEvent) => {
       if (e.lengthComputable) {
@@ -217,15 +234,17 @@ export default function AgencyMedia() {
           q.id === item.id ? { ...q, status: 'done', progress: 100 } : q
         ));
       } else {
+        const message = parseUploadError(xhr);
+        console.error('Upload falhou:', xhr.status, message, xhr.responseText);
         setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) => 
-          q.id === item.id ? { ...q, status: 'error' } : q
+          q.id === item.id ? { ...q, status: 'error', error: message } : q
         ));
       }
     });
 
     xhr.addEventListener('error', () => {
       setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) => 
-        q.id === item.id ? { ...q, status: 'error' } : q
+        q.id === item.id ? { ...q, status: 'error', error: 'Falha de conexão com o servidor.' } : q
       ));
     });
 
@@ -282,7 +301,7 @@ export default function AgencyMedia() {
             className="hidden" 
             ref={fileInputRef}
             onChange={handleFileSelect}
-            accept=".jpg,.jpeg,.gif,.png,.mp4,.flv,.3gp,.avi,.m4v,.mkv,.mov,.mpg,.rm,.rmvb,.vob,.webm,.wmv"
+            accept={ACCEPTED_EXTS.join(',')}
           />
           <button 
             onClick={() => fileInputRef.current?.click()}
@@ -502,7 +521,7 @@ export default function AgencyMedia() {
                 <div key={item.id} className="flex items-center justify-between p-2 hover:bg-white/5 rounded-lg transition-colors group">
                   <div className="flex items-center gap-3">
                     <div className="relative w-10 h-10 rounded overflow-hidden bg-zinc-800 border border-zinc-700 shrink-0 flex items-center justify-center">
-                      {item.file.type.startsWith('video/') ? (
+                      {isVideoFile(item.file) ? (
                          <div className="w-full h-full bg-black flex items-center justify-center"><Play className="w-4 h-4 text-white"/></div>
                       ) : (
                          <img src={item.previewUrl} alt={item.file.name} className="w-full h-full object-cover" />
@@ -537,9 +556,16 @@ export default function AgencyMedia() {
                         )}
                       </div>
                     </div>
-                    <span className="text-xs truncate max-w-[180px] font-medium text-zinc-300">
-                      {item.file.name}
-                    </span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs truncate max-w-[180px] font-medium text-zinc-300">
+                        {item.file.name}
+                      </span>
+                      {item.status === 'error' && (
+                        <span className="text-[10px] truncate max-w-[200px] text-rose-400" title={item.error}>
+                          {item.error || 'Falha no envio'}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <button 
                     onClick={() => removeUploadItem(item.id)}
