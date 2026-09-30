@@ -56,7 +56,7 @@ export default function Layout() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // Auto-logout after 5 minutes of inactivity
+  // Auto-logout after 2 hours of inactivity
   useEffect(() => {
     if (!isAuthenticated) return;
     let timeout: ReturnType<typeof setTimeout>;
@@ -64,7 +64,7 @@ export default function Layout() {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
         logout();
-      }, 5 * 60 * 1000); // 5 minutes
+      }, 2 * 60 * 60 * 1000); // 2 hours
     };
     const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
     events.forEach(e => document.addEventListener(e, resetTimer));

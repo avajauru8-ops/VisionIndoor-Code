@@ -27,6 +27,13 @@ class AuthFilter implements FilterInterface
             $key = env('JWT_SECRET') ?: 'visioindoor_jwt_secret_key_fallback_32_bytes';
             $decoded = JWT::decode($token, new Key($key, 'HS256'));
             
+            // Sessão máxima de 2 horas: rejeita tokens antigos emitidos com validade de 30 dias
+            if (isset($decoded->iat) && (time() - $decoded->iat) > USER_SESSION_TTL) {
+                return \Config\Services::response()
+                    ->setJSON(['error' => 'Token expirado. Por favor, faça login novamente.'])
+                    ->setStatusCode(ResponseInterface::HTTP_UNAUTHORIZED);
+            }
+            
             if (!empty($arguments) && in_array('admin', $arguments)) {
                 if (!isset($decoded->nivel) || $decoded->nivel !== 'admin') {
                     return \Config\Services::response()

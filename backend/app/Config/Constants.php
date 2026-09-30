@@ -42,6 +42,9 @@ defined('MONTH')  || define('MONTH', 2_592_000);
 defined('YEAR')   || define('YEAR', 31_536_000);
 defined('DECADE') || define('DECADE', 315_360_000);
 
+// Duração máxima da sessão do usuário logado (2 horas)
+defined('USER_SESSION_TTL') || define('USER_SESSION_TTL', 2 * HOUR);
+
 /*
  | --------------------------------------------------------------------------
  | Exit Status Codes

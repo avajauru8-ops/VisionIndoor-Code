@@ -33,7 +33,7 @@ class Auth extends ResourceController
                     'nivel' => $user['nivel'],
                     'nome'  => $user['nome'],
                     'iat'   => time(),
-                    'exp'   => time() + (30 * 24 * 60 * 60) // 30 dias
+                    'exp'   => time() + USER_SESSION_TTL // 2 horas
                 ];
                 
                 $token = JWT::encode($payload, $key, 'HS256');
@@ -99,30 +99,17 @@ class Auth extends ResourceController
             
             $decoded = null;
             
-            // Tenta decodificar normalmente
+            // Token expirado ou emitido com validade antiga (30 dias) não é renovado
             try {
                 $decoded = JWT::decode($oldToken, new Key($key, 'HS256'));
             } catch (\Firebase\JWT\ExpiredException $e) {
-                // Token expirado - decodifica manualmente para obter os dados do usuario
-                $parts = explode('.', $oldToken);
-                if (count($parts) === 3) {
-                    $payloadData = json_decode(base64_decode(strtr($parts[1], '-_', '+/')));
-                    if ($payloadData && isset($payloadData->id) && isset($payloadData->email)) {
-                        // Verifica a assinatura manualmente
-                        $expectedSig = hash_hmac('sha256', $parts[0] . '.' . $parts[1], $key, true);
-                        $expectedSigB64 = strtr(rtrim(base64_encode($expectedSig), '='), '+/', '-_');
-                        
-                        if (hash_equals($expectedSigB64, $parts[2])) {
-                            $decoded = $payloadData;
-                        }
-                    }
-                }
-                
-                if (!$decoded) {
-                    return $this->response->setJSON(['error' => 'Token expirado e invalido. Faça login novamente.'])->setStatusCode(401);
-                }
+                return $this->response->setJSON(['error' => 'Token expirado. Faça login novamente.'])->setStatusCode(401);
             } catch (\Exception $e) {
                 return $this->response->setJSON(['error' => 'Token invalido. Faça login novamente.'])->setStatusCode(401);
+            }
+            
+            if (isset($decoded->iat) && (time() - $decoded->iat) > USER_SESSION_TTL) {
+                return $this->response->setJSON(['error' => 'Token expirado. Faça login novamente.'])->setStatusCode(401);
             }
             
             // Gera novo token
@@ -132,7 +119,7 @@ class Auth extends ResourceController
                 'nivel' => $decoded->nivel,
                 'nome'  => $decoded->nome,
                 'iat'   => time(),
-                'exp'   => time() + (30 * 24 * 60 * 60) // 30 dias
+                'exp'   => time() + USER_SESSION_TTL // 2 horas
             ];
             
             $newToken = JWT::encode($payload, $key, 'HS256');
