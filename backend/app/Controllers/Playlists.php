@@ -174,7 +174,9 @@ class Playlists extends ResourceController
             
             $file = $this->request->getFile('arquivo');
             if ($file && $file->isValid()) {
-                $finalUrl = $this->handleFileUpload($file, ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.mp4', '.webm', '.avi', '.mov']);
+                $finalUrl = $this->handleFileUpload($file, ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.mp4', '.webm', '.avi', '.mov', '.flv', '.3gp', '.m4v', '.mkv', '.mpg', '.rm', '.rmvb', '.vob', '.wmv']);
+            } else if ($file && !$file->isValid()) {
+                return $this->response->setJSON(['error' => 'Erro no arquivo: ' . $file->getErrorString()])->setStatusCode(400);
             }
             
             if (empty($finalUrl)) {
@@ -225,7 +227,9 @@ class Playlists extends ResourceController
             
             $file = $this->request->getFile('arquivo');
             if ($file && $file->isValid()) {
-                $finalUrl = $this->handleFileUpload($file, ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.mp4', '.webm', '.avi', '.mov']);
+                $finalUrl = $this->handleFileUpload($file, ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.mp4', '.webm', '.avi', '.mov', '.flv', '.3gp', '.m4v', '.mkv', '.mpg', '.rm', '.rmvb', '.vob', '.wmv']);
+            } else if ($file && !$file->isValid()) {
+                return $this->response->setJSON(['error' => 'Erro no arquivo: ' . $file->getErrorString()])->setStatusCode(400);
             }
             
             $tId = !empty($totem_id) ? $totem_id : null;
