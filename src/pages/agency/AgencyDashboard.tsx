@@ -20,6 +20,7 @@ import {
   CalendarDays
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Clock } from 'lucide-react';
 import { getTotemStatus } from '../../lib/totemStatus';
 
 export default function AgencyDashboard() {
