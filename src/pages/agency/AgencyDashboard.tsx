@@ -67,6 +67,10 @@ export default function AgencyDashboard() {
   // Calculated network health percentage
   const networkHealth = stats.total > 0 ? Math.round((stats.online / stats.total) * 100) : 0;
 
+  // Telas ainda disponíveis no plano: limite - cadastradas
+  const limiteTelas = Number(user?.limite_tvs ?? 1);
+  const telasDisponiveis = Math.max(0, limiteTelas - stats.total);
+
   // Pie chart data for Health gauge
   const healthPieData = stats.total > 0
     ? [
@@ -344,7 +348,9 @@ export default function AgencyDashboard() {
               </div>
               <div>
                 <p className="text-[10px] text-emerald-300 uppercase tracking-wider font-bold">Limite de Telas</p>
-                <p className="text-lg font-extrabold text-white">{user?.limite_tvs ?? 1} {Number(user?.limite_tvs ?? 1) === 1 ? 'tela' : 'telas'}</p>
+                <p className="text-lg font-extrabold text-white">
+                  {telasDisponiveis} <span className="text-emerald-300/70 font-bold">/ {limiteTelas}</span>
+                </p>
               </div>
             </div>
 
