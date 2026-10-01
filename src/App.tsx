@@ -14,6 +14,7 @@ import AdminSettings from './pages/admin/AdminSettings';
 import AdminIntegration from './pages/admin/AdminIntegration';
 import AdminTotems from './pages/admin/AdminTotems';
 import AdminWidgets from './pages/admin/AdminWidgets';
+import AdminAssinaturas from './pages/admin/AdminAssinaturas';
 
 import AgencyDashboard from './pages/agency/AgencyDashboard';
 import AgencyTotems from './pages/agency/AgencyTotems';
@@ -65,6 +66,7 @@ export default function App() {
              <Route path="admin/integration" element={<AdminIntegration />} />
              <Route path="admin/totems" element={<AdminTotems />} />
              <Route path="admin/widgets" element={<AdminWidgets />} />
+             <Route path="admin/assinaturas" element={<AdminAssinaturas />} />
              
              {/* Agency Routes */}
              <Route path="agency" element={<AgencyDashboard />} />

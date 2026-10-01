@@ -130,6 +130,7 @@ export default function Layout() {
   const adminLinks: MenuItem[] = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, category: 'MENU' },
     { name: 'Usuários & Licenças', path: '/admin/users', icon: Users, category: 'MENU' },
+    { name: 'Planos & Assinaturas', path: '/admin/assinaturas', icon: CreditCard, category: 'MENU' },
     { name: 'Totens Cadastrados', path: '/admin/totems', icon: Tv, category: 'MENU' },
     { name: 'Player Android', path: '/admin/integration', icon: Smartphone, category: 'MENU' },
     { name: 'Gestão de Widgets', path: '/admin/widgets', icon: LayoutTemplate, category: 'MENU' },

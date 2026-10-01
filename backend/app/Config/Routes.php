@@ -35,6 +35,14 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
         $routes->delete('(:segment)', 'Users::delete/$1');
     });
 
+    // Admin Planos & Assinaturas
+    $routes->group('admin/assinaturas', ['filter' => 'auth:admin'], static function ($routes) {
+        $routes->get('/', 'AdminAssinaturas::index');
+        $routes->get('', 'AdminAssinaturas::index');
+        $routes->post('(:segment)/aprovar', 'AdminAssinaturas::aprovar/$1');
+        $routes->post('(:segment)/reprovar', 'AdminAssinaturas::reprovar/$1');
+    });
+
     // Admin Settings
     $routes->group('admin/settings', static function ($routes) {
         $routes->get('/', 'Settings::index', ['filter' => 'auth']);

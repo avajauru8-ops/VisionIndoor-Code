@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\Payments\AssinaturaHelper;
 use App\Libraries\Payments\GatewayFactory;
 use CodeIgniter\RESTful\ResourceController;
 
@@ -16,33 +17,6 @@ use CodeIgniter\RESTful\ResourceController;
 class Assinaturas extends ResourceController
 {
     protected $format = 'json';
-
-    private function garantirTabela($db): void
-    {
-        try {
-            $db->query("CREATE TABLE IF NOT EXISTS assinaturas (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                usuario_id INT NOT NULL,
-                plano VARCHAR(50) NOT NULL DEFAULT 'pago',
-                valor DECIMAL(10,2) NOT NULL DEFAULT 0,
-                moeda VARCHAR(10) NOT NULL DEFAULT 'BRL',
-                periodo VARCHAR(30) DEFAULT NULL,
-                limite_telas INT DEFAULT NULL,
-                status VARCHAR(30) NOT NULL DEFAULT 'pendente',
-                gateway VARCHAR(30) DEFAULT NULL,
-                gateway_ref VARCHAR(120) DEFAULT NULL,
-                url_pagamento VARCHAR(500) DEFAULT NULL,
-                data_inicio DATETIME DEFAULT NULL,
-                data_fim DATETIME DEFAULT NULL,
-                criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                INDEX idx_assinaturas_usuario (usuario_id),
-                INDEX idx_assinaturas_ref (gateway_ref)
-            )");
-        } catch (\Throwable $e) {
-            // Tabela já existe ou sem permissão - seguimos e deixamos a query seguinte acusar
-        }
-    }
 
     private function usuarioAtual($db): ?array
     {
@@ -101,7 +75,7 @@ class Assinaturas extends ResourceController
                 return $this->response->setJSON(['error' => 'Usuário não encontrado'])->setStatusCode(404);
             }
 
-            $this->garantirTabela($db);
+            AssinaturaHelper::garantirTabela($db);
 
             $plano = $user['plano'] ?? 'gratis';
             $limite = $this->limiteEfetivo($user);
@@ -162,7 +136,7 @@ class Assinaturas extends ResourceController
             if (!$user) {
                 return $this->response->setJSON(['error' => 'Usuário não encontrado'])->setStatusCode(404);
             }
-            $this->garantirTabela($db);
+            AssinaturaHelper::garantirTabela($db);
 
             $valor = (float)($planoCfg['preco'] ?? 0);
 
@@ -253,7 +227,7 @@ class Assinaturas extends ResourceController
             }
 
             $db = \Config\Database::connect();
-            $this->garantirTabela($db);
+            AssinaturaHelper::garantirTabela($db);
 
             $assinatura = $db->table('assinaturas')
                 ->where('gateway_ref', $evento['referencia'])
@@ -267,12 +241,12 @@ class Assinaturas extends ResourceController
 
             if ($novoStatus === 'ativa') {
                 $agora = date('Y-m-d H:i:s');
-                $fim = $this->dataFimPorPeriodo($assinatura['periodo'] ?? 'mensal');
+                $fim = AssinaturaHelper::dataFimPorPeriodo($assinatura['periodo'] ?? 'mensal');
                 $atualizacao['data_inicio'] = $assinatura['data_inicio'] ?? $agora;
                 $atualizacao['data_fim'] = $fim;
 
                 $db->table('usuarios')->where('id', $assinatura['usuario_id'])->update([
-                    'plano'            => $assinatura['plano'] ?: 'pago',
+                    'plano'            => AssinaturaHelper::planoUsuario((string)$assinatura['plano']),
                     'status_licenca'   => 'ativa',
                     'validade_licenca' => $fim,
                     ...( !empty($assinatura['limite_telas'])
@@ -287,18 +261,5 @@ class Assinaturas extends ResourceController
         } catch (\Throwable $e) {
             return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
         }
-    }
-
-    private function dataFimPorPeriodo(string $periodo): string
-    {
-        $base = strtotime('+1 month');
-        if ($periodo === 'anual') {
-            $base = strtotime('+1 year');
-        } elseif ($periodo === 'semestral') {
-            $base = strtotime('+6 months');
-        } elseif ($periodo === 'trimestral') {
-            $base = strtotime('+3 months');
-        }
-        return date('Y-m-d H:i:s', $base);
     }
 }
