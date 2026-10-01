@@ -148,6 +148,121 @@ class Listas extends ResourceController
         }
     }
 
+    // POST /api/listas/:id/itens — insere arquivos selecionados na lista (posição configurável)
+    public function addItens($id = null)
+    {
+        try {
+            $db = \Config\Database::connect();
+            $user_id = $this->request->getHeaderLine('X-User-Id');
+            $nivel = $this->request->getHeaderLine('X-User-Nivel');
+
+            $playlist = $db->table('playlists')->where('id', $id)->get()->getRowArray();
+            if (!$playlist) {
+                return $this->failNotFound('Lista não encontrada');
+            }
+            if ($nivel !== 'admin' && $playlist['usuario_id'] != $user_id) {
+                return $this->failForbidden('Acesso negado');
+            }
+
+            $json = $this->request->getJSON();
+            $campanhaIds = $json->campanha_ids ?? [];
+            if (!is_array($campanhaIds) || !$campanhaIds) {
+                return $this->failValidationErrors('Nenhum arquivo informado');
+            }
+            $campanhaIds = array_values(array_unique(array_map('intval', $campanhaIds)));
+            $posicao = (string)($json->posicao ?? 'automatico');
+
+            // Arquivos (não-admin só enxerga os próprios)
+            $cb = $db->table('campanhas')->select('id, tempo_exibicao')->whereIn('id', $campanhaIds);
+            if ($nivel !== 'admin') {
+                $cb->where('usuario_id', $user_id);
+            }
+            $campanhas = $cb->get()->getResultArray();
+            if (!$campanhas) {
+                return $this->failForbidden('Nenhum dos arquivos selecionado pode ser inserido');
+            }
+
+            $antigos = $db->table('playlist_itens')
+                ->where('playlist_id', $id)
+                ->orderBy('ordem', 'ASC')
+                ->get()
+                ->getResultArray();
+
+            $existentesIds = array_map('intval', array_filter(array_column($antigos, 'campanha_id')));
+            $ordemSelecao = array_flip($campanhaIds);
+
+            $novos = [];
+            $ignorados = 0;
+            foreach ($campanhas as $c) {
+                if (in_array((int)$c['id'], $existentesIds, true)) {
+                    $ignorados++;
+                    continue;
+                }
+                $novos[(int)$c['id']] = [
+                    'playlist_id'    => $id,
+                    'campanha_id'    => (int)$c['id'],
+                    'widget_nome'    => null,
+                    'tempo_exibicao' => ((int)($c['tempo_exibicao'] ?? 0) > 0) ? (int)$c['tempo_exibicao'] : 15,
+                ];
+            }
+            // Mantém a ordem em que os arquivos foram selecionados
+            uksort($novos, static fn($a, $b) => ($ordemSelecao[$a] ?? 0) <=> ($ordemSelecao[$b] ?? 0));
+            $novos = array_values($novos);
+
+            if (!$novos) {
+                return $this->respond(['success' => true, 'inseridos' => 0, 'ignorados' => $ignorados, 'total_itens' => count($antigos)]);
+            }
+
+            $N = count($antigos);
+            $M = count($novos);
+            switch ($posicao) {
+                case 'inicio':
+                    $final = array_merge($novos, $antigos);
+                    break;
+                case 'meio':
+                    $meio = (int)floor($N / 2);
+                    $final = array_merge(array_slice($antigos, 0, $meio), $novos, array_slice($antigos, $meio));
+                    break;
+                case 'final':
+                    $final = array_merge($antigos, $novos);
+                    break;
+                default: // automatico: intercala os novos entre os existentes
+                    $final = $antigos;
+                    for ($j = $M - 1; $j >= 0; $j--) {
+                        $idx = (int)floor(($j + 1) * ($N + 1) / ($M + 1)) + $j;
+                        if ($idx > $N) {
+                            $idx = $N;
+                        }
+                        array_splice($final, $idx, 0, [$novos[$j]]);
+                    }
+                    break;
+            }
+
+            $db->transStart();
+            $db->table('playlist_itens')->where('playlist_id', $id)->delete();
+            foreach ($final as $index => $row) {
+                unset($row['id']);
+                $row['playlist_id'] = $id;
+                $row['ordem'] = $index + 1;
+                $db->table('playlist_itens')->insert($row);
+            }
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                return $this->fail('Erro ao inserir arquivos na lista');
+            }
+
+            return $this->respond([
+                'success'     => true,
+                'inseridos'   => count($novos),
+                'ignorados'   => $ignorados,
+                'total_itens' => count($final),
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
     public function delete($id = null)
     {
         try {

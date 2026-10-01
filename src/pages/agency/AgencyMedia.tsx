@@ -1,13 +1,28 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Image as ImageIcon, Plus, Search, Tag, Play, X, Trash2, CheckCircle2, Upload } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Image as ImageIcon, Plus, Search, Tag, Play, X, Trash2, CheckCircle2, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { compressImage } from '../../lib/compress';
+import {
+  AgendamentoModal,
+  EtiquetasModal,
+  InserirEmListaModal,
+  Janela,
+  paraInputJanela,
+  deInputJanela,
+} from '../../components/media/MediaModals';
 
 interface Media {
   id: string;
   titulo: string;
   tipo_midia: string;
   arquivo_url: string;
+  data_inicio?: string | null;
+  data_fim?: string | null;
+  ativo?: number | string;
+  tempo_exibicao?: number;
+  etiquetas?: string[] | string | null;
+  janelas?: { inicio?: string | null; fim?: string | null }[];
 }
 
 interface UploadItem {
@@ -27,6 +42,19 @@ const fileExt = (name: string) => '.' + (name.split('.').pop() || '').toLowerCas
 
 const isVideoFile = (file: File) =>
   file.type.startsWith('video/') || VIDEO_EXTS.includes(fileExt(file.name));
+
+const normalizaEtiquetas = (e: unknown): string[] => {
+  if (Array.isArray(e)) return e.map(String);
+  if (typeof e === 'string' && e.trim()) {
+    try {
+      const p = JSON.parse(e);
+      if (Array.isArray(p)) return p.map(String);
+    } catch {
+      return e.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+    }
+  }
+  return [];
+};
 
 const parseUploadError = (xhr: XMLHttpRequest): string => {
   try {
@@ -52,10 +80,24 @@ export default function AgencyMedia() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('date_desc');
 
+  // Pagination
+  const [perPage, setPerPage] = useState(15);
+  const [page, setPage] = useState(1);
+
+  // Etiquetas / pastas (filtro)
+  const [showTags, setShowTags] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
   // Selection State
   const [selectedMedia, setSelectedMedia] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(true);
   const [previewItem, setPreviewItem] = useState<Media | null>(null);
+
+  // Modais de ação em massa
+  const [bulkSchedule, setBulkSchedule] = useState(false);
+  const [bulkTags, setBulkTags] = useState(false);
+  const [bulkLista, setBulkLista] = useState(false);
+  const [salvando, setSalvando] = useState(false);
 
   // Drag and Drop
   const [isDragging, setIsDragging] = useState(false);
@@ -115,12 +157,22 @@ export default function AgencyMedia() {
     loadMedia();
   }, []);
 
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, perPage, selectedTags]);
+
   const loadMedia = async () => {
     try {
       const data = await apiFetch('/api/playlists');
-      const filtered = (data || []).filter((item: Media) => 
-        item.tipo_midia === 'imagem' || item.tipo_midia === 'video'
-      );
+      const filtered = (data || [])
+        .map((item: Media) => ({
+          ...item,
+          etiquetas: normalizaEtiquetas(item.etiquetas),
+          janelas: Array.isArray(item.janelas) ? item.janelas : [],
+        }))
+        .filter((item: Media) =>
+          item.tipo_midia === 'imagem' || item.tipo_midia === 'video'
+        );
       setMedia(filtered);
       setSelectedMedia([]);
     } catch (err) {
@@ -132,7 +184,7 @@ export default function AgencyMedia() {
 
   const deleteSelected = async () => {
     if (!confirm(`Deseja apagar os ${selectedMedia.length} arquivos selecionados?`)) return;
-    
+
     setLoading(true);
     try {
       await Promise.all(selectedMedia.map(id => apiFetch(`/api/playlists/${id}`, { method: 'DELETE' })));
@@ -144,7 +196,66 @@ export default function AgencyMedia() {
     }
   };
 
+  const salvarAgendamentoLote = async (janelas: Janela[]) => {
+    setSalvando(true);
+    try {
+      const payload = { agendamentos: janelas.map(deInputJanela) };
+      await Promise.all(
+        selectedMedia.map(id =>
+          apiFetch(`/api/playlists/${id}`, { method: 'PUT', body: JSON.stringify(payload) })
+        )
+      );
+      setBulkSchedule(false);
+      await loadMedia();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSalvando(false);
+    }
+  };
 
+  const salvarEtiquetasLote = async (novas: string[], modo: 'substituir' | 'adicionar') => {
+    setSalvando(true);
+    try {
+      const mapa = new Map(media.map(m => [m.id, normalizaEtiquetas(m.etiquetas)]));
+      await Promise.all(
+        selectedMedia.map(id => {
+          const atual = mapa.get(id) || [];
+          const final = modo === 'substituir' ? novas : Array.from(new Set([...atual, ...novas]));
+          return apiFetch(`/api/playlists/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ etiquetas: final }),
+          });
+        })
+      );
+      setBulkTags(false);
+      await loadMedia();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  const inserirEmListas = async (listaIds: string[], posicao: string) => {
+    if (listaIds.length === 0) return;
+    setSalvando(true);
+    try {
+      for (const listaId of listaIds) {
+        await apiFetch(`/api/listas/${listaId}/itens`, {
+          method: 'POST',
+          body: JSON.stringify({ campanha_ids: selectedMedia, posicao }),
+        });
+      }
+      setBulkLista(false);
+      alert(`${selectedMedia.length} arquivo(s) inserido(s) em ${listaIds.length} lista(s) de reprodução.`);
+      setSelectedMedia([]);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSalvando(false);
+    }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -157,14 +268,14 @@ export default function AgencyMedia() {
       }));
       setUploadQueue((prev: UploadItem[]) => [...prev, ...newItems]);
       setShowUploader(true);
-      
+
       // Limpa o input para poder selecionar os mesmos arquivos novamente
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
   const removeUploadItem = (id: string) => {
-    setUploadQueue((prev: UploadItem[]) => prev.filter((item: UploadItem) => item.id !== id));
+    setUploadQueue((prev) => prev.filter((item) => item.id !== id));
   };
 
   const clearUploader = () => {
@@ -182,10 +293,10 @@ export default function AgencyMedia() {
   // Efeito para processar a fila de upload
   useEffect(() => {
     const pendingItem = uploadQueue.find((item: UploadItem) => item.status === 'pending');
-    
+
     if (pendingItem) {
       // Iniciar o upload deste item
-      setUploadQueue((prev: UploadItem[]) => prev.map((item: UploadItem) => 
+      setUploadQueue((prev: UploadItem[]) => prev.map((item: UploadItem) =>
         item.id === pendingItem.id ? { ...item, status: 'uploading' } : item
       ));
 
@@ -197,7 +308,7 @@ export default function AgencyMedia() {
     const token = localStorage.getItem('token');
     if (!token) {
       console.error('Token não encontrado!');
-      setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) => 
+      setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) =>
         q.id === item.id ? { ...q, status: 'error', error: 'Sessão expirada. Faça login novamente.' } : q
       ));
       return;
@@ -214,7 +325,7 @@ export default function AgencyMedia() {
 
     const xhr = new XMLHttpRequest();
     const formData = new FormData();
-    
+
     formData.append('arquivo', fileToSend);
     formData.append('titulo', item.file.name);
     formData.append('tipo_midia', isVideoFile(item.file) ? 'video' : 'imagem');
@@ -222,7 +333,7 @@ export default function AgencyMedia() {
     xhr.upload.addEventListener('progress', (e: ProgressEvent) => {
       if (e.lengthComputable) {
         const percent = Math.round((e.loaded / e.total) * 100);
-        setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) => 
+        setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) =>
           q.id === item.id ? { ...q, progress: percent } : q
         ));
       }
@@ -230,34 +341,44 @@ export default function AgencyMedia() {
 
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) => 
+        setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) =>
           q.id === item.id ? { ...q, status: 'done', progress: 100 } : q
         ));
       } else {
         const message = parseUploadError(xhr);
         console.error('Upload falhou:', xhr.status, message, xhr.responseText);
-        setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) => 
+        setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) =>
           q.id === item.id ? { ...q, status: 'error', error: message } : q
         ));
       }
     });
 
     xhr.addEventListener('error', () => {
-      setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) => 
+      setUploadQueue((prev: UploadItem[]) => prev.map((q: UploadItem) =>
         q.id === item.id ? { ...q, status: 'error', error: 'Falha de conexão com o servidor.' } : q
       ));
     });
 
     const baseUrl = (import.meta as any).env.VITE_API_URL || '';
     xhr.open('POST', `${baseUrl}/api/playlists`);
-    
+
     xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.send(formData);
   };
 
+  const todasEtiquetas = useMemo(() => {
+    const set = new Set<string>();
+    media.forEach(m => normalizaEtiquetas(m.etiquetas).forEach(t => set.add(t)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [media]);
 
   const filteredMedia = media
     .filter(item => item.titulo.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(item => {
+      if (selectedTags.length === 0) return true;
+      const tags = normalizaEtiquetas(item.etiquetas);
+      return selectedTags.some(t => tags.includes(t));
+    })
     .sort((a, b) => {
       if (sortBy === 'name') return a.titulo.localeCompare(b.titulo, 'pt-BR');
       // date_desc: items with higher id (newer) first
@@ -265,10 +386,16 @@ export default function AgencyMedia() {
       return Number(a.id) - Number(b.id);
     });
 
-  const paginatedMedia = filteredMedia;
+  const totalPages = Math.max(1, Math.ceil(filteredMedia.length / perPage));
+  const paginaAtual = Math.min(page, totalPages);
+  const paginatedMedia = filteredMedia.slice((paginaAtual - 1) * perPage, paginaAtual * perPage);
+  const inicioMostrado = filteredMedia.length === 0 ? 0 : (paginaAtual - 1) * perPage + 1;
+  const fimMostrado = Math.min(paginaAtual * perPage, filteredMedia.length);
+
+  const primeiroSelecionado = media.find(m => selectedMedia.includes(m.id)) || null;
 
   return (
-    <div 
+    <div
       className="space-y-6 max-w-[1200px] mx-auto text-zinc-600 font-sans min-h-full pb-20 relative"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
@@ -293,17 +420,17 @@ export default function AgencyMedia() {
             ARQUIVOS
           </h2>
         </div>
-        
+
         <div>
-          <input 
-            type="file" 
-            multiple 
-            className="hidden" 
+          <input
+            type="file"
+            multiple
+            className="hidden"
             ref={fileInputRef}
             onChange={handleFileSelect}
             accept={ACCEPTED_EXTS.join(',')}
           />
-          <button 
+          <button
             onClick={() => fileInputRef.current?.click()}
             className="bg-[#0066ff] hover:bg-[#0052cc] text-white text-[10px] font-bold px-4 py-2 rounded transition-colors uppercase flex items-center gap-1.5 shadow-sm"
           >
@@ -326,26 +453,75 @@ export default function AgencyMedia() {
             <span className="absolute inset-y-0 left-3 flex items-center text-[#104a9e]">
               <Search className="w-4 h-4" />
             </span>
-            <input 
-              type="text" 
-              placeholder="PESQUISAR" 
+            <input
+              type="text"
+              placeholder="PESQUISAR"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full border-b border-zinc-300 pl-9 pr-4 py-2 text-xs font-bold text-center text-[#104a9e] placeholder-[#104a9e] focus:outline-none focus:border-[#104a9e] bg-transparent uppercase" 
+              className="w-full border-b border-zinc-300 pl-9 pr-4 py-2 text-xs font-bold text-center text-[#104a9e] placeholder-[#104a9e] focus:outline-none focus:border-[#104a9e] bg-transparent uppercase"
             />
           </div>
-          
-          <button className="flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-zinc-600 transition-colors uppercase">
+
+          <button
+            onClick={() => setShowTags(v => !v)}
+            className={`flex items-center gap-2 text-xs font-bold transition-colors uppercase ${showTags || selectedTags.length > 0 ? 'text-[#104a9e]' : 'text-zinc-400 hover:text-zinc-600'}`}
+          >
             <Tag className="w-4 h-4" />
             ETIQUETAS / PASTAS
+            {selectedTags.length > 0 && (
+              <span className="bg-[#104a9e] text-white text-[9px] rounded-full px-1.5 py-0.5">
+                {selectedTags.length}
+              </span>
+            )}
           </button>
+
+          {/* Painel de etiquetas */}
+          {showTags && (
+            <div className="w-full border border-zinc-200 rounded-lg bg-zinc-50 p-4">
+              {todasEtiquetas.length === 0 ? (
+                <p className="text-xs text-zinc-400 text-center">
+                  Nenhuma etiqueta cadastrada. Abra um arquivo e clique em "Editar" para criar etiquetas.
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {todasEtiquetas.map(tag => {
+                    const ativa = selectedTags.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        onClick={() =>
+                          setSelectedTags(prev =>
+                            prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+                          )
+                        }
+                        className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${ativa
+                          ? 'bg-[#0066ff] border-[#0066ff] text-white'
+                          : 'bg-white border-zinc-300 text-zinc-600 hover:border-[#0066ff] hover:text-[#0066ff]'
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                  {selectedTags.length > 0 && (
+                    <button
+                      onClick={() => setSelectedTags([])}
+                      className="text-[11px] px-2.5 py-1 rounded-full border border-zinc-300 text-zinc-400 hover:text-rose-500 hover:border-rose-300 transition-colors"
+                    >
+                      Limpar filtro
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Sort and Pagination controls */}
         <div className="mt-6 flex flex-col md:flex-row justify-end items-center gap-4 text-[10px] font-bold text-zinc-400 uppercase">
           <div className="flex items-center gap-2">
             <span>ORDENAR POR</span>
-            <select 
+            <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="border border-zinc-200 rounded p-1 text-zinc-600 focus:outline-none"
@@ -357,27 +533,44 @@ export default function AgencyMedia() {
           </div>
           <div className="flex items-center gap-2">
             <span>ARQUIVOS POR PÁGINA</span>
-            <select className="border border-zinc-200 rounded p-1 text-zinc-600 focus:outline-none">
-              <option>15</option>
-              <option>30</option>
-              <option>50</option>
+            <select
+              value={perPage}
+              onChange={(e) => setPerPage(Number(e.target.value))}
+              className="border border-zinc-200 rounded p-1 text-zinc-600 focus:outline-none"
+            >
+              <option value={15}>15</option>
+              <option value={30}>30</option>
+              <option value={50}>50</option>
             </select>
           </div>
         </div>
 
         {/* Bulk Actions Dropdown */}
         {selectedMedia.length > 0 && (
-          <div className="mt-4 flex items-center">
-            <select 
+          <div className="mt-4 flex items-center justify-between">
+            <select
               value=""
               onChange={(e) => {
-                if (e.target.value === 'delete') deleteSelected();
+                const v = e.target.value;
+                if (v === 'delete') deleteSelected();
+                else if (v === 'schedule') setBulkSchedule(true);
+                else if (v === 'tags') setBulkTags(true);
+                else if (v === 'listas') setBulkLista(true);
               }}
               className="border border-zinc-300 rounded px-3 py-1.5 text-sm font-medium text-zinc-700 bg-white focus:outline-none focus:border-[#104a9e] shadow-sm cursor-pointer"
             >
               <option value="" disabled hidden>{selectedMedia.length} selecionado...</option>
+              <option value="schedule">Alterar Agendamento</option>
+              <option value="listas">Inserir em Lista de Reprodução</option>
+              <option value="tags">Editar Etiquetas / Pastas</option>
               <option value="delete">Apagar</option>
             </select>
+            <button
+              onClick={() => setSelectedMedia([])}
+              className="text-[10px] font-bold uppercase text-zinc-400 hover:text-zinc-600 transition-colors"
+            >
+              Limpar seleção
+            </button>
           </div>
         )}
 
@@ -388,14 +581,14 @@ export default function AgencyMedia() {
               <thead>
                 <tr className="bg-zinc-50 border-b border-zinc-200 text-xs text-zinc-500">
                   <th className="px-4 py-3 w-12 text-center">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={filteredMedia.length > 0 && selectedMedia.length === filteredMedia.length}
                       onChange={(e) => {
                         if (e.target.checked) setSelectedMedia(filteredMedia.map(m => m.id));
                         else setSelectedMedia([]);
                       }}
-                      className="rounded border-zinc-300 text-[#104a9e] focus:ring-[#104a9e]" 
+                      className="rounded border-zinc-300 text-[#104a9e] focus:ring-[#104a9e]"
                     />
                   </th>
                   <th className="px-4 py-3 font-semibold">Nome</th>
@@ -423,43 +616,55 @@ export default function AgencyMedia() {
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#104a9e] mx-auto"></div>
                     </td>
                   </tr>
-                ) : filteredMedia.length === 0 ? (
+                ) : paginatedMedia.length === 0 ? (
                   <tr>
                     <td colSpan={showPreview ? 3 : 2} className="px-4 py-8 text-center text-zinc-500">
                       Nenhum arquivo encontrado.
                     </td>
                   </tr>
                 ) : (
-                  filteredMedia.map((item, idx) => (
+                  paginatedMedia.map((item, idx) => (
                     <tr key={item.id || idx} className="hover:bg-zinc-50 transition-colors">
                       <td className="px-4 py-4 text-center">
-                        <input 
-                          type="checkbox" 
+                        <input
+                          type="checkbox"
                           checked={selectedMedia.includes(item.id)}
                           onChange={(e) => {
                             if (e.target.checked) setSelectedMedia([...selectedMedia, item.id]);
                             else setSelectedMedia(selectedMedia.filter(id => id !== item.id));
                           }}
-                          className="rounded border-zinc-300 text-[#104a9e] focus:ring-[#104a9e]" 
+                          className="rounded border-zinc-300 text-[#104a9e] focus:ring-[#104a9e]"
                         />
                       </td>
                       <td className="px-4 py-4">
-                        <span className="bg-zinc-100 text-zinc-600 text-[11px] px-2 py-1 rounded border border-zinc-200">
+                        <Link
+                          to={`/agency/arquivos/${item.id}`}
+                          className="inline-block bg-zinc-100 text-zinc-600 text-[11px] px-2 py-1 rounded border border-zinc-200 hover:border-[#0066ff] hover:text-[#0066ff] transition-colors"
+                        >
                           {item.titulo || `Arquivo ${idx + 1}`}
-                        </span>
+                        </Link>
+                        {normalizaEtiquetas(item.etiquetas).length > 0 && (
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            {normalizaEtiquetas(item.etiquetas).slice(0, 4).map(tag => (
+                              <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-50 text-[#104a9e] border border-blue-100">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </td>
                       {showPreview && (
                         <td className="px-4 py-4 text-center border-l border-zinc-200">
                           <div className="flex justify-center items-center h-16 w-full">
                             {item.tipo_midia === 'imagem' ? (
-                              <img 
-                                src={item.arquivo_url} 
-                                alt={item.titulo} 
+                              <img
+                                src={item.arquivo_url}
+                                alt={item.titulo}
                                 className="h-full object-contain max-w-[120px] rounded shadow-sm border border-zinc-200 cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={() => setPreviewItem(item)}
                               />
                             ) : (
-                              <div 
+                              <div
                                 className="w-12 h-10 rounded bg-[#0066ff] flex items-center justify-center shadow-sm cursor-pointer hover:bg-[#0052cc] transition-colors"
                                 onClick={() => setPreviewItem(item)}
                               >
@@ -478,8 +683,29 @@ export default function AgencyMedia() {
         </div>
 
         {/* Footer info */}
-        <div className="mt-4 text-[10px] text-zinc-500">
-          Mostrando de 1 a {filteredMedia.length} de {filteredMedia.length} arquivos
+        <div className="mt-4 flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="text-[10px] text-zinc-500">
+            Mostrando de {inicioMostrado} a {fimMostrado} de {filteredMedia.length} arquivos
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-500">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={paginaAtual <= 1}
+                className="p-1.5 border border-zinc-200 rounded hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <span>Página {paginaAtual} de {totalPages}</span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={paginaAtual >= totalPages}
+                className="p-1.5 border border-zinc-200 rounded hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Storage Bar */}
@@ -498,6 +724,37 @@ export default function AgencyMedia() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Agendamento em massa */}
+      <AgendamentoModal
+        aberto={bulkSchedule}
+        janelasIniciais={
+          primeiroSelecionado && primeiroSelecionado.janelas && primeiroSelecionado.janelas.length > 0
+            ? primeiroSelecionado.janelas.map(paraInputJanela)
+            : [{ inicio: '', fim: '' }]
+        }
+        onSalvar={salvarAgendamentoLote}
+        onFechar={() => setBulkSchedule(false)}
+        salvando={salvando}
+      />
+
+      {/* Modal de Etiquetas em massa */}
+      <EtiquetasModal
+        aberto={bulkTags}
+        etiquetasAtuais={primeiroSelecionado ? normalizaEtiquetas(primeiroSelecionado.etiquetas) : []}
+        onSalvar={salvarEtiquetasLote}
+        onFechar={() => setBulkTags(false)}
+        salvando={salvando}
+      />
+
+      {/* Modal de Inserir em Lista */}
+      <InserirEmListaModal
+        aberto={bulkLista}
+        totalArquivos={selectedMedia.length}
+        onInserir={inserirEmListas}
+        onFechar={() => setBulkLista(false)}
+        salvando={salvando}
+      />
 
       {/* Upload Popup (Flutuante no centro) */}
       {showUploader && (
@@ -526,7 +783,7 @@ export default function AgencyMedia() {
                       ) : (
                          <img src={item.previewUrl} alt={item.file.name} className="w-full h-full object-cover" />
                       )}
-                      
+
                       {/* Overlay para progresso e concluído */}
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                         {item.status === 'done' ? (
@@ -536,17 +793,17 @@ export default function AgencyMedia() {
                         ) : (
                           // Progress Bar Redonda (SVG)
                           <svg className="w-8 h-8 transform -rotate-90">
-                            <circle 
-                              cx="16" cy="16" r="14" 
-                              stroke="currentColor" 
-                              strokeWidth="2" 
+                            <circle
+                              cx="16" cy="16" r="14"
+                              stroke="currentColor"
+                              strokeWidth="2"
                               fill="transparent"
                               className="text-white/20"
                             />
-                            <circle 
-                              cx="16" cy="16" r="14" 
-                              stroke="currentColor" 
-                              strokeWidth="2" 
+                            <circle
+                              cx="16" cy="16" r="14"
+                              stroke="currentColor"
+                              strokeWidth="2"
                               fill="transparent"
                               strokeDasharray={circumference}
                               strokeDashoffset={offset}
@@ -567,7 +824,7 @@ export default function AgencyMedia() {
                       )}
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => removeUploadItem(item.id)}
                     className="p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-400/10 rounded opacity-0 group-hover:opacity-100 transition-all"
                   >
@@ -580,20 +837,20 @@ export default function AgencyMedia() {
 
           {/* Footer Botoes Popup */}
           <div className="p-4 border-t border-zinc-800 bg-[#141414] flex items-center justify-between">
-            <button 
+            <button
               onClick={clearUploader}
               className="px-4 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
             >
               Limpar
             </button>
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 onClick={() => fileInputRef.current?.click()}
                 className="px-4 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
               >
                 Adicionar mais
               </button>
-              <button 
+              <button
                 onClick={finishUploader}
                 className="px-5 py-1.5 rounded-lg text-xs font-bold text-white bg-[#0066ff] hover:bg-[#0052cc] transition-colors"
               >

@@ -360,8 +360,27 @@ class Api extends ResourceController
                 
             $playlist = [];
             foreach ($campanhas as $c) {
-                if ($c['data_inicio'] && $c['data_inicio'] > $now) continue;
-                if ($c['data_fim'] && $c['data_fim'] < $now) continue;
+                // Janelas de agendamento (novo modelo: múltiplas janelas em agendamentos JSON)
+                $ag = isset($c['agendamentos']) && $c['agendamentos'] ? json_decode($c['agendamentos'], true) : null;
+                if (is_array($ag) && $ag) {
+                    $ativo = false;
+                    foreach ($ag as $j) {
+                        $j = (array)$j;
+                        $ini = !empty($j['inicio']) ? str_replace('T', ' ', $j['inicio']) : null;
+                        $fim = !empty($j['fim']) ? str_replace('T', ' ', $j['fim']) : null;
+                        if ((!$ini || $now >= $ini) && (!$fim || $now <= $fim)) {
+                            $ativo = true;
+                            break;
+                        }
+                    }
+                    if (!$ativo) {
+                        continue;
+                    }
+                } else {
+                    // Janela única legada (data_inicio/data_fim)
+                    if ($c['data_inicio'] && $c['data_inicio'] > $now) continue;
+                    if ($c['data_fim'] && $c['data_fim'] < $now) continue;
+                }
                 
                 $url = $c['arquivo_url'];
                 if (empty($url)) continue;

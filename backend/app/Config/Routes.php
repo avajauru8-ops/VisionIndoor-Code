@@ -71,10 +71,12 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
         $routes->delete('(:segment)', 'Totems::delete/$1');
     });
 
-    // Playlists
+    // Playlists (arquivos)
     $routes->group('playlists', ['filter' => 'auth'], static function ($routes) {
         $routes->get('/', 'Playlists::index');
         $routes->get('', 'Playlists::index');
+        $routes->get('(:segment)/estatisticas', 'Playlists::estatisticas/$1');
+        $routes->get('(:segment)', 'Playlists::show/$1');
         $routes->post('', 'Playlists::create'); // multipart/form-data
         $routes->post('(:segment)', 'Playlists::update/$1'); // CI4 multipart limit - use POST to simulate PUT
         $routes->put('(:segment)', 'Playlists::update/$1'); // Adicionado PUT route!
@@ -87,6 +89,7 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
         $routes->get('', 'Listas::index');
         $routes->get('(:segment)', 'Listas::show/$1');
         $routes->post('', 'Listas::create');
+        $routes->post('(:segment)/itens', 'Listas::addItens/$1');
         $routes->put('(:segment)', 'Listas::update/$1');
         $routes->delete('(:segment)', 'Listas::delete/$1');
     });

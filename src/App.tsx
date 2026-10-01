@@ -23,6 +23,7 @@ import AgencyPlaylistScreens from './pages/agency/AgencyPlaylistScreens';
 import AgencyPlaylistView from './pages/agency/AgencyPlaylistView';
 import AgencyTotemSettings from './pages/agency/AgencyTotemSettings';
 import AgencyMedia from './pages/agency/AgencyMedia';
+import AgencyMediaDetail from './pages/agency/AgencyMediaDetail';
 import AgencyListas from './pages/agency/AgencyListas';
 import AgencyListaEdit from './pages/agency/AgencyListaEdit';
 import AgencyNews from './pages/agency/AgencyNews';
@@ -73,6 +74,7 @@ export default function App() {
              <Route path="agency/totems" element={<AgencyTotems />} />
              <Route path="agency/totems/:id" element={<AgencyTotemSettings />} />
              <Route path="agency/arquivos" element={<AgencyMedia />} />
+             <Route path="agency/arquivos/:id" element={<AgencyMediaDetail />} />
              <Route path="agency/listas" element={<AgencyListas />} />
              <Route path="agency/listas/:id" element={<AgencyListaEdit />} />
              <Route path="agency/news" element={<AgencyNews />} />
