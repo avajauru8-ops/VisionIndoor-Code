@@ -336,8 +336,8 @@ export default function Layout() {
         </div>
       )}
 
-      {/* User Plan Card (Bottom of Sidebar) */}
-      {user && (
+      {/* User Plan Card (Bottom of Sidebar — agencies only) */}
+      {user && isAgency && (
         <div className="px-4 py-3 shrink-0 border-t border-[#e8edf2]">
           <div className="p-3 rounded-2xl bg-gradient-to-br from-zinc-50 to-white border border-[#e8edf2]">
             <div className="flex items-center gap-2.5 mb-2.5">
