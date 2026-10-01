@@ -103,7 +103,7 @@ export default function AgencyPlan() {
   }
 
   return (
-    <div className="space-y-6 text-zinc-600 font-sans max-w-5xl">
+    <div className="space-y-6 text-zinc-600 font-sans w-full">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <h2 className="text-xl font-bold text-[#104a9e] flex items-center gap-2 uppercase tracking-wide">
