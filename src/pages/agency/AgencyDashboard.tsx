@@ -67,8 +67,8 @@ export default function AgencyDashboard() {
   // Calculated network health percentage
   const networkHealth = stats.total > 0 ? Math.round((stats.online / stats.total) * 100) : 0;
 
-  // Telas ainda disponíveis no plano: limite - cadastradas
-  const limiteTelas = Number(user?.limite_tvs ?? 1);
+  // Telas ainda disponíveis no plano: limite - cadastradas (gratuito = 1 tela)
+  const limiteTelas = user?.plano === 'gratis' ? 1 : Number(user?.limite_tvs ?? 1);
   const telasDisponiveis = Math.max(0, limiteTelas - stats.total);
 
   // Pie chart data for Health gauge
@@ -367,11 +367,19 @@ export default function AgencyDashboard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 relative z-10">
-            <span className={`w-2.5 h-2.5 rounded-full ${user?.status_licenca === 'ativa' ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`}></span>
-            <span className={`text-[11px] font-bold uppercase tracking-wider ${user?.status_licenca === 'ativa' ? 'text-emerald-300' : 'text-rose-300'}`}>
-              {user?.status_licenca === 'ativa' ? 'Licença Ativa' : 'Licença Expirada'}
-            </span>
+          <div className="flex items-center justify-between gap-2 relative z-10">
+            <div className="flex items-center gap-2">
+              <span className={`w-2.5 h-2.5 rounded-full ${user?.status_licenca === 'ativa' ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`}></span>
+              <span className={`text-[11px] font-bold uppercase tracking-wider ${user?.status_licenca === 'ativa' ? 'text-emerald-300' : 'text-rose-300'}`}>
+                {user?.status_licenca === 'ativa' ? 'Licença Ativa' : 'Licença Expirada'}
+              </span>
+            </div>
+            <Link
+              to="/agency/plano"
+              className="text-[11px] font-bold uppercase tracking-wider text-emerald-200 hover:text-white hover:underline"
+            >
+              Gerenciar plano
+            </Link>
           </div>
         </div>
       </div>

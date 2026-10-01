@@ -29,6 +29,7 @@ import AgencyProfile from './pages/agency/AgencyProfile';
 import AgencyMediaKit from './pages/agency/AgencyMediaKit';
 import AgencyContracts from './pages/agency/AgencyContracts';
 import AgencyReports from './pages/agency/AgencyReports';
+import AgencyPlan from './pages/agency/AgencyPlan';
 import AutoStartHelp from './pages/help/AutoStartHelp';
 
 import WidgetClima from './pages/widgets/WidgetClima';
@@ -77,6 +78,7 @@ export default function App() {
              <Route path="agency/media-kit" element={<AgencyMediaKit />} />
              <Route path="agency/contracts" element={<AgencyContracts />} />
              <Route path="agency/relatorios" element={<AgencyReports />} />
+             <Route path="agency/plano" element={<AgencyPlan />} />
              <Route path="agency/help/autostart" element={<AutoStartHelp />} />
           </Route>
         </Routes>

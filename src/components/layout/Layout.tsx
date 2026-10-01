@@ -27,7 +27,8 @@ import {
   BarChart3,
   Shield,
   Monitor,
-  CalendarDays
+  CalendarDays,
+  CreditCard
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -141,6 +142,7 @@ export default function Layout() {
     { name: 'Arquivos', path: '/agency/arquivos', icon: ImageIcon, category: 'MENU' },
     { name: 'Lista de Reprodução', path: '/agency/listas', icon: List, category: 'MENU' },
     { name: 'Relatórios', path: '/agency/relatorios', icon: BarChart3, category: 'MENU' },
+    { name: 'Meu Plano', path: '/agency/plano', icon: CreditCard, category: 'MENU' },
   ];
 
   const rawLinks = isAgency ? agencyLinks : adminLinks;

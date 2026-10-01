@@ -109,7 +109,13 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || error.message || error.title || `HTTP error! status: ${response.status}`);
+    const err = new Error(error.error || error.message || error.title || `HTTP error! status: ${response.status}`) as Error & {
+      code?: string;
+      status?: number;
+    };
+    err.code = error.code;
+    err.status = response.status;
+    throw err;
   }
 
   return response.json();

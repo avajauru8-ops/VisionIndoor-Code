@@ -99,6 +99,15 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
         $routes->get('', 'Relatorios::index');
     });
 
+    // Planos e Assinaturas (scaffolding de pagamento)
+    $routes->get('planos', 'Assinaturas::planos', ['filter' => 'auth']);
+    $routes->group('assinaturas', ['filter' => 'auth'], static function ($routes) {
+        $routes->get('status', 'Assinaturas::status');
+        $routes->post('checkout', 'Assinaturas::checkout');
+    });
+    // Webhook é externo (gateway) - validado por segredo/assinatura dentro do controller
+    $routes->post('assinaturas/webhook', 'Assinaturas::webhook');
+
     $routes->get('config', 'Api::config');
     $routes->get('migrate-now', 'Api::migrateNow');
     $routes->post('blob/upload', 'Api::blobUpload');

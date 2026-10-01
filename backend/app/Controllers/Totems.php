@@ -83,9 +83,26 @@ class Totems extends ResourceController
             if (!$user) {
                 return $this->response->setJSON(['error' => 'Usuário não encontrado'])->setStatusCode(404);
             }
-            
-            // Limit Check Removed as requested by user
-            
+
+            // Limite de telas por plano: gratuito = 1 tela, pago = usuarios.limite_tvs
+            $plano = $user['plano'] ?? 'gratis';
+            $limite = $plano === 'gratis' ? 1 : max(1, (int)($user['limite_tvs'] ?? 1));
+            $nivel = $this->request->getHeaderLine('X-User-Nivel');
+            $usados = $db->table('totens')->where('usuario_id', $user_id)->countAllResults();
+
+            if ($nivel !== 'admin' && $usados >= $limite) {
+                return $this->response->setJSON([
+                    'error' => 'Limite de Telas atingido',
+                    'code' => 'LIMIT_REACHED',
+                    'plano' => $plano,
+                    'limite' => $limite,
+                    'usados' => $usados,
+                    'mensagem_plano' => $plano === 'gratis'
+                        ? 'Seu plano gratuito permite apenas 1 tela. Assine o plano pago para adicionar mais telas.'
+                        : 'Seu plano permite até ' . $limite . ' telas. Entre em contato com o suporte para ampliar o limite.',
+                ])->setStatusCode(403);
+            }
+
             $nome = $json->nome ?? '';
             $deviceIdNorm = strtoupper(str_replace(['O', 'I', 'l'], ['0', '1', '1'], $json->device_id ?? ''));
             if (empty($nome)) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { getTotemStatus } from '../../lib/totemStatus';
+import { useAuth } from '../../contexts/AuthContext';
 import { Tv, Plus, Search, Trash2, Camera, Play, Tag, ChevronDown, Square, X, SkipForward, ListVideo, AlertCircle } from 'lucide-react';
 
 interface Agendamento {
@@ -145,6 +146,7 @@ const getTotemStatusLabel = (totem: Totem) => getTotemStatusInfo(totem).label;
 
 export default function AgencyTotems() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [totems, setTotems] = useState<Totem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -218,7 +220,7 @@ export default function AgencyTotems() {
         loadTotems();
       }
     } catch (err: any) {
-      if (err.message === 'Limite de Telas atingido' || err.code === 'LIMIT_REACHED') {
+      if (err.code === 'LIMIT_REACHED' || /limite de telas/i.test(err.message || '')) {
         setShowForm(false);
         setShowLimitModal(true);
       } else {
@@ -244,6 +246,19 @@ export default function AgencyTotems() {
     t.device_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Limite de telas do plano: gratuito = 1 tela, pago = limite_tvs
+  const isPlanoGratis = user?.plano !== 'pago';
+  const limiteTelas = user?.plano === 'gratis' ? 1 : Number(user?.limite_tvs ?? 1);
+
+  const handleOpenForm = () => {
+    setError('');
+    if (totems.length >= limiteTelas) {
+      setShowLimitModal(true);
+      return;
+    }
+    setShowForm(true);
+  };
+
   return (
     <div className="space-y-6 text-zinc-600 font-sans relative min-h-full">
       {/* Header */}
@@ -253,7 +268,7 @@ export default function AgencyTotems() {
           TELAS
         </h2>
         <button 
-          onClick={() => { setShowForm(true); setError(''); }}
+          onClick={handleOpenForm}
           className="bg-[#0066ff] hover:bg-[#0052cc] text-white text-[11px] font-bold px-4 py-2.5 rounded transition-colors flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -486,18 +501,30 @@ export default function AgencyTotems() {
             </div>
             <div className="p-8 text-center">
               <p className="text-sm text-zinc-600 mb-2">
-                Você poderá vincular mais Telas ao realizar o upgrade de seu <a href="#" className="text-[#104a9e] hover:underline">plano</a>.
+                {isPlanoGratis
+                  ? 'Seu plano gratuito permite apenas 1 tela. Assine o plano pago para adicionar mais telas.'
+                  : `Seu plano permite até ${limiteTelas} telas. Entre em contato com o suporte para ampliar o limite.`}
               </p>
               <p className="text-sm text-zinc-600 mb-8">
                 <a href="#" className="text-[#104a9e] hover:underline">Contate o Suporte</a> caso tenha qualquer dúvida.
               </p>
-              
-              <button 
-                onClick={() => setShowLimitModal(false)} 
-                className="px-8 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded text-xs font-bold uppercase transition-colors"
-              >
-                FECHAR
-              </button>
+
+              <div className="flex items-center justify-center gap-3">
+                {isPlanoGratis && (
+                  <button
+                    onClick={() => { setShowLimitModal(false); navigate('/agency/plano'); }}
+                    className="px-6 py-2 bg-[#0066ff] hover:bg-[#0052cc] text-white rounded text-xs font-bold uppercase transition-colors"
+                  >
+                    ASSINAR PLANO PAGO
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowLimitModal(false)}
+                  className="px-8 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded text-xs font-bold uppercase transition-colors"
+                >
+                  FECHAR
+                </button>
+              </div>
             </div>
           </div>
         </div>
