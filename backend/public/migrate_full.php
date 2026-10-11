@@ -70,7 +70,7 @@ try {
         ]);
         $pdo->exec("INSERT INTO widgets (nome, identificador, api_url, api_key, ativo, em_manutencao, config) VALUES 
             ('Clima e Tempo', 'clima', 'https://api.openweathermap.org/data/2.5/weather', '', 1, 0, NULL),
-            ('Loterias Caixa', 'loteria', 'https://servicebus2.caixa.gov.br/portaldeloterias/api', '', 1, 0, NULL),
+            ('Loterias Caixa', 'loteria', 'https://loteriascaixa-api.herokuapp.com/api', '', 1, 0, NULL),
             ('Notícias RSS', 'noticias', 'https://rss.uol.com.br/feed', '', 1, 0, NULL),
             ('Hora Certa', 'horacerta', '', '', 1, 0, '$defaultConfigHC')
         ");
@@ -107,6 +107,22 @@ try {
         echo "- Widget 'Hora Certa' inserido.<br>";
     } else {
         echo "- Widget 'Hora Certa' já existe.<br>";
+    }
+
+    // 3b. Widget Loteria: URL da API de resultados
+    echo "<br><b>3b. Widget Loteria (API):</b><br>";
+    $stmt = $pdo->query("SELECT api_url FROM widgets WHERE identificador = 'loteria'");
+    $loteriaRow = $stmt->fetch();
+    if ($loteriaRow) {
+        $currentUrl = (string) ($loteriaRow['api_url'] ?? '');
+        if ($currentUrl === '' || $currentUrl === 'https://servicebus2.caixa.gov.br/portaldeloterias/api') {
+            $pdo->exec("UPDATE widgets SET api_url = 'https://loteriascaixa-api.herokuapp.com/api' WHERE identificador = 'loteria'");
+            echo "- API do widget 'Loteria' atualizada para o novo padrao.<br>";
+        } else {
+            echo "- API do widget 'Loteria' mantida (configurada no painel): " . htmlspecialchars($currentUrl) . "<br>";
+        }
+    } else {
+        echo "- Widget 'Loteria' nao encontrado (ignorado).<br>";
     }
 
     // 4. Playlist Itens: Adicionar coluna widget_config (TEXT)

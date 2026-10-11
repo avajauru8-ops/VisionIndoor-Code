@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { CIDADES_BRASIL } from '../../data/cidades-brasil';
+import { LOTERIA_OPTIONS } from '../../lib/loterias';
 import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors, useDraggable, useDroppable } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -197,10 +198,9 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
         <label className="text-xs font-bold text-zinc-500 w-48 text-right">Tipo de Sorteio:</label>
         <div className="w-40">
           <select value={getCfg('tipo') || 'megasena'} onChange={e => setConfig('tipo', e.target.value)} className="w-full h-8 border border-zinc-200 rounded px-2 text-xs focus:outline-none bg-white">
-            <option value="megasena">Mega-Sena</option>
-            <option value="megavirada">Mega da Virada</option>
-            <option value="lotofacil">Lotofácil</option>
-            <option value="quina">Quina</option>
+            {LOTERIA_OPTIONS.map(o => (
+              <option key={o.id} value={o.id}>{o.title}</option>
+            ))}
           </select>
         </div>
       </div>

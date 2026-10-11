@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 import { LayoutTemplate, Edit, CheckCircle, XCircle, Search, Save, X, AlertTriangle, Upload, Clock } from 'lucide-react';
+import { LOTERIA_OPTIONS } from '../../lib/loterias';
 
 const BRAZIL_TIMEZONES = [
   { value: 'America/Noronha', label: 'Fernando de Noronha (UTC-02:00)' },
@@ -390,9 +391,19 @@ export default function AdminWidgets() {
                   type="text" 
                   value={editApiUrl}
                   onChange={e => setEditApiUrl(e.target.value)}
-                  placeholder="Ex: https://api.exemplo.com/v1"
+                  placeholder={editingWidget.identificador === 'loteria'
+                    ? 'Ex: https://loteriascaixa-api.herokuapp.com/api'
+                    : 'Ex: https://api.exemplo.com/v1'}
                   className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-4 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 outline-none transition-all font-mono"
                 />
+                {editingWidget.identificador === 'loteria' && (
+                  <p className="text-[10px] text-zinc-400 mt-1.5 leading-relaxed">
+                    Usada como base para <code className="font-mono bg-zinc-100 px-1 rounded">{'{URL}/{tipo}/latest'}</code>.
+                    Padrão: <code className="font-mono bg-zinc-100 px-1 rounded">https://loteriascaixa-api.herokuapp.com/api</code>
+                    <br />
+                    Tipos: {LOTERIA_OPTIONS.map(o => o.id).join(', ')}
+                  </p>
+                )}
               </div>
 
               {/* API Key */}

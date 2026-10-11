@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 import { CloudRain, Hash, Plus, Trash2, LayoutGrid, Youtube, Newspaper } from 'lucide-react';
 import { format } from 'date-fns';
+import { LOTERIA_OPTIONS, loteriaLabel } from '../../lib/loterias';
 
 interface Totem {
   id: number;
@@ -162,7 +163,7 @@ export default function AgencyNews() {
       dataFim.setFullYear(dataFim.getFullYear() + 1);
 
       const url = `/widget/loteria?tipo=${encodeURIComponent(tipoLoteria)}`;
-      const nomeLoteria = tipoLoteria === 'megasena' ? 'Mega-Sena' : 'Mega da Virada';
+      const nomeLoteria = loteriaLabel(tipoLoteria);
 
       const payload = {
         totem_id: selectedTotemLoteria || null,
@@ -361,10 +362,9 @@ export default function AgencyNews() {
               <div>
                 <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Tipo de Sorteio</label>
                 <select required value={tipoLoteria} onChange={e => setTipoLoteria(e.target.value)} className="w-full bg-[#f4f6f8] border border-zinc-200 rounded-xl px-3 py-2.5 text-zinc-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all">
-                  <option value="megasena">Mega-Sena</option>
-                  <option value="megavirada">Mega da Virada</option>
-                  <option value="lotofacil">Lotofácil</option>
-                  <option value="quina">Quina</option>
+                  {LOTERIA_OPTIONS.map(o => (
+                    <option key={o.id} value={o.id}>{o.title}</option>
+                  ))}
                 </select>
               </div>
               <div>

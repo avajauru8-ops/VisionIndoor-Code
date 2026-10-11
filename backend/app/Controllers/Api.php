@@ -553,59 +553,101 @@ class Api extends ResourceController
         $widgetCheck = $this->checkWidgetStatus('loteria');
         if ($widgetCheck instanceof \CodeIgniter\HTTP\ResponseInterface) return $widgetCheck;
 
-        $tipo = $this->request->getGet('tipo') ?? 'megasena';
-        
-        $baseUrl = ($widgetCheck && !empty($widgetCheck['api_url'])) ? $widgetCheck['api_url'] : 'https://servicebus2.caixa.gov.br/portaldeloterias/api';
-        
-        $urls = [
-            'lotofacil' => $baseUrl . '/lotofacil',
-            'megasena' => $baseUrl . '/megasena',
-            'quina' => $baseUrl . '/quina'
+        $tipo = strtolower(trim((string) ($this->request->getGet('tipo') ?? 'megasena')));
+
+        $allowed = [
+            'maismilionaria', 'megasena', 'megavirada', 'lotofacil', 'quina', 'lotomania',
+            'timemania', 'duplasena', 'federal', 'diadesorte', 'supersete'
         ];
 
-        if (!array_key_exists($tipo, $urls)) {
+        if (!in_array($tipo, $allowed, true)) {
             return $this->fail('Tipo de loteria inválido', 400);
         }
 
-        $cacheFile = sys_get_temp_dir() . '/loteria_' . $tipo . '.json';
-        $cacheMaxAge = 3600;
+        // URL base configurável na Gestão de Widgets (painel admin)
+        $defaultBase = 'https://loteriascaixa-api.herokuapp.com/api';
+        $baseUrl = ($widgetCheck && !empty($widgetCheck['api_url'])) ? $widgetCheck['api_url'] : $defaultBase;
+        $baseUrl = rtrim($baseUrl, '/');
+
+        // Formatos de URL aceitos: /{tipo}/latest (loteriascaixa-api) e /{tipo} (API oficial Caixa)
+        $paths = [$tipo . '/latest', $tipo];
+        if ($tipo === 'megavirada') {
+            $paths = ['megasena/megavirada', 'megasena/latest', 'megasena'];
+        }
+
+        // Se a URL configurada falhar, tenta a URL padrão antes de desistir
+        $bases = [$baseUrl];
+        if ($baseUrl !== $defaultBase) {
+            $bases[] = $defaultBase;
+        }
+
+        $cacheFile = sys_get_temp_dir() . '/loteria_' . $tipo . '_' . substr(md5($baseUrl), 0, 8) . '.json';
+        $cacheMaxAge = 1800; // 30 minutos
 
         if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $cacheMaxAge) {
             $cached = json_decode(file_get_contents($cacheFile), true);
-            if ($cached) {
+            if (is_array($cached) && $this->isLoteriaResult($cached)) {
                 return $this->response->setJSON($cached);
             }
         }
 
-        try {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $urls[$tipo]);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-            
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-            if ($httpCode !== 200 || !$response) {
-                if (file_exists($cacheFile)) {
-                    return $this->response->setJSON(json_decode(file_get_contents($cacheFile), true));
+        $lastError = 'Erro ao buscar dados da loteria';
+        foreach ($bases as $base) {
+            foreach ($paths as $path) {
+                $data = $this->fetchLoteriaResult($base . '/' . $path, $lastError);
+                if ($data !== null) {
+                    @file_put_contents($cacheFile, json_encode($data));
+                    return $this->response->setJSON($data);
                 }
-                return $this->fail('Erro ao buscar dados da Caixa', 500);
             }
-
-            $data = json_decode($response);
-            if ($data) {
-                @file_put_contents($cacheFile, $response);
-            }
-            return $this->response->setJSON($data);
-        } catch (\Exception $e) {
-            if (file_exists($cacheFile)) {
-                return $this->response->setJSON(json_decode(file_get_contents($cacheFile), true));
-            }
-            return $this->fail('Erro interno: ' . $e->getMessage(), 500);
         }
+
+        // Se a API externa falhou, usa o cache mesmo expirado
+        if (file_exists($cacheFile)) {
+            $cached = json_decode(file_get_contents($cacheFile), true);
+            if (is_array($cached) && $this->isLoteriaResult($cached)) {
+                return $this->response->setJSON($cached);
+            }
+        }
+
+        return $this->fail($lastError, 500);
+    }
+
+    private function isLoteriaResult($data)
+    {
+        if (!is_array($data) || $data === array_values($data)) {
+            return false; // Lista de concursos não serve para o widget
+        }
+        return isset($data['loteria']) || isset($data['concurso']) || isset($data['numero'])
+            || isset($data['dezenas']) || isset($data['listaDezenas']);
+    }
+
+    private function fetchLoteriaResult(string $url, ?string &$error = null)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+
+        $response = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || !$response) {
+            $error = 'Erro ao buscar dados da loteria (HTTP ' . $httpCode . ')';
+            return null;
+        }
+
+        $data = json_decode($response, true);
+        if (!$this->isLoteriaResult($data)) {
+            $error = 'Formato de resposta inválido da API de loteria';
+            return null;
+        }
+
+        return $data;
     }
 
     public function rssUol()
