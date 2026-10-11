@@ -262,7 +262,7 @@ export default function WidgetLoteria() {
          .wl-prize-container { background-color: rgba(0,0,0,0.3); padding: 2vh 6vw; border-radius: 2vh; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 0.2vh solid rgba(253,224,71,0.3); text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
          .wl-prize-label { font-size: 3vh; font-weight: 500; opacity: 0.9; display: block; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1vh; }
          .wl-prize-value { font-size: 5.5vh; color: #fde047; font-weight: 900; filter: drop-shadow(0 4px 3px rgba(0,0,0,0.3)); line-height: 1; }
-         .wl-next-draw { display: block; font-size: 2.6vh; margin-top: 1vh; padding: 1vh 3vw; background-color: rgba(0,0,0,0.25); border: 0.2vh solid rgba(255,255,255,0.2); border-radius: 9999px; opacity: 0.95; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
+         .wl-next-draw { display: block; max-width: 100%; text-align: center; font-size: 2.6vh; margin-top: 1vh; padding: 1vh 3vw; background-color: rgba(0,0,0,0.25); border: 0.2vh solid rgba(255,255,255,0.2); border-radius: 9999px; opacity: 0.95; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
          .wl-acumulou-badge { background-color: #e74c3c; color: white; font-weight: 900; padding: 0.8vh 3vw; border-radius: 1.5vh; font-size: 4vh; text-transform: uppercase; letter-spacing: 0.1em; animation: pulse 2s infinite; box-shadow: 0 4px 10px rgba(231,76,60,0.4); margin-bottom: 1.5vh; }
 
          @keyframes pulse {
