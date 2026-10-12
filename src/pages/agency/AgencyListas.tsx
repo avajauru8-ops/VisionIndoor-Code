@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { List, Plus, Search, Tag, X, Edit2, Trash2 } from 'lucide-react';
 import { apiFetch } from '../../lib/api';
+import { useValidacaoVinculos } from '../../hooks/useValidacaoVinculos';
 
 interface Playlist {
   id: string;
@@ -34,6 +35,11 @@ export default function AgencyListas() {
       setLoading(false);
     }
   };
+
+  // A cada 10s valida os ids cadastrados e remove vínculos com listas antigas
+  useValidacaoVinculos(() => {
+    loadListas();
+  });
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

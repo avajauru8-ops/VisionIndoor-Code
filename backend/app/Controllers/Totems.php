@@ -208,6 +208,63 @@ class Totems extends ResourceController
         }
     }
 
+    /**
+     * Verifica todos os totems cadastrados e desvincula ids antigos de lista:
+     * - playlist_id que não existe mais (lista apagada)
+     * - playlist_id de lista que pertence a outro usuário (não aparece no painel dele)
+     * Chamado pelo painel a cada 10 segundos.
+     */
+    public function validarVinculos()
+    {
+        try {
+            $db = \Config\Database::connect();
+            $user_id = $this->request->getHeaderLine('X-User-Id');
+            $nivel = $this->request->getHeaderLine('X-User-Nivel');
+
+            $builder = $db->table('totens')->select('id, nome, device_id, usuario_id, playlist_id');
+            if ($nivel !== 'admin') {
+                $builder->where('usuario_id', $user_id);
+            }
+            $totens = $builder->get()->getResultArray();
+
+            $corrigidos = [];
+            foreach ($totens as $t) {
+                if (empty($t['playlist_id'])) {
+                    continue;
+                }
+
+                $lista = $db->table('playlists')->where('id', $t['playlist_id'])->get()->getRowArray();
+
+                $motivo = null;
+                if (!$lista) {
+                    $motivo = 'lista inexistente';
+                } elseif (!empty($t['usuario_id']) && !empty($lista['usuario_id'])
+                    && (string) $lista['usuario_id'] !== (string) $t['usuario_id']) {
+                    $motivo = 'lista de outro usuario';
+                }
+
+                if ($motivo) {
+                    $db->table('totens')->where('id', $t['id'])->update(['playlist_id' => null]);
+                    $corrigidos[] = [
+                        'totem_id' => (string) $t['id'],
+                        'nome' => $t['nome'] ?? null,
+                        'device_id' => $t['device_id'] ?? null,
+                        'playlist_id_antiga' => (string) $t['playlist_id'],
+                        'motivo' => $motivo
+                    ];
+                }
+            }
+
+            return $this->respond([
+                'verificados' => count($totens),
+                'corrigidos' => count($corrigidos),
+                'detalhes' => $corrigidos
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
     public function delete($id = null)
     {
         try {

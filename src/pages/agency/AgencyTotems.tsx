@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
 import { getTotemStatus } from '../../lib/totemStatus';
+import { useValidacaoVinculos } from '../../hooks/useValidacaoVinculos';
 import { useAuth } from '../../contexts/AuthContext';
 import { Tv, Plus, Search, Trash2, Camera, Play, Tag, ChevronDown, Square, X, SkipForward, ListVideo, AlertCircle } from 'lucide-react';
 
@@ -203,6 +204,12 @@ export default function AgencyTotems() {
     const interval = setInterval(loadTotems, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // A cada 10s valida se as telas continuam apontando para a lista cadastrada
+  // no painel e desvincula ids antigos automaticamente.
+  useValidacaoVinculos(() => {
+    loadTotems();
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

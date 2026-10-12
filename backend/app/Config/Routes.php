@@ -63,6 +63,7 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
     $routes->group('totems', ['filter' => 'auth'], static function ($routes) {
         $routes->get('/', 'Totems::index');
         $routes->get('', 'Totems::index');
+        $routes->get('validar-vinculos', 'Totems::validarVinculos');
         $routes->get('(:segment)/relatorio', 'Totems::relatorio/$1');
         $routes->get('(:segment)', 'Totems::show/$1');
         $routes->post('', 'Totems::create');

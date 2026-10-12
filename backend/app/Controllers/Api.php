@@ -221,6 +221,14 @@ class Api extends ResourceController
         date_default_timezone_set('America/Sao_Paulo');
         try {
             $db = \Config\Database::connect();
+
+            // Nunca servir playlist em cache (WebView/CDN/proxy): sempre o estado atual
+            $this->response->removeHeader('Cache-Control');
+            $this->response->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+            $this->response->removeHeader('Pragma');
+            $this->response->setHeader('Pragma', 'no-cache');
+            $this->response->removeHeader('Expires');
+            $this->response->setHeader('Expires', '0');
             
             // 1. LÊ OS DADOS EM JSON ENVIADOS PELO APP ANDROID
             $jsonRecebido = $this->request->getJSON(true);
@@ -242,11 +250,34 @@ class Api extends ResourceController
             $totem = $builder->where($normQuery, $normValue)->get()->getRowArray();
             
             if (!$totem) {
+                // Id antigo / não cadastrado no painel: manda a TV limpar o conteúdo
+                // em vez de continuar com a lista antiga guardada em cache.
                 return $this->respond([
                     'erro' => 'Dispositivo nao autorizado.',
+                    'autorizado' => false,
+                    'limpar_conteudo' => true,
+                    'playlist' => [],
                     'device_id' => $device_id,
                     'mensagem' => 'Cadastre este ID de dispositivo no seu painel de controle.'
                 ]);
+            }
+
+            // Valida a lista vinculada: id antigo (lista apagada ou de outro usuário)
+            // é desvinculado na hora para a tela não receber lista que não é a dela.
+            $lista_invalida = null;
+            if (!empty($totem['playlist_id'])) {
+                $listaAtual = $db->table('playlists')->where('id', $totem['playlist_id'])->get()->getRowArray();
+                if (!$listaAtual) {
+                    $lista_invalida = 'lista inexistente';
+                } elseif (!empty($listaAtual['usuario_id']) && !empty($totem['usuario_id'])
+                    && (string) $listaAtual['usuario_id'] !== (string) $totem['usuario_id']) {
+                    $lista_invalida = 'lista de outro usuario';
+                }
+
+                if ($lista_invalida) {
+                    $db->table('totens')->where('id', $totem['id'])->update(['playlist_id' => null]);
+                    $totem['playlist_id'] = null;
+                }
             }
             
             // ========================================================
@@ -350,6 +381,10 @@ class Api extends ResourceController
                             'data_fim' => null
                         ];
                     } else if (!empty($item['id'])) {
+                        // Item desativado no painel não pode rodar na tela
+                        if (isset($item['ativo']) && !$item['ativo']) {
+                            continue;
+                        }
                         $item['tempo_exibicao'] = $item['tempo_exibicao_lista'];
                         $campanhas[] = $item;
                     }
@@ -410,6 +445,11 @@ class Api extends ResourceController
             // ========================================================
             $resposta = [
                 'totem_id' => $device_id,
+                'autorizado' => true,
+                'playlist_id' => $totem['playlist_id'] ?? null,
+                'lista_invalida' => $lista_invalida,
+                'playlist_hash' => md5((string) json_encode($playlist)),
+                'verificado_em' => (new \DateTime('now', new \DateTimeZone('America/Sao_Paulo')))->format('c'),
                 'rotacao' => $totem['rotacao'] ?? 'padrao',
                 'auto_iniciar' => isset($totem['auto_iniciar']) ? (bool)$totem['auto_iniciar'] : false,
                 'iniciar_tv_energia' => isset($totem['iniciar_tv_energia']) ? (bool)$totem['iniciar_tv_energia'] : false,
