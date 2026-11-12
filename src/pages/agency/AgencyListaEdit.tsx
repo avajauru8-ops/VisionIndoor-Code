@@ -471,8 +471,9 @@ const SortableItem = ({ id, item, onRemove, onDuplicate, onTimeChange, onUpdateF
             </button>
             <input 
               type="number" 
+              min="1"
               value={item.tempo_exibicao}
-              onChange={(e) => onTimeChange(Number(e.target.value))}
+              onChange={(e) => onTimeChange(Math.max(1, Math.floor(Number(e.target.value)) || 1))}
               className="flex-1 h-8 text-center text-xs border-y border-zinc-200 focus:outline-none"
             />
             <button 

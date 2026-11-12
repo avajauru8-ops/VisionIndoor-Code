@@ -31,7 +31,6 @@ interface Totem {
   auto_reiniciar_horas?: number;
   exibir_notificacoes?: number | boolean;
   limpeza_automatica?: number | boolean;
-  tempo_exibicao_padrao?: number;
   id_monetizacao?: string;
   ultima_captura_tela?: string;
   horario_liga?: string;
@@ -66,7 +65,6 @@ export default function AgencyTotemSettings() {
   const [autoReiniciarHoras, setAutoReiniciarHoras] = useState(0);
   const [exibirNotificacoes, setExibirNotificacoes] = useState(false);
   const [limpezaAutomatica, setLimpezaAutomatica] = useState(true);
-  const [tempoExibicao, setTempoExibicao] = useState(10);
   const [idMonetizacao, setIdMonetizacao] = useState('');
   
   // Agendamento State
@@ -248,7 +246,6 @@ export default function AgencyTotemSettings() {
         setAutoReiniciarHoras(data.auto_reiniciar_horas || 0);
         setExibirNotificacoes(parseBool(data.exibir_notificacoes, false));
         setLimpezaAutomatica(parseBool(data.limpeza_automatica, true));
-        setTempoExibicao(data.tempo_exibicao_padrao || 15);
 
       setIdMonetizacao(data.id_monetizacao || '');
       setHorarioInicio(data.horario_inicio || data.horario_liga || '');
@@ -281,7 +278,6 @@ export default function AgencyTotemSettings() {
           auto_reiniciar_horas: autoReiniciarHoras,
           exibir_notificacoes: exibirNotificacoes,
           limpeza_automatica: limpezaAutomatica,
-          tempo_exibicao_padrao: tempoExibicao,
           id_monetizacao: idMonetizacao,
           horario_inicio: horarioInicio,
           horario_fim: horarioFim,
@@ -631,16 +627,6 @@ export default function AgencyTotemSettings() {
                     <option value="automatica">Limpeza Automática (Recomendado)</option>
                     <option value="manual">Manual</option>
                   </select>
-                </div>
-                <div className="flex flex-col md:flex-row md:items-center gap-4">
-                  <label className="text-xs font-bold text-zinc-500 w-64 md:text-right shrink-0">Tempo de Exibição Padrão (s):</label>
-                  <input 
-                    type="number"
-                    min="1"
-                    value={tempoExibicao}
-                    onChange={e => setTempoExibicao(parseInt(e.target.value) || 10)}
-                    className="flex-1 max-w-sm border border-zinc-300 rounded px-3 py-2 text-sm text-zinc-700 focus:border-[#104a9e] focus:outline-none"
-                  />
                 </div>
               </div>
               </fieldset>

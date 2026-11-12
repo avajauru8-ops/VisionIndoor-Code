@@ -126,7 +126,7 @@ class Listas extends ResourceController
                         'playlist_id' => $id,
                         'campanha_id' => isset($item->campanha_id) ? $item->campanha_id : null,
                         'widget_nome' => isset($item->widget_nome) ? $item->widget_nome : null,
-                        'tempo_exibicao' => isset($item->tempo_exibicao) ? $item->tempo_exibicao : 15,
+                        'tempo_exibicao' => isset($item->tempo_exibicao) ? max(1, (int)$item->tempo_exibicao) : 15,
                         'ordem' => $index + 1
                     ];
                     if ($hasWcCol) {

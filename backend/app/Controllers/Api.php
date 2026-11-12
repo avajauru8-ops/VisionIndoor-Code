@@ -436,7 +436,7 @@ class Api extends ResourceController
                     'id' => (int)$c['id'],
                     'tipo_midia' => $c['tipo_midia'],
                     'url_arquivo' => $url,
-                    'tempo_exibicao' => (isset($c['tempo_exibicao']) && (int)$c['tempo_exibicao'] > 0) ? (int)$c['tempo_exibicao'] : (isset($totem['tempo_exibicao_padrao']) ? (int)$totem['tempo_exibicao_padrao'] : 15)
+                    'tempo_exibicao' => (isset($c['tempo_exibicao']) && (int)$c['tempo_exibicao'] > 0) ? (int)$c['tempo_exibicao'] : 15
                 ];
             }
             
@@ -459,7 +459,7 @@ class Api extends ResourceController
                 'auto_reiniciar_horas' => isset($totem['auto_reiniciar_horas']) ? (int)$totem['auto_reiniciar_horas'] : 0,
                 'exibir_notificacoes' => isset($totem['exibir_notificacoes']) ? (bool)$totem['exibir_notificacoes'] : false,
                 'limpeza_automatica' => isset($totem['limpeza_automatica']) ? (bool)$totem['limpeza_automatica'] : true,
-                'tempo_exibicao_padrao' => isset($totem['tempo_exibicao_padrao']) ? (int)$totem['tempo_exibicao_padrao'] : 10,
+                'tempo_exibicao_padrao' => isset($totem['tempo_exibicao_padrao']) ? (int)$totem['tempo_exibicao_padrao'] : 15,
                 'horario_inicio' => $totem['horario_inicio'] ?? null,
                 'horario_fim' => $totem['horario_fim'] ?? null,
                 'id_monetizacao' => $totem['id_monetizacao'] ?? null,
