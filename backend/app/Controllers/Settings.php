@@ -62,7 +62,10 @@ class Settings extends ResourceController
                 $db->table('configuracoes_admin')->insert($config);
                 $config['id'] = $db->insertID();
             }
-            
+
+            // O driver devolve "0"/"1" (string): em JS "0" é truthy e o banner nunca desligaria.
+            $config['show_apk_banner'] = in_array($config['show_apk_banner'] ?? null, [1, '1', true, 'true'], true);
+
             return $this->respond($config);
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);

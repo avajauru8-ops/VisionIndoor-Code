@@ -29,7 +29,14 @@ export default function AdminIntegration() {
     const loadSettings = async () => {
       try {
         const data = await apiFetch('/api/admin/settings');
-        if (data) setSettings((prev: any) => ({ ...prev, ...data }));
+        if (data) {
+          setSettings((prev: any) => ({
+            ...prev,
+            ...data,
+            show_apk_banner: data.show_apk_banner === true || data.show_apk_banner === 1
+              || data.show_apk_banner === '1' || data.show_apk_banner === 'true',
+          }));
+        }
       } catch (err) {
         console.error('Erro ao carregar configurações de integração:', err);
       } finally {

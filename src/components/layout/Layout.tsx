@@ -15,6 +15,7 @@ import {
   Newspaper, 
   Smartphone, 
   LayoutTemplate,
+  RefreshCw,
   Bell,
   Menu,
   X,
@@ -80,7 +81,13 @@ export default function Layout() {
     const loadSettings = async () => {
       try {
         const data = await apiFetch('/api/admin/settings');
-        if (data) setSysSettings(data);
+        if (data) {
+          setSysSettings({
+            ...data,
+            show_apk_banner: data.show_apk_banner === true || data.show_apk_banner === 1
+              || data.show_apk_banner === '1' || data.show_apk_banner === 'true',
+          });
+        }
       } catch (err) {
         console.error('Erro ao carregar configurações no layout:', err);
       }
@@ -134,6 +141,7 @@ export default function Layout() {
     { name: 'Totens Cadastrados', path: '/admin/totems', icon: Tv, category: 'MENU' },
     { name: 'Player Android', path: '/admin/integration', icon: Smartphone, category: 'MENU' },
     { name: 'Gestão de Widgets', path: '/admin/widgets', icon: LayoutTemplate, category: 'MENU' },
+    { name: 'Atualizações do App', path: '/admin/app-updates', icon: RefreshCw, category: 'MENU' },
     { name: 'Configurações', path: '/admin/settings', icon: Settings, category: 'GERAL' },
   ];
 
