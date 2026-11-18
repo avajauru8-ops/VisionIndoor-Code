@@ -29,7 +29,7 @@ export default function AdminIntegration() {
     const loadSettings = async () => {
       try {
         const data = await apiFetch('/api/admin/settings');
-        if (data) setSettings(data);
+        if (data) setSettings((prev: any) => ({ ...prev, ...data }));
       } catch (err) {
         console.error('Erro ao carregar configurações de integração:', err);
       } finally {
@@ -50,8 +50,14 @@ export default function AdminIntegration() {
     setSaving(true);
     try {
       const formData = new FormData();
+      const bannerOn = settings.show_apk_banner === true
+        || settings.show_apk_banner === 1
+        || settings.show_apk_banner === '1'
+        || settings.show_apk_banner === 'true'
+        || settings.show_apk_banner === 'on';
+
       formData.append('nome_painel', settings.nome_painel || 'GrandMídia');
-      formData.append('show_apk_banner', String(settings.show_apk_banner));
+      formData.append('show_apk_banner', bannerOn ? 'true' : 'false');
       formData.append('apk_banner_title', settings.apk_banner_title || 'Player Android');
       formData.append('apk_banner_desc', settings.apk_banner_desc || 'Baixe o APK para rodar suas playlists em Telas ou Totens.');
       formData.append('apk_banner_btn_text', settings.apk_banner_btn_text || 'Instalar Player');
@@ -73,9 +79,13 @@ export default function AdminIntegration() {
       
       alert('Configurações do Player salvas com sucesso!');
       window.location.reload(); // Reload page to immediately reflect changes on sidebar
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Erro ao salvar configurações do Player.');
+      let detail = err?.message || '';
+      if (err?.status === 413) {
+        detail = 'O arquivo é grande demais para o servidor (limite de upload excedido).';
+      }
+      alert(`Erro ao salvar configurações do Player.${detail ? `\n\n${detail}` : ''}`);
     } finally {
       setSaving(false);
     }
