@@ -14,6 +14,7 @@ interface Totem {
   id: string;
   nome: string;
   device_id: string;
+  codigo_curto?: string | null;
   status: string;
   ultima_informacao?: string;
   ultima_sincronizacao: string | null;

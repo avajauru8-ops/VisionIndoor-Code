@@ -23,6 +23,7 @@ interface Totem {
   id: number;
   nome: string;
   device_id: string;
+  codigo_curto?: string | null;
   status: string;
   ultima_sincronizacao: string | null;
   ultima_informacao?: string;
@@ -250,7 +251,8 @@ export default function AgencyTotems() {
   // Filtro de pesquisa
   const filteredTotems = totems.filter(t =>
     t.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.device_id.toLowerCase().includes(searchTerm.toLowerCase())
+    (t.codigo_curto || t.device_id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (t.device_id || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Limite de telas do plano: gratuito = 1 tela, pago = limite_tvs

@@ -8,6 +8,7 @@ interface Totem {
   id: string;
   nome: string;
   device_id: string;
+  codigo_curto?: string | null;
 }
 
 interface Playlist {

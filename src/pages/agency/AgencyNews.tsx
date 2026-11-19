@@ -8,6 +8,7 @@ interface Totem {
   id: number;
   nome: string;
   device_id: string;
+  codigo_curto?: string | null;
 }
 
 interface Playlist {
@@ -335,7 +336,7 @@ export default function AgencyNews() {
                     className="w-full bg-blue-50/50 border border-blue-100 rounded-xl px-3 py-2 text-blue-800 text-xs font-semibold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                   >
                     <option value="">Todas as Telas (Geral)</option>
-                    {totems.map(t => <option key={t.id} value={t.id}>{t.nome} ({t.device_id})</option>)}
+                    {totems.map(t => <option key={t.id} value={t.id}>{t.nome} ({t.codigo_curto || t.device_id})</option>)}
                   </select>
                 </div>
                 <button type="submit" disabled={loadingClima} className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 text-[11px] font-extrabold uppercase tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
@@ -381,7 +382,7 @@ export default function AgencyNews() {
                     className="w-full bg-emerald-50/50 border border-emerald-100 rounded-xl px-3 py-2 text-emerald-800 text-xs font-semibold focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all"
                   >
                     <option value="">Todas as Telas (Geral)</option>
-                    {totems.map(t => <option key={t.id} value={t.id}>{t.nome} ({t.device_id})</option>)}
+                    {totems.map(t => <option key={t.id} value={t.id}>{t.nome} ({t.codigo_curto || t.device_id})</option>)}
                   </select>
                 </div>
                 <button type="submit" disabled={loadingLoteria} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-3 text-[11px] font-extrabold uppercase tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
@@ -457,7 +458,7 @@ export default function AgencyNews() {
                     className="w-full bg-red-50/50 border border-red-100 rounded-xl px-3 py-2 text-red-800 text-xs font-semibold focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all"
                   >
                     <option value="">Todas as Telas (Geral)</option>
-                    {totems.map(t => <option key={t.id} value={t.id}>{t.nome} ({t.device_id})</option>)}
+                    {totems.map(t => <option key={t.id} value={t.id}>{t.nome} ({t.codigo_curto || t.device_id})</option>)}
                   </select>
                 </div>
                 <button
@@ -532,7 +533,7 @@ export default function AgencyNews() {
                     className="w-full bg-orange-50/50 border border-orange-100 rounded-xl px-3 py-2 text-orange-800 text-xs font-semibold focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all"
                   >
                     <option value="">Todas as Telas (Geral)</option>
-                    {totems.map(t => <option key={t.id} value={t.id}>{t.nome} ({t.device_id})</option>)}
+                    {totems.map(t => <option key={t.id} value={t.id}>{t.nome} ({t.codigo_curto || t.device_id})</option>)}
                   </select>
                 </div>
                 <button type="submit" disabled={loadingNoticias} className="w-full bg-orange-600 hover:bg-orange-700 text-white rounded-xl py-3 text-[11px] font-extrabold uppercase tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md hover:shadow-lg">

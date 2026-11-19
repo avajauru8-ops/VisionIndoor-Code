@@ -36,7 +36,7 @@ export default function AdminTotems() {
   const handleEdit = (totem: any) => {
     setEditingTotem(totem);
     setEditNome(totem.nome);
-    setEditDeviceId(totem.device_id);
+    setEditDeviceId(totem.codigo_curto || totem.device_id);
   };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
@@ -44,9 +44,13 @@ export default function AdminTotems() {
     if (!editingTotem) return;
     setSaving(true);
     try {
+      const payload: any = { nome: editNome, device_id: editDeviceId };
+      if (editDeviceId && editDeviceId.length <= 8) {
+        payload.codigo_curto = editDeviceId;
+      }
       await apiFetch(`/api/totems/${editingTotem.id}`, {
         method: 'PUT',
-        body: JSON.stringify({ nome: editNome, device_id: editDeviceId }),
+        body: JSON.stringify(payload),
       });
       alert('Tela atualizada com sucesso!');
       setEditingTotem(null);
@@ -72,9 +76,12 @@ export default function AdminTotems() {
     }
   };
 
+  const appId = (t: any) => t.codigo_curto || t.device_id || '';
+
   const filteredTotems = totems.filter(t => 
     t.nome.toLowerCase().includes(search.toLowerCase()) ||
-    t.device_id.toLowerCase().includes(search.toLowerCase()) ||
+    appId(t).toLowerCase().includes(search.toLowerCase()) ||
+    (t.device_id || '').toLowerCase().includes(search.toLowerCase()) ||
     t.usuario_nome.toLowerCase().includes(search.toLowerCase()) ||
     t.usuario_email.toLowerCase().includes(search.toLowerCase())
   );
@@ -118,7 +125,7 @@ export default function AdminTotems() {
               <thead className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 border-b border-[#e8edf2] bg-zinc-50/50">
                 <tr>
                   <th className="px-6 py-4">Nome do Dispositivo</th>
-                  <th className="px-6 py-4">ID do Dispositivo (Vinc.)</th>
+                  <th className="px-6 py-4">ID do App (Vinc.)</th>
                   <th className="px-6 py-4">Cadastrado Por (Agência)</th>
                   <th className="px-6 py-4">Data de Cadastro</th>
                   <th className="px-6 py-4">Status</th>
@@ -132,7 +139,7 @@ export default function AdminTotems() {
                       <Tv className="w-4 h-4 text-zinc-400" />
                       {totem.nome}
                     </td>
-                    <td className="px-6 py-4 font-mono text-zinc-500">{totem.device_id}</td>
+                    <td className="px-6 py-4 font-mono text-zinc-500">{appId(totem)}</td>
                     <td className="px-6 py-4">
                       <div className="font-bold text-zinc-700">{totem.usuario_nome}</div>
                       <div className="text-[10px] text-zinc-400 leading-none mt-0.5">{totem.usuario_email}</div>
@@ -207,7 +214,7 @@ export default function AdminTotems() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">ID do Dispositivo (Device ID)</label>
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">ID do App (Vinc.)</label>
                 <input 
                   type="text" 
                   required
@@ -248,7 +255,7 @@ export default function AdminTotems() {
             </div>
             
             <p className="text-sm text-zinc-600 leading-relaxed mb-6">
-              Tem certeza que deseja remover a tela <strong className="text-zinc-800">"{deletingTotem.nome}"</strong> ({deletingTotem.device_id})? 
+              Tem certeza que deseja remover a tela <strong className="text-zinc-800">"{deletingTotem.nome}"</strong> ({appId(deletingTotem)})? 
               Essa ação é definitiva e desconectará o dispositivo da rede de exibição imediatamente.
             </p>
 

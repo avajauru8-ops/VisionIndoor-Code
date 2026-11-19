@@ -260,7 +260,7 @@ export default function AgencyDashboard() {
                   </div>
                   <div>
                     <p className="text-xs font-bold text-zinc-700">{totem.nome}</p>
-                    <p className="text-[9px] text-[#8b9aa5] font-mono leading-none mt-0.5">{totem.device_id}</p>
+                    <p className="text-[9px] text-[#8b9aa5] font-mono leading-none mt-0.5">{totem.codigo_curto || totem.device_id}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

@@ -27,6 +27,7 @@ interface Totem {
   id: string;
   nome: string;
   device_id: string;
+  codigo_curto?: string | null;
   status: string;
   ultima_sincronizacao: string | null;
 }
@@ -158,7 +159,7 @@ export default function AgencyPlaylistScreens() {
                   </h3>
                   <div className="flex items-center gap-2 mt-1.5 text-xs text-zinc-500 font-medium">
                     <Activity className="w-4 h-4 shrink-0 text-emerald-500" />
-                    <span className="truncate">ID: {totem.device_id}</span>
+                    <span className="truncate">ID: {totem.codigo_curto || totem.device_id}</span>
                   </div>
                   <div className="flex items-center gap-2 mt-2 text-xs text-zinc-500 font-medium">
                     <ListVideo className="w-4 h-4 shrink-0 text-emerald-500" />

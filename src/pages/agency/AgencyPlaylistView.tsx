@@ -28,6 +28,7 @@ interface Totem {
   id: string;
   nome: string;
   device_id: string;
+  codigo_curto?: string | null;
   status: string;
   ultima_sincronizacao: string | null;
 }
@@ -175,7 +176,7 @@ export default function AgencyPlaylistView() {
             {totem && (
               <>
                 <span className="text-xs text-[#8b9aa5] font-medium flex items-center gap-1">
-                  <Activity className="w-3.5 h-3.5" /> ID: {totem.device_id}
+                  <Activity className="w-3.5 h-3.5" /> ID: {totem.codigo_curto || totem.device_id}
                 </span>
                 {(() => {
                   const st = getStatusStyle(totem.status);

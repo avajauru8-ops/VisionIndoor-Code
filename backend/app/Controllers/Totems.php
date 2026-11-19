@@ -31,6 +31,10 @@ class Totems extends ResourceController
                     $t['data_cadastro'] = $t['created_at'];
                 }
                 $t['minutos_desde_sync'] = $this->minutosDesdeSync($agora, $t);
+                // Garante codigo_curto (id do app) quando ainda não existe
+                if (empty($t['codigo_curto'])) {
+                    $t['codigo_curto'] = $this->ensureShortCode($db, $t);
+                }
             }
             
             return $this->respond($totens);
@@ -65,6 +69,9 @@ class Totems extends ResourceController
             }
             $agora = new \DateTime('now', new \DateTimeZone('America/Sao_Paulo'));
             $totem['minutos_desde_sync'] = $this->minutosDesdeSync($agora, $totem);
+            if (empty($totem['codigo_curto'])) {
+                $totem['codigo_curto'] = $this->ensureShortCode($db, $totem);
+            }
             // Decode agendamentos JSON
             if (isset($totem['agendamentos']) && is_string($totem['agendamentos'])) {
                 $totem['agendamentos'] = json_decode($totem['agendamentos'], true) ?? [];
@@ -87,6 +94,33 @@ class Totems extends ResourceController
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    /** Gera e persiste codigo_curto (id do app) quando ausente. */
+    private function ensureShortCode($db, array $totem): string
+    {
+        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        $code = '';
+        for ($i = 0; $i < 50; $i++) {
+            $code = '';
+            for ($j = 0; $j < 5; $j++) {
+                $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+            }
+            $exists = $db->table('totens')->where('codigo_curto', $code)->countAllResults();
+            if (!$exists) {
+                break;
+            }
+            $code = '';
+        }
+        if ($code === '') {
+            $code = substr(strtoupper(md5(uniqid('', true))), 0, 5);
+        }
+        try {
+            $db->table('totens')->where('id', $totem['id'])->update(['codigo_curto' => $code]);
+        } catch (\Exception $e) {
+            // coluna pode não existir ainda; retorna o código gerado sem persistir
+        }
+        return $code;
     }
 
     public function create()
@@ -153,6 +187,10 @@ class Totems extends ResourceController
                 'status' => 'offline',
                 'vinculado' => 1,
             ];
+            // Código curto = id do app exibido no painel (quando o device_id já é o código)
+            if (strlen($deviceIdNorm) <= 8) {
+                $data['codigo_curto'] = $deviceIdNorm;
+            }
             
             $db->table('totens')->insert($data);
             return $this->respondCreated(['id' => (string)$db->insertID()]);
@@ -170,6 +208,7 @@ class Totems extends ResourceController
             $data = [];
             if (isset($json->nome)) $data['nome'] = $json->nome;
             if (isset($json->device_id)) $data['device_id'] = strtoupper(str_replace(['O', 'I', 'l'], ['0', '1', '1'], $json->device_id));
+            if (isset($json->codigo_curto) && $json->codigo_curto !== '') $data['codigo_curto'] = strtoupper(str_replace(['O', 'I', 'l'], ['0', '1', '1'], $json->codigo_curto));
             if (isset($json->rotacao)) $data['rotacao'] = $json->rotacao;
             if (isset($json->status)) $data['status'] = $json->status;
             if (isset($json->auto_iniciar)) $data['auto_iniciar'] = $json->auto_iniciar ? 1 : 0;
