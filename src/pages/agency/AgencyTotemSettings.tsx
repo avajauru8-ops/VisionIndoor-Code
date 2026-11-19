@@ -8,6 +8,7 @@ import {
   BarChart3, Download, ChevronDown, ChevronUp, Clock, Image, Film, Radio
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { minutosDesdeSync } from '../../lib/totemStatus';
 
 interface Totem {
   id: string;
@@ -170,9 +171,7 @@ export default function AgencyTotemSettings() {
       };
     }
 
-    const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T'));
-    const now = new Date();
-    const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
+    const diffMinutes = minutosDesdeSync(totem);
 
     const isDeviceReportWorking = totem.status === 'FUNCIONANDO CORRETAMENTE'
       || (totem.ultima_informacao && totem.ultima_informacao.startsWith('Reproduzindo'));

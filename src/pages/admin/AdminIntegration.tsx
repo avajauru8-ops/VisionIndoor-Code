@@ -12,7 +12,7 @@ export default function AdminIntegration() {
     logo_url: '',
     show_apk_banner: true,
     apk_banner_title: 'Player Android',
-    apk_banner_desc: 'Baixe o APK para rodar suas playlists em Telas ou Totens.',
+    apk_banner_desc: 'Baixe o APK para rodar suas playlists em Telas.',
     apk_banner_btn_text: 'Instalar Player',
     apk_file_url: ''
   });
@@ -66,7 +66,7 @@ export default function AdminIntegration() {
       formData.append('nome_painel', settings.nome_painel || 'GrandMídia');
       formData.append('show_apk_banner', bannerOn ? 'true' : 'false');
       formData.append('apk_banner_title', settings.apk_banner_title || 'Player Android');
-      formData.append('apk_banner_desc', settings.apk_banner_desc || 'Baixe o APK para rodar suas playlists em Telas ou Totens.');
+      formData.append('apk_banner_desc', settings.apk_banner_desc || 'Baixe o APK para rodar suas playlists em Telas.');
       formData.append('apk_banner_btn_text', settings.apk_banner_btn_text || 'Instalar Player');
       
       if (settings.logo_url) {
@@ -104,7 +104,7 @@ export default function AdminIntegration() {
     <div className="space-y-8 max-w-4xl pb-12">
       <header>
         <h1 className="text-2xl font-extrabold text-[#0b462c] tracking-tight">Gerenciamento do Player Android</h1>
-        <p className="text-xs text-[#8b9aa5] font-medium mt-1">Configure o APK do totem, edite as informações do banner de download e gerencie a integração.</p>
+        <p className="text-xs text-[#8b9aa5] font-medium mt-1">Configure o APK da tela, edite as informações do banner de download e gerencie a integração.</p>
       </header>
 
       {/* Seção 1: Configuração do Banner & Upload de APK */}
@@ -219,7 +219,7 @@ export default function AdminIntegration() {
           </div>
           <div>
             <h2 className="text-base font-extrabold text-[#0b462c]">Configuração de Integração</h2>
-            <p className="text-xs text-zinc-400">Endpoints técnicos para o programador do totem.</p>
+            <p className="text-xs text-zinc-400">Endpoints técnicos para o programador da tela.</p>
           </div>
         </div>
         

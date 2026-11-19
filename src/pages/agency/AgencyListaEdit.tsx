@@ -6,7 +6,7 @@ import { LOTERIA_OPTIONS } from '../../lib/loterias';
 import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors, useDraggable, useDroppable } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { List, Settings, Save, X, Monitor, DownloadCloud, Plus, Copy, MinusCircle, Pencil, Clock, Cloud, Hash, Newspaper, Youtube, Quote } from 'lucide-react';
+import { List, Settings, Save, X, Monitor, DownloadCloud, Plus, Copy, MinusCircle, Pencil, Clock, Cloud, Hash, Newspaper, Youtube, Quote, Eye } from 'lucide-react';
 
 interface Media {
   id: string;
@@ -418,10 +418,86 @@ const WidgetSettings = ({ item, onUpdate }: { item: PlaylistItem, onUpdate: (key
   return null;
 }
 
-const SortableItem = ({ id, item, onRemove, onDuplicate, onTimeChange, onUpdateField, onSaveWidget }: { id: string, item: PlaylistItem, onRemove: () => void, onDuplicate: () => void, onTimeChange: (val: number) => void, onUpdateField: (key: string, value: string) => void, onSaveWidget?: () => void }) => {
+const MediaPreviewModal = ({ media, onClose }: { media: Media | null, onClose: () => void }) => {
+  if (!media) return null;
+
+  const isVideo = media.tipo_midia === 'video';
+
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const r = await fetch(media.arquivo_url);
+      const blob = await r.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = media.titulo || 'midia';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+    } catch {
+      window.open(media.arquivo_url, '_blank');
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[999] bg-black/80 flex items-center justify-center p-6"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-200 bg-white">
+          <span className="text-sm font-bold text-zinc-800 truncate pr-4">{media.titulo || 'Mídia'}</span>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleDownload}
+              title="Baixar mídia"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2ecc71] hover:bg-[#27ae60] text-white text-[10px] font-bold rounded uppercase transition-colors"
+            >
+              <DownloadCloud className="w-3.5 h-3.5" />
+              Baixar
+            </button>
+            <button
+              onClick={onClose}
+              title="Fechar"
+              className="p-1.5 text-zinc-400 hover:text-zinc-700 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 bg-zinc-900 flex items-center justify-center min-h-0">
+          {isVideo ? (
+            <video
+              key={media.arquivo_url}
+              src={media.arquivo_url}
+              className="max-h-[75vh] w-full"
+              controls
+              autoPlay
+              loop
+              playsInline
+            />
+          ) : (
+            <img
+              key={media.arquivo_url}
+              src={media.arquivo_url}
+              alt={media.titulo}
+              className="max-h-[75vh] w-auto max-w-full object-contain"
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SortableItem = ({ id, item, isEditing, onRemove, onDuplicate, onTimeChange, onUpdateField, onSaveWidget, onPreview }: { id: string, item: PlaylistItem, isEditing: boolean, onRemove: () => void, onDuplicate: () => void, onTimeChange: (val: number) => void, onUpdateField: (key: string, value: string) => void, onSaveWidget?: () => void, onPreview: () => void }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { type: 'playlist_item', item } });
-  
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -430,19 +506,29 @@ const SortableItem = ({ id, item, onRemove, onDuplicate, onTimeChange, onUpdateF
   };
 
   const isVideo = item.tipo_midia === 'video';
-  const Icon = item.tipo_midia === 'widget' ? widgetIconByName(item.widget_nome) : Monitor;
+  const isWidget = item.tipo_midia === 'widget';
+  const isMedia = (item.tipo_midia === 'video' || item.tipo_midia === 'imagem') && !!item.arquivo_url;
+  const Icon = isWidget ? widgetIconByName(item.widget_nome) : Monitor;
+
+  const dragProps = isEditing ? { ...attributes, ...listeners } : {};
 
   return (
     <div ref={setNodeRef} style={style} className={`group bg-white border-b border-zinc-100 last:border-b-0 transition-colors ${isDragging ? 'shadow-md ring-1 ring-[#2ecc71] relative' : 'hover:bg-zinc-50'}`}>
       {/* Linha */}
       <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-3 min-w-0 cursor-grab active:cursor-grabbing" {...attributes} {...listeners}>
+        <div
+          className={`flex items-center gap-3 min-w-0 ${isEditing ? 'cursor-grab active:cursor-grabbing' : isMedia ? 'cursor-pointer' : 'cursor-default'}`}
+          onClick={() => { if (!isEditing && isMedia) onPreview(); }}
+          title={isMedia && !isEditing ? 'Clique para pré-visualizar' : undefined}
+          {...dragProps}
+        >
           <Icon className="w-4 h-4 text-zinc-700 shrink-0" />
           <span className="text-[13px] text-zinc-800 truncate">
             {item.arquivo_titulo || item.widget_nome || 'Mídia'}
           </span>
         </div>
 
+        {isEditing && (
         <div className="flex items-center gap-3 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
           <button onClick={onDuplicate} title="Duplicar" className="text-[#2ecc71] hover:text-[#27ae60] transition-colors">
             <Copy style={{ width: 18, height: 18 }} />
@@ -454,10 +540,11 @@ const SortableItem = ({ id, item, onRemove, onDuplicate, onTimeChange, onUpdateF
             <MinusCircle style={{ width: 18, height: 18 }} />
           </button>
         </div>
+        )}
       </div>
 
       {/* Body / Settings */}
-      {isSettingsOpen && (
+      {isEditing && isSettingsOpen && (
       <div className="p-4 bg-zinc-50/50 space-y-4">
         
         <div className="flex items-center justify-end gap-4">
@@ -543,33 +630,52 @@ const SortableItem = ({ id, item, onRemove, onDuplicate, onTimeChange, onUpdateF
   );
 };
 
-const DraggableLibraryItem = ({ media, onAdd }: { media: Media, onAdd: () => void }) => {
+const DraggableLibraryItem = ({ media, isEditing, onAdd, onPreview }: { media: Media, isEditing: boolean, onAdd: () => void, onPreview: () => void }) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `lib-${media.id}`,
     data: { type: 'library_item', media }
   });
 
-  const Icon = media.tipo_midia === 'widget' ? widgetIconByName(media.arquivo_url) : Monitor;
+  const isWidget = media.tipo_midia === 'widget';
+  const isMedia = (media.tipo_midia === 'video' || media.tipo_midia === 'imagem') && !!media.arquivo_url;
+  const Icon = isWidget ? widgetIconByName(media.arquivo_url) : Monitor;
+
+  const dragProps = isEditing ? { ...attributes, ...listeners } : {};
 
   return (
-    <div 
+    <div
       ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      className={`flex items-center justify-between px-4 py-3 border-b border-zinc-100 bg-white transition-colors cursor-grab active:cursor-grabbing group ${isDragging ? 'opacity-50' : 'hover:bg-zinc-50'}`}
+      {...dragProps}
+      onClick={() => { if (!isEditing && isMedia) onPreview(); }}
+      title={isMedia && !isEditing ? 'Clique para pré-visualizar' : undefined}
+      className={`flex items-center justify-between px-4 py-3 border-b border-zinc-100 bg-white transition-colors group ${isDragging ? 'opacity-50' : 'hover:bg-zinc-50'} ${isEditing ? 'cursor-grab active:cursor-grabbing' : isMedia ? 'cursor-pointer' : 'cursor-default'}`}
     >
       <div className="flex items-center gap-3 min-w-0 pointer-events-none">
         <Icon className="w-4 h-4 text-zinc-700 shrink-0" />
         <span className="text-[13px] text-zinc-800 truncate">{media.titulo || 'Mídia'}</span>
       </div>
-      <button
-        onClick={(e) => { e.stopPropagation(); onAdd(); }}
-        onPointerDown={(e) => e.stopPropagation()}
-        title="Adicionar à lista"
-        className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 bg-[#2ecc71] hover:bg-[#27ae60] text-white rounded transition-all shrink-0 relative z-10"
-      >
-        <Plus className="w-4 h-4" />
-      </button>
+      {isEditing && (
+        <div className="flex items-center gap-1.5 shrink-0 relative z-10">
+          {isMedia && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onPreview(); }}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Visualizar mídia"
+              className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 bg-[#0066ff] hover:bg-[#0052cc] text-white rounded transition-all"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+          )}
+          <button
+            onClick={(e) => { e.stopPropagation(); onAdd(); }}
+            onPointerDown={(e) => e.stopPropagation()}
+            title="Adicionar à lista"
+            className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 bg-[#2ecc71] hover:bg-[#27ae60] text-white rounded transition-all"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -600,6 +706,7 @@ export default function AgencyListaEdit() {
   const [saving, setSaving] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [previewMedia, setPreviewMedia] = useState<Media | null>(null);
 
   useEffect(() => {
     loadData();
@@ -894,7 +1001,7 @@ export default function AgencyListaEdit() {
           </div>
 
           <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${!isEditing ? 'opacity-70 pointer-events-none' : ''}`}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Library Panel (Left) */}
               <div className="border border-zinc-200 rounded flex flex-col h-[500px]">
@@ -923,18 +1030,18 @@ export default function AgencyListaEdit() {
                 </div>
                 <div className="flex-1 overflow-y-auto">
                    {libraryTab === 'entretenimentos' ? (
-                      WIDGETS_BASE
-                        .filter(media => (media.titulo || '').toLowerCase().includes(libSearch.toLowerCase()))
-                        .map(media => (
-                        <DraggableLibraryItem key={media.id} media={media} onAdd={() => handleAddItem(media)} />
-                      ))
+                       WIDGETS_BASE
+                         .filter(media => (media.titulo || '').toLowerCase().includes(libSearch.toLowerCase()))
+                         .map(media => (
+                         <DraggableLibraryItem key={media.id} media={media} isEditing={isEditing} onAdd={() => handleAddItem(media)} onPreview={() => setPreviewMedia(null)} />
+                       ))
                    ) : libraryTab === 'arquivos' ? (
                      library
                        .filter(media => media.tipo_midia === 'imagem' || media.tipo_midia === 'video')
                        .filter(media => (media.titulo || '').toLowerCase().includes(libSearch.toLowerCase()))
                        .map(media => (
-                        <DraggableLibraryItem key={media.id} media={media} onAdd={() => handleAddItem(media)} />
-                     ))
+                        <DraggableLibraryItem key={media.id} media={media} isEditing={isEditing} onAdd={() => handleAddItem(media)} onPreview={() => setPreviewMedia(media)} />
+                      ))
                    ) : (
                      <div className="text-center text-xs text-zinc-400 mt-4">Nenhuma ferramenta disponível.</div>
                    )}
@@ -970,15 +1077,22 @@ export default function AgencyListaEdit() {
                           {items
                             .filter(item => (item.arquivo_titulo || item.widget_nome || '').toLowerCase().includes(itemSearch.toLowerCase()))
                             .map(item => (
-                            <SortableItem 
-                              key={item.unique_id} 
-                              id={item.unique_id!} 
-                              item={item} 
+                            <SortableItem
+                              key={item.unique_id}
+                              id={item.unique_id!}
+                              item={item}
+                              isEditing={isEditing}
                               onRemove={() => handleRemoveItem(item.unique_id!)}
                               onDuplicate={() => handleDuplicateItem(item)}
                               onTimeChange={(val) => handleChangeTime(item.unique_id!, val)}
                               onUpdateField={(key, val) => handleUpdateField(item.unique_id!, key, val)}
                               onSaveWidget={handleSave}
+                              onPreview={() => setPreviewMedia({
+                                id: item.campanha_id || item.unique_id || '',
+                                titulo: item.arquivo_titulo || item.widget_nome || 'Mídia',
+                                tipo_midia: item.tipo_midia || 'video',
+                                arquivo_url: item.arquivo_url || ''
+                              })}
                             />
                           ))}
                         </SortableContext>
@@ -999,6 +1113,8 @@ export default function AgencyListaEdit() {
         </div>
 
       </div>
+
+      <MediaPreviewModal media={previewMedia} onClose={() => setPreviewMedia(null)} />
     </div>
   );
 }

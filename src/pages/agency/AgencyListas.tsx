@@ -62,7 +62,7 @@ export default function AgencyListas() {
   };
 
   const handleDelete = async (id: string, nome: string) => {
-    if (!window.confirm(`Tem certeza que deseja excluir a lista "${nome}"? Esta ação removerá a lista de todos os totens vinculados.`)) {
+    if (!window.confirm(`Tem certeza que deseja excluir a lista "${nome}"? Esta ação removerá a lista de todas as telas vinculadas.`)) {
       return;
     }
     try {

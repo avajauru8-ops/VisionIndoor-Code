@@ -48,7 +48,7 @@ export default function Layout() {
     logo_url: '',
     show_apk_banner: true,
     apk_banner_title: 'Player Android',
-    apk_banner_desc: 'Baixe o APK para rodar suas playlists em Telas ou Totens.',
+    apk_banner_desc: 'Baixe o APK para rodar suas playlists em Telas.',
     apk_banner_btn_text: 'Instalar Player',
     apk_file_url: ''
   });
@@ -138,7 +138,7 @@ export default function Layout() {
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, category: 'MENU' },
     { name: 'Usuários & Licenças', path: '/admin/users', icon: Users, category: 'MENU' },
     { name: 'Planos & Assinaturas', path: '/admin/assinaturas', icon: CreditCard, category: 'MENU' },
-    { name: 'Totens Cadastrados', path: '/admin/totems', icon: Tv, category: 'MENU' },
+    { name: 'Telas Cadastradas', path: '/admin/totems', icon: Tv, category: 'MENU' },
     { name: 'Player Android', path: '/admin/integration', icon: Smartphone, category: 'MENU' },
     { name: 'Gestão de Widgets', path: '/admin/widgets', icon: LayoutTemplate, category: 'MENU' },
     { name: 'Atualizações do App', path: '/admin/app-updates', icon: RefreshCw, category: 'MENU' },
@@ -320,7 +320,7 @@ export default function Layout() {
               </div>
               <p className="font-bold text-white text-xs leading-tight">{sysSettings.apk_banner_title || 'Player Android'}</p>
               <p className="text-[10px] text-emerald-200/80 leading-normal">
-                {sysSettings.apk_banner_desc || 'Baixe o APK para rodar suas playlists em Telas ou Totens.'}
+                {sysSettings.apk_banner_desc || 'Baixe o APK para rodar suas playlists em Telas.'}
               </p>
               {sysSettings.apk_file_url ? (
                 <a 

@@ -1,6 +1,7 @@
 export interface TotemStatusData {
   status?: string;
   ultima_sincronizacao?: string | null;
+  minutos_desde_sync?: number | null;
   ultima_informacao?: string;
   horario_inicio?: string;
   horario_fim?: string;
@@ -9,6 +10,21 @@ export interface TotemStatusData {
   fuso_horario?: string;
   playlist_id?: string | null;
   agendamentos?: any[] | string | null;
+}
+
+/** Minutos desde o último heartbeat: usa o valor calculado pelo servidor
+ * (fuso America/Sao_Paulo) quando disponivel; fallback para o relogio local. */
+export function minutosDesdeSync(totem: TotemStatusData): number | null {
+  if (typeof totem.minutos_desde_sync === 'number' && !Number.isNaN(totem.minutos_desde_sync)) {
+    return totem.minutos_desde_sync;
+  }
+  if (!totem.ultima_sincronizacao) return null;
+  try {
+    const lastSync = new Date(totem.ultima_sincronizacao.replace(' ', 'T'));
+    return (Date.now() - lastSync.getTime()) / (1000 * 60);
+  } catch {
+    return null;
+  }
 }
 
 function getCurrentMinutesInTz(fusoHorario?: string): number {
@@ -92,19 +108,13 @@ function hasActiveScheduleNow(totem: TotemStatusData): boolean {
 }
 
 export function getTotemStatus(totem: TotemStatusData): { color: string; label: string; dotClass: string; iconBg: string } {
-  if (!totem.ultima_sincronizacao) {
+  const diffMinutes = minutosDesdeSync(totem);
+  if (diffMinutes === null) {
     if (isOutsideWorkingHours(totem)) {
       return { color: 'bg-zinc-100 text-zinc-400 border border-zinc-200', label: 'Offline', dotClass: 'bg-zinc-300', iconBg: 'bg-[#bdc3c7]' };
     }
     return { color: 'bg-rose-50 text-rose-600 border border-rose-100', label: 'Sem Comunicação', dotClass: 'bg-rose-500', iconBg: 'bg-[#e74c3c]' };
   }
-
-  const lastSync = new Date(
-    totem.ultima_sincronizacao.replace(' ', 'T') +
-    (totem.ultima_sincronizacao.includes('Z') || totem.ultima_sincronizacao.includes('+') ? '' : '')
-  );
-  const now = new Date();
-  const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
 
   // Se nao sincronizou nos ultimos 5 minutos, esta offline
   if (diffMinutes > 5 || diffMinutes < -5) {

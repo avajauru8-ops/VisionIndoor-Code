@@ -59,6 +59,16 @@ $routes->group('api', ['filter' => 'cors'], static function ($routes) {
         $routes->post('upload', 'Widgets::upload');
     });
 
+    // Admin Atualizações do App (pop-up de atualização no player)
+    $routes->group('admin/app-updates', ['filter' => 'auth:admin'], static function ($routes) {
+        $routes->get('/', 'AppUpdates::index');
+        $routes->get('', 'AppUpdates::index');
+        $routes->post('', 'AppUpdates::create');
+        $routes->put('(:segment)', 'AppUpdates::update/$1');
+        $routes->post('(:segment)', 'AppUpdates::update/$1');
+        $routes->delete('(:segment)', 'AppUpdates::delete/$1');
+    });
+
     // Totems
     $routes->group('totems', ['filter' => 'auth'], static function ($routes) {
         $routes->get('/', 'Totems::index');
@@ -135,6 +145,20 @@ $routes->get('api/check-columns', 'Api::checkColumns', ['filter' => 'cors']);
 $routes->get('api/debug-devices', 'Api::debugDevices', ['filter' => 'cors']);
 $routes->post('api.php', 'Api::getPlaylist', ['filter' => 'cors']);
 $routes->post('api/get_playlist.php', 'Api::getPlaylist', ['filter' => 'cors']);
+
+// --- Player Android (Adeus Pendrive / player3) ---
+// O app monta: {base}/player{versao}/{rota}/{deviceKey} -> ex: /player3_12/xml/KEY
+foreach (['player3_12', '3_12'] as $playerPrefix) {
+    $routes->group($playerPrefix, ['filter' => 'cors'], static function ($routes) {
+        $routes->get('xml/(:segment)', 'Player3::xml/$1');
+        $routes->post('xml/(:segment)', 'Player3::xmlPost/$1');
+        $routes->get('generatecode/(:segment)', 'Player3::generatecode/$1');
+        $routes->post('getonlinecommand2/(:segment)', 'Player3::getCommand/$1');
+        $routes->post('putonlinecommand2/(:segment)', 'Player3::putCommand/$1');
+        $routes->post('putonlinelog/(:segment)', 'Player3::putLog/$1');
+        $routes->post('putscreenshot/(:segment)', 'Player3::putScreenshot/$1');
+    });
+}
 
 // --- Frontend (React) ---
 // MUST BE AT THE BOTTOM! Routes are processed top-to-bottom.

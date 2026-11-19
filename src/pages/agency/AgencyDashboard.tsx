@@ -46,7 +46,7 @@ export default function AgencyDashboard() {
           ? listasData.filter((l: any) => l.totens_vinculados > 0)
           : [];
         setActivePlaylistsCount(activePlaylists.length);
-        
+
         let online = 0;
         let offline = 0;
         totemsData.forEach((t: any) => {
@@ -55,6 +55,14 @@ export default function AgencyDashboard() {
           else offline++;
         });
         setStats({ online, offline, total: totemsData.length });
+
+        // Telas Recentes: mais recentemente conectadas primeiro
+        const recentes = [...totemsData].sort((a: any, b: any) => {
+          const ma = typeof a.minutos_desde_sync === 'number' ? a.minutos_desde_sync : Number.MAX_SAFE_INTEGER;
+          const mb = typeof b.minutos_desde_sync === 'number' ? b.minutos_desde_sync : Number.MAX_SAFE_INTEGER;
+          return ma - mb;
+        });
+        setTotems(recentes);
       } catch (error) {
         console.error(error);
       } finally {
@@ -62,6 +70,9 @@ export default function AgencyDashboard() {
       }
     };
     loadStats();
+    // Atualiza status em tempo real (30s)
+    const intervalId = setInterval(loadStats, 30000);
+    return () => clearInterval(intervalId);
   }, []);
 
   // Calculated network health percentage
@@ -210,7 +221,7 @@ export default function AgencyDashboard() {
               <span className="w-2 h-2 mt-1.5 bg-amber-500 rounded-full shrink-0"></span>
               <div>
                 <p className="text-xs font-bold text-amber-800">Próximos Vencimentos</p>
-                <p className="text-[10px] text-zinc-500 mt-0.5">Renove as licenças dos totens da agência até o próximo mês.</p>
+                <p className="text-[10px] text-zinc-500 mt-0.5">Renove as licenças das telas da agência até o próximo mês.</p>
               </div>
             </div>
           </div>
@@ -228,7 +239,7 @@ export default function AgencyDashboard() {
           <div className="flex justify-between items-center">
             <div>
               <h4 className="text-sm font-extrabold text-[#0b462c] uppercase tracking-wider">Telas Recentes</h4>
-              <p className="text-[10px] text-[#8b9aa5] mt-1">Conexão recente dos totens</p>
+              <p className="text-[10px] text-[#8b9aa5] mt-1">Conexão recente das telas</p>
             </div>
             <Link 
               to="/agency/totems" 
@@ -275,7 +286,7 @@ export default function AgencyDashboard() {
         <div className="bg-white border border-[#e8edf2] rounded-[24px] p-6 shadow-sm min-h-[280px] flex flex-col justify-between">
           <div>
             <h4 className="text-sm font-extrabold text-[#0b462c] uppercase tracking-wider">Saúde da Rede</h4>
-            <p className="text-[10px] text-[#8b9aa5] mt-1">Percentual de conexão geral dos totens</p>
+            <p className="text-[10px] text-[#8b9aa5] mt-1">Percentual de conexão geral das telas</p>
           </div>
 
           <div className="relative h-28 my-2 flex items-center justify-center">

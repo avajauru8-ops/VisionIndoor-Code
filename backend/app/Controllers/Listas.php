@@ -141,7 +141,9 @@ class Listas extends ResourceController
             if ($db->transStatus() === false) {
                 return $this->fail('Erro ao salvar itens da lista');
             }
-            
+
+            $this->notifyTotemsDaLista($db, (int)$id);
+
             return $this->respond(['success' => true]);
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
@@ -252,6 +254,8 @@ class Listas extends ResourceController
                 return $this->fail('Erro ao inserir arquivos na lista');
             }
 
+            $this->notifyTotemsDaLista($db, (int)$id);
+
             return $this->respond([
                 'success'     => true,
                 'inseridos'   => count($novos),
@@ -273,6 +277,19 @@ class Listas extends ResourceController
             return $this->respondDeleted(['success' => true]);
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
+    /** Enfileira comando de atualizacao nas telas vinculadas a esta lista. */
+    private function notifyTotemsDaLista($db, int $playlistId): void
+    {
+        try {
+            $db->table('totens')->where('playlist_id', $playlistId)->update([
+                'comando_acao' => 'atualizar',
+                'comando_id' => (string) time(),
+            ]);
+        } catch (\Exception $e) {
+            // ignora
         }
     }
 }

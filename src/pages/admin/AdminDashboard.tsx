@@ -100,7 +100,7 @@ export default function AdminDashboard() {
         {/* Card 2: Totens Totais */}
         <Link to="/admin/totems" className="bg-white border border-[#e8edf2] p-6 rounded-[24px] shadow-sm flex flex-col justify-between min-h-[140px] group hover:-translate-y-1 transition-all duration-300 block">
           <div className="flex justify-between items-start">
-            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#8b9aa5]">Totens Globais</span>
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#8b9aa5]">Telas Globais</span>
             <span className="w-8 h-8 rounded-full bg-[#f4f6f8] flex items-center justify-center text-[#0b462c] text-xs">
               <ArrowUpRight className="w-4 h-4" />
             </span>

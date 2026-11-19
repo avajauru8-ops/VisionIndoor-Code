@@ -22,13 +22,15 @@ class Totems extends ResourceController
             }
             
             $totens = $builder->get()->getResultArray();
-            
+            $agora = new \DateTime('now', new \DateTimeZone('America/Sao_Paulo'));
+
             foreach ($totens as &$t) {
                 $t['id'] = (string)$t['id'];
                 // fallback if data_cadastro is missing but created_at exists
                 if (!isset($t['data_cadastro']) && isset($t['created_at'])) {
                     $t['data_cadastro'] = $t['created_at'];
                 }
+                $t['minutos_desde_sync'] = $this->minutosDesdeSync($agora, $t);
             }
             
             return $this->respond($totens);
@@ -61,6 +63,8 @@ class Totems extends ResourceController
             if (!isset($totem['data_cadastro']) && isset($totem['created_at'])) {
                 $totem['data_cadastro'] = $totem['created_at'];
             }
+            $agora = new \DateTime('now', new \DateTimeZone('America/Sao_Paulo'));
+            $totem['minutos_desde_sync'] = $this->minutosDesdeSync($agora, $totem);
             // Decode agendamentos JSON
             if (isset($totem['agendamentos']) && is_string($totem['agendamentos'])) {
                 $totem['agendamentos'] = json_decode($totem['agendamentos'], true) ?? [];
@@ -68,6 +72,20 @@ class Totems extends ResourceController
             return $this->respond($totem);
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
+    /** Minutos desde o último heartbeat, medidos no fuso do servidor (SP). */
+    private function minutosDesdeSync(\DateTime $agora, array $totem)
+    {
+        if (empty($totem['ultima_sincronizacao'])) {
+            return null;
+        }
+        try {
+            $last = new \DateTime((string) $totem['ultima_sincronizacao'], new \DateTimeZone('America/Sao_Paulo'));
+            return (int) round(($agora->getTimestamp() - $last->getTimestamp()) / 60);
+        } catch (\Exception $e) {
+            return null;
         }
     }
 
@@ -109,11 +127,31 @@ class Totems extends ResourceController
                 $nome = $deviceIdNorm . ' - TV - ' . date('d/m/Y');
             }
 
+            // Vinculação por código: se o código digitado corresponde ao codigo_curto
+            // de uma tela pendente (criada pelo player aguardando vínculo), vincula
+            // essa tela ao usuário em vez de criar uma nova com device_id = código.
+            $pending = $db->table('totens')
+                ->where('UPPER(codigo_curto)', $deviceIdNorm)
+                ->get()->getRowArray();
+            if ($pending && empty($pending['playlist_id'])) {
+                $db->table('totens')->where('id', $pending['id'])
+                    ->update([
+                        'usuario_id' => $user_id,
+                        'nome' => $nome,
+                        'status' => 'offline',
+                        'vinculado' => 1,
+                    ]);
+                return $this->respondCreated(['id' => (string) $pending['id'], 'vinculado' => true]);
+            }
+
+            // Tela criada pelo painel (painel-first): o usuário vai digitar o
+            // código dela na TV — já entra como vinculada (aguarda playlist).
             $data = [
                 'nome' => $nome,
                 'device_id' => $deviceIdNorm,
                 'usuario_id' => $user_id,
-                'status' => 'offline'
+                'status' => 'offline',
+                'vinculado' => 1,
             ];
             
             $db->table('totens')->insert($data);
@@ -148,8 +186,11 @@ class Totems extends ResourceController
             if (property_exists($json, 'horario_fim')) $data['horario_fim'] = $json->horario_fim;
             if (property_exists($json, 'playlist_id')) $data['playlist_id'] = empty($json->playlist_id) ? null : $json->playlist_id;
             if (property_exists($json, 'agendamentos')) $data['agendamentos'] = json_encode($json->agendamentos);
-            
+            // Salvar a tela no painel implica vínculo (permite ativar sem playlist)
             if (!empty($data)) {
+                $data['vinculado'] = 1;
+                $data['comando_acao'] = 'atualizar';
+                $data['comando_id'] = (string) time();
                 $db->table('totens')->where('id', $id)->update($data);
             }
             

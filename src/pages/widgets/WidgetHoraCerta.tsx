@@ -54,13 +54,12 @@ function hexToRgba(hex: string, alpha: number): string {
 export default function WidgetHoraCerta() {
   const [time, setTime] = useState(new Date());
   const [config, setConfig] = useState<WidgetConfig>({});
-  const [configLoaded, setConfigLoaded] = useState(false);
 
   useEffect(() => {
     fetch('/api/widget-config/horacerta')
       .then(res => res.json())
-      .then(data => { setConfig(data || {}); setConfigLoaded(true); })
-      .catch(() => { setConfig({}); setConfigLoaded(true); });
+      .then(data => setConfig(data || {}))
+      .catch(() => setConfig({}));
   }, []);
 
   useEffect(() => {
@@ -87,17 +86,6 @@ export default function WidgetHoraCerta() {
   const corData = wc.cor_data || getUrlParam('cor_data') || '#d0d0d0';
   const corPill = wc.cor_pill || getUrlParam('cor_pill') || '#ffffff';
   const fontSizeData = wc.fonte_data || getUrlParam('fonte_data') || config.fonte_data || '';
-
-  if (!configLoaded) {
-    return (
-      <div className="whc-loading">
-        <style dangerouslySetInnerHTML={{ __html: `
-          .whc-loading { width:100%; height:100%; background:#050505; display:flex; align-items:center; justify-content:center; }
-        `}} />
-        <div style={{ color: '#666', fontSize: '3vh' }}>Carregando...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="whc-root">

@@ -48,11 +48,11 @@ export default function AdminTotems() {
         method: 'PUT',
         body: JSON.stringify({ nome: editNome, device_id: editDeviceId }),
       });
-      alert('Totem atualizado com sucesso!');
+      alert('Tela atualizada com sucesso!');
       setEditingTotem(null);
       loadTotems();
     } catch (err: any) {
-      alert(err.message || 'Erro ao atualizar totem.');
+      alert(err.message || 'Erro ao atualizar tela.');
     } finally {
       setSaving(false);
     }
@@ -64,11 +64,11 @@ export default function AdminTotems() {
       await apiFetch(`/api/totems/${deletingTotem.id}`, {
         method: 'DELETE',
       });
-      alert('Totem removido com sucesso!');
+      alert('Tela removida com sucesso!');
       setDeletingTotem(null);
       loadTotems();
     } catch (err: any) {
-      alert(err.message || 'Erro ao remover totem.');
+      alert(err.message || 'Erro ao remover tela.');
     }
   };
 
@@ -85,10 +85,10 @@ export default function AdminTotems() {
         <div>
           <h2 className="text-2xl font-extrabold text-[#0b462c] tracking-tight flex items-center gap-2">
             <Tv className="w-6 h-6 text-emerald-600" />
-            Totens Cadastrados
+            Telas Cadastradas
           </h2>
           <p className="text-xs text-[#8b9aa5] font-medium mt-1">
-            Monitore e gerencie todos os dispositivos totens/telas cadastrados por agências.
+            Monitore e gerencie todos os dispositivos telas cadastrados por agências.
           </p>
         </div>
         
@@ -110,9 +110,9 @@ export default function AdminTotems() {
       <div className="bg-white border border-[#e8edf2] rounded-[24px] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="p-12 text-center text-sm text-zinc-400">Carregando totens...</div>
+            <div className="p-12 text-center text-sm text-zinc-400">Carregando telas...</div>
           ) : filteredTotems.length === 0 ? (
-            <div className="p-12 text-center text-sm text-zinc-400">Nenhum totem cadastrado encontrado.</div>
+            <div className="p-12 text-center text-sm text-zinc-400">Nenhuma tela cadastrada encontrada.</div>
           ) : (
             <table className="w-full text-left text-xs font-sans text-zinc-600">
               <thead className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 border-b border-[#e8edf2] bg-zinc-50/50">
@@ -196,7 +196,7 @@ export default function AdminTotems() {
             
             <form onSubmit={handleSaveEdit} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Nome do Totem</label>
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Nome da Tela</label>
                 <input 
                   type="text" 
                   required
@@ -248,7 +248,7 @@ export default function AdminTotems() {
             </div>
             
             <p className="text-sm text-zinc-600 leading-relaxed mb-6">
-              Tem certeza que deseja remover o totem <strong className="text-zinc-800">"{deletingTotem.nome}"</strong> ({deletingTotem.device_id})? 
+              Tem certeza que deseja remover a tela <strong className="text-zinc-800">"{deletingTotem.nome}"</strong> ({deletingTotem.device_id})? 
               Essa ação é definitiva e desconectará o dispositivo da rede de exibição imediatamente.
             </p>
 

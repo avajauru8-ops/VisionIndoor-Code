@@ -664,6 +664,9 @@ class Playlists extends ResourceController
             if ($data) {
                 $db->table('campanhas')->where('id', $id)->update($data);
             }
+            if ($data) {
+                $this->notifyTotemsDaCampanha($db, (int)$id);
+            }
             return $this->response->setJSON(['success' => true]);
         } catch (\Throwable $e) {
             $status = str_starts_with($e->getMessage(), 'Tipo de arquivo não permitido') ? 400 : 500;
@@ -677,9 +680,26 @@ class Playlists extends ResourceController
         try {
             $db = \Config\Database::connect();
             $db->table('campanhas')->where('id', $id)->delete();
+            $this->notifyTotemsDaCampanha($db, (int)$id);
             return $this->respondDeleted(['success' => true]);
         } catch (\Exception $e) {
             return $this->response->setJSON(['error' => 'Erro DB/PHP: ' . $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
+    /** Enfileira comando de atualizacao nas telas que exibem listas com esta midia. */
+    private function notifyTotemsDaCampanha($db, int $campanhaId): void
+    {
+        try {
+            $db->query(
+                "UPDATE totens t
+                    JOIN playlist_itens pi ON pi.playlist_id = t.id
+                    SET t.comando_acao = 'atualizar', t.comando_id = ?
+                    WHERE pi.campanha_id = ?",
+                [(string) time(), $campanhaId]
+            );
+        } catch (\Exception $e) {
+            // ignora
         }
     }
 }
